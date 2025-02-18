@@ -1,4 +1,18 @@
 linters:
     enable-all: true
     disable:
-        - exportloopref
+        - nlreturn
+        - varnamelen
+        - wsl
+        - perfsprint
+        - depguard
+        - forbidigo
+        - exhaustruct
+        - tenv
+
+linters-settings:
+    gci:
+        sections:
+            - standard # Standard lib
+            - default # External dependencies
+            - prefix(github.com/bjlag/go-keeper) # Internal packages

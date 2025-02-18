@@ -14,9 +14,11 @@
 
 # Binaries
 cmd/client/main
-cmd/client/agent
+cmd/client/client
 cmd/server/main
 cmd/server/server
+cmd/migrator/main
+cmd/migrator/migrator
 
 # Dependency directories (remove the comment below to include it)
 vendor/
