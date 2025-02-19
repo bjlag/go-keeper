@@ -9,6 +9,9 @@ linters:
         - forbidigo
         - exhaustruct
         - tenv
+        - tagalign
+        - nosprintfhostport
+        - lll
 
 linters-settings:
     gci:

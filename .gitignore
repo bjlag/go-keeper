@@ -27,5 +27,5 @@ vendor/
 .idea
 .vscode
 
-# Data
-data/
+# Configs
+config/migrator.yaml

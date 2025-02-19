@@ -9,35 +9,54 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/ilyakaznacheev/cleanenv"
 
 	"github.com/bjlag/go-keeper/internal/infrastructure/db/pg"
 )
 
 const (
-	sourcePathDefault = "./migrations"
+	configPathDefault = "./config/migrator.yaml"
 )
 
 func main() {
-	var sourcePath string
+	var configPath string
 
-	flag.StringVar(&sourcePath, "dir", sourcePathDefault, "Migrations directory")
+	flag.StringVar(&configPath, "c", configPathDefault, "Configuration directory")
 	flag.Parse()
 
-	fmt.Println("Migrations directory: ", sourcePath)
+	var cfg Config
+	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
+		log.Fatal(err)
+	}
 
-	dsn := "postgresql://postgres:secret@localhost:5444/master?sslmode=disable"
+	fmt.Println("Environment: ", cfg.Env)
+	fmt.Println("Migrations directory: ", cfg.SourcePath)
+	fmt.Println("Migrations table name: ", cfg.MigrationsTable)
+	fmt.Println("Database host: ", cfg.Database.Host)
+	fmt.Println("Database port: ", cfg.Database.Port)
+	fmt.Println("Database name: ", cfg.Database.Name)
+	fmt.Println("Database user: ", cfg.Database.User)
+
+	dsn := fmt.Sprintf(
+		"postgresql://%s:%s@%s:%s/%s?sslmode=disable",
+		cfg.Database.User,
+		cfg.Database.Password,
+		cfg.Database.Host,
+		cfg.Database.Port,
+		cfg.Database.Name,
+	)
 	db := pg.New(dsn).Connect()
 
 	driver, err := pgx.WithInstance(db.DB, &pgx.Config{
-		MigrationsTable: "migrations",
+		MigrationsTable: cfg.MigrationsTable,
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		fmt.Sprintf("file://%s", sourcePath),
-		"master",
+		fmt.Sprintf("file://%s", cfg.SourcePath),
+		cfg.Database.Name,
 		driver,
 	)
 	if err != nil {

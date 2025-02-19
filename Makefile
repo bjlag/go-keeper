@@ -47,7 +47,7 @@ docker-down-clear:
 .PHONY: migrate
 migrate:
 	@echo " > Apply migrations"
-	@go run $(DIR)/cmd/migrator/main.go -dir="./migrations"
+	@go run $(DIR)/cmd/migrator -c="./config/migrator.yaml"
 
 ## lint: start linter
 .PHONY: lint
