@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package keeper;
+
+option go_package = "internal/generated/rpc";
+
+service Keeper {
+  rpc Register(RegisterIn) returns (RegisterOut);
+}
+
+message RegisterIn {
+  string email = 1;
+  string password = 2;
+}
+
+message RegisterOut {
+    string access_token = 1;
+    string refresh_token = 2;
+}
