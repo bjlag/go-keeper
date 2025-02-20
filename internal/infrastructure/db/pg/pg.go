@@ -1,7 +1,7 @@
 package pg
 
 import (
-	"log"
+	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -25,10 +25,12 @@ func New(dsn string) *PG {
 	}
 }
 
-func (p *PG) Connect() *sqlx.DB {
+func (p *PG) Connect() (*sqlx.DB, error) {
+	const op = "pg.Connect"
+
 	db, err := sqlx.Connect("pgx", p.dsn)
 	if err != nil {
-		log.Panic(err)
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	db.SetMaxOpenConns(maxOpenConnects)
@@ -36,5 +38,5 @@ func (p *PG) Connect() *sqlx.DB {
 	db.SetConnMaxLifetime(connMaxLifetime)
 	db.SetConnMaxIdleTime(connMaxIdleTime)
 
-	return db
+	return db, nil
 }

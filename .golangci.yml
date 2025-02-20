@@ -12,6 +12,10 @@ linters:
         - tagalign
         - nosprintfhostport
         - lll
+        - loggercheck
+        - paralleltest
+        - tagliatelle
+        - gochecknoglobals
 
 linters-settings:
     gci:
