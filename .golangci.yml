@@ -16,6 +16,8 @@ linters:
         - paralleltest
         - tagliatelle
         - gochecknoglobals
+        - nonamedreturns
+        - wrapcheck
 
 linters-settings:
     gci:

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	_ "github.com/jackc/pgx/v5/stdlib" // pgx driver
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // postgres driver
 )

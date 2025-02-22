@@ -30,7 +30,7 @@ func main() {
 
 	var configPath string
 
-	flag.StringVar(&configPath, "c", configPathDefault, "Configuration directory")
+	flag.StringVar(&configPath, "c", configPathDefault, "Path to config file")
 	flag.Parse()
 
 	var cfg Config

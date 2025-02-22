@@ -1,5 +1,7 @@
 package app
 
+import "time"
+
 type Config struct {
 	Env string `yaml:"env" env:"ENV" env-default:"dev" env-description:"Environment" json:"env"`
 
@@ -7,6 +9,12 @@ type Config struct {
 		Host string `yaml:"host" env:"ADDRESS_HOST" env-description:"Server address host" json:"host"`
 		Port int    `yaml:"port" env:"ADDRESS_PORT" env-description:"Server address port" json:"port"`
 	} `yaml:"address" json:"address"`
+
+	Auth struct {
+		AccessTokenExp  time.Duration `yaml:"accessTokenExp" env:"ACCESS_TOKEN_EXP" env-description:"Access token expiration" json:"access_token_exp"`
+		RefreshTokenExp time.Duration `yaml:"refreshTokenExp" env:"REFRESH_TOKEN_EXP" env-description:"Refresh token expiration" json:"refresh_token_exp"`
+		SecretKey       string        `yaml:"secretKey" env:"SECRET_KEY" env-description:"Secret key" json:"secret_key"`
+	} `yaml:"auth" json:"auth"`
 
 	Database struct {
 		Host     string `yaml:"host" env:"DB_HOST" env-description:"Database host" json:"host"`

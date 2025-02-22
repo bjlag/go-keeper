@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"context"
 	"os"
 	"runtime"
 	"sync"
@@ -8,6 +9,10 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
+
+type ctxKeyLogger int
+
+const IDLoggerKey ctxKeyLogger = 0
 
 var (
 	once   sync.Once
@@ -35,4 +40,24 @@ func Get(env string) *zap.Logger {
 	})
 
 	return logger
+}
+
+func FromCtx(ctx context.Context) *zap.Logger {
+	if l, ok := ctx.Value(IDLoggerKey).(*zap.Logger); ok {
+		return l
+	} else if l := logger; l != nil {
+		return l
+	}
+
+	return zap.NewNop()
+}
+
+func WithCtx(ctx context.Context, l *zap.Logger) context.Context {
+	if lp, ok := ctx.Value(IDLoggerKey).(*zap.Logger); ok {
+		if lp == l {
+			return ctx
+		}
+	}
+
+	return context.WithValue(ctx, IDLoggerKey, l)
 }

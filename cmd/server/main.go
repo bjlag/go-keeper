@@ -27,7 +27,7 @@ func main() {
 
 	var configPath string
 
-	flag.StringVar(&configPath, "c", configPathDefault, "Configuration directory")
+	flag.StringVar(&configPath, "c", configPathDefault, "Path to config file")
 	flag.Parse()
 
 	var cfg app.Config
@@ -35,7 +35,7 @@ func main() {
 		panic(err)
 	}
 
-	log := logger.Get("dev")
+	log := logger.Get(cfg.Env)
 	defer func() {
 		_ = log.Sync()
 	}()
