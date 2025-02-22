@@ -16,6 +16,8 @@ import (
 type Server struct {
 	pb.UnimplementedKeeperServer
 
+	host     string
+	port     int
 	handlers map[string]any
 	log      *zap.Logger
 }
@@ -35,9 +37,12 @@ func NewServer(opts ...Option) *Server {
 func (s Server) Start(ctx context.Context) error {
 	const op = "rpc.Start"
 
-	s.log.Info("Starting gRPC server")
+	s.log.Info("Starting gRPC server",
+		zap.String("host", s.host),
+		zap.Int("port", s.port),
+	)
 
-	listen, err := net.Listen("tcp", ":8080")
+	listen, err := net.Listen("tcp", fmt.Sprintf("%s:%d", s.host, s.port))
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}

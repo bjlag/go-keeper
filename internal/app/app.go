@@ -11,11 +11,13 @@ import (
 )
 
 type App struct {
+	cfg Config
 	log *zap.Logger
 }
 
-func NewApp(log *zap.Logger) *App {
+func NewApp(cfg Config, log *zap.Logger) *App {
 	return &App{
+		cfg: cfg,
 		log: log,
 	}
 }
@@ -23,12 +25,13 @@ func NewApp(log *zap.Logger) *App {
 func (a *App) Run(ctx context.Context) error {
 	const op = "app.Run"
 
-	server := server.NewServer(
+	s := server.NewServer(
+		server.WithAddress(a.cfg.Address.Host, a.cfg.Address.Port),
 		server.WithLogger(a.log),
 		server.WithHandler(server.RegisterMethod, register.New().Handle),
 	)
 
-	err := server.Start(ctx)
+	err := s.Start(ctx)
 	if err != nil {
 		a.log.Error("Failed to start gRPC server", zap.Error(err))
 		return fmt.Errorf("%s: %w", op, err)

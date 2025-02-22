@@ -2,8 +2,8 @@ package interceptor
 
 import (
 	"context"
-	"go.uber.org/zap"
 
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 )
