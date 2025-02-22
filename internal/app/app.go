@@ -10,7 +10,9 @@ import (
 	"github.com/bjlag/go-keeper/internal/infrastructure/db/pg"
 	"github.com/bjlag/go-keeper/internal/infrastructure/rpc/server"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/user"
+	rpcLogin "github.com/bjlag/go-keeper/internal/rpc/login"
 	rpcRegister "github.com/bjlag/go-keeper/internal/rpc/register"
+	"github.com/bjlag/go-keeper/internal/usecase/user/login"
 	"github.com/bjlag/go-keeper/internal/usecase/user/register"
 )
 
@@ -43,11 +45,14 @@ func (a *App) Run(ctx context.Context) error {
 	tokeGenerator := jwt.NewGenerator(a.cfg.Auth.SecretKey, a.cfg.Auth.AccessTokenExp, a.cfg.Auth.RefreshTokenExp)
 
 	ucRegister := register.NewUsecase(userStore, tokeGenerator)
+	ucLogin := login.NewUsecase(userStore, tokeGenerator)
 
 	s := server.NewServer(
 		server.WithAddress(a.cfg.Address.Host, a.cfg.Address.Port),
 		server.WithLogger(a.log),
+
 		server.WithHandler(server.RegisterMethod, rpcRegister.New(ucRegister).Handle),
+		server.WithHandler(server.LoginMethod, rpcLogin.New(ucLogin).Handle),
 	)
 
 	err = s.Start(ctx)
