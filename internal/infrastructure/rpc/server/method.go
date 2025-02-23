@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	RegisterMethod = "Register"
-	LoginMethod    = "Login"
+	RegisterMethod      = "Register"
+	LoginMethod         = "Login"
+	RefreshTokensMethod = "RefreshTokens"
 )
 
 func (s Server) Register(ctx context.Context, in *pb.RegisterIn) (*pb.RegisterOut, error) {
@@ -37,6 +38,20 @@ func (s Server) Login(ctx context.Context, in *pb.LoginIn) (*pb.LoginOut, error)
 	h, ok := handler.(func(context.Context, *pb.LoginIn) (*pb.LoginOut, error))
 	if !ok {
 		return nil, status.Errorf(codes.Internal, "handler for %s method not found", LoginMethod)
+	}
+
+	return h(ctx, in)
+}
+
+func (s Server) RefreshTokens(ctx context.Context, in *pb.RefreshTokensIn) (*pb.RefreshTokensOut, error) {
+	handler, err := s.getHandler(RefreshTokensMethod)
+	if err != nil {
+		return nil, err
+	}
+
+	h, ok := handler.(func(context.Context, *pb.RefreshTokensIn) (*pb.RefreshTokensOut, error))
+	if !ok {
+		return nil, status.Errorf(codes.Internal, "handler for %s method not found", RefreshTokensMethod)
 	}
 
 	return h(ctx, in)

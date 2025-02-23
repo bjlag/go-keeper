@@ -20,6 +20,17 @@ linters:
         - wrapcheck
 
 linters-settings:
+    revive:
+        rules:
+            - name: var-naming
+              arguments:
+                  - ["ID"]
+                  - ["VM"]
+                  - - skipPackageNameChecks: true
+
+    stylecheck:
+        checks: ["all", "-ST1003"]
+
     gci:
         sections:
             - standard # Standard lib

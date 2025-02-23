@@ -23,6 +23,26 @@ func NewStore(db *sqlx.DB) *Store {
 	}
 }
 
+func (s Store) GetByGUID(ctx context.Context, guid string) (*model.User, error) {
+	const op = "store.user.GetByGUID"
+
+	query := `
+		SELECT guid, email, password_hash, created_at, updated_at 
+		FROM users 
+		WHERE guid = $1
+	`
+
+	var user row
+	if err := s.db.GetContext(ctx, &user, query, guid); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return user.convertToModel(), nil
+}
+
 func (s Store) GetByEmail(ctx context.Context, email string) (*model.User, error) {
 	const op = "store.user.GetByEmail"
 

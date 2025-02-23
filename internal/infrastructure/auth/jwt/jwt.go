@@ -1,10 +1,16 @@
 package jwt
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+)
+
+var (
+	ErrInvalidToken            = errors.New("invalid token")
+	ErrUnexpectedSigningMethod = errors.New("unexpected signing method")
 )
 
 type Claims struct {
@@ -23,6 +29,30 @@ func NewGenerator(secretKey string, accessTokenExp, refreshTokenExp time.Duratio
 		accessTokenExp:  accessTokenExp,
 		refreshTokenExp: refreshTokenExp,
 	}
+}
+
+func (g *Generator) GetUserGUID(tokenString string) (string, error) {
+	c := &Claims{}
+
+	token, err := jwt.ParseWithClaims(tokenString, c, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("%w: %v", ErrUnexpectedSigningMethod, t.Header["alg"])
+		}
+		return []byte(g.secretKey), nil
+	})
+	if err != nil {
+		var e *jwt.ValidationError
+		if errors.As(err, &e) {
+			return "", ErrInvalidToken
+		}
+		return "", err
+	}
+
+	if !token.Valid || c.Issuer == "" {
+		return "", ErrInvalidToken
+	}
+
+	return c.Issuer, nil
 }
 
 func (g *Generator) GenerateTokens(uuid string) (accessToken string, refreshToken string, err error) {

@@ -7,6 +7,7 @@ option go_package = "internal/generated/rpc";
 service Keeper {
   rpc Register(RegisterIn) returns (RegisterOut);
   rpc Login(LoginIn) returns (LoginOut);
+  rpc RefreshTokens(RefreshTokensIn) returns (RefreshTokensOut);
 }
 
 message RegisterIn {
@@ -25,6 +26,15 @@ message LoginIn {
 }
 
 message LoginOut {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+message RefreshTokensIn {
+  string refresh_token = 1;
+}
+
+message RefreshTokensOut {
   string access_token = 1;
   string refresh_token = 2;
 }
