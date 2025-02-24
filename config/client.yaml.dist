@@ -1,13 +1,8 @@
 env: dev
 
-address:
+server:
     host: localhost
     port: 8080
-
-auth:
-    accessTokenExp: 5m
-    refreshTokenExp: 720h # 30 days
-    secretKey: secret
 
 database:
     host: localhost

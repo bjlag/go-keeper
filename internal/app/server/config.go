@@ -6,8 +6,8 @@ type Config struct {
 	Env string `yaml:"env" env:"ENV" env-default:"dev" env-description:"Environment" json:"env"`
 
 	Address struct {
-		Host string `yaml:"host" env:"ADDRESS_HOST" env-description:"Server address host" json:"host"`
-		Port int    `yaml:"port" env:"ADDRESS_PORT" env-description:"Server address port" json:"port"`
+		Host string `yaml:"host" env:"ADDRESS_HOST" env-description:"Server host" json:"host"`
+		Port int    `yaml:"port" env:"ADDRESS_PORT" env-description:"Server port" json:"port"`
 	} `yaml:"address" json:"address"`
 
 	Auth struct {
