@@ -36,3 +36,12 @@ linters-settings:
             - standard # Standard lib
             - default # External dependencies
             - prefix(github.com/bjlag/go-keeper) # Internal packages
+
+    ireturn:
+        allow:
+            - anon
+            - error
+            - empty
+            - stdlib
+            - github\.com\/charmbracelet\/bubbletea\.Model
+#            - github\.com\/charmbracelet\/bubbletea\.Cmd

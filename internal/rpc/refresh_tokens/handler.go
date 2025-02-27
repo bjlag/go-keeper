@@ -10,7 +10,7 @@ import (
 
 	pb "github.com/bjlag/go-keeper/internal/generated/rpc"
 	"github.com/bjlag/go-keeper/internal/infrastructure/logger"
-	"github.com/bjlag/go-keeper/internal/usecase/user/refresh_tokens"
+	"github.com/bjlag/go-keeper/internal/usecase/server/user/refresh_tokens"
 )
 
 const lenRefreshToken = 24

@@ -13,9 +13,9 @@ import (
 	rpcLogin "github.com/bjlag/go-keeper/internal/rpc/login"
 	rpcRefreshTokens "github.com/bjlag/go-keeper/internal/rpc/refresh_tokens"
 	rpcRegister "github.com/bjlag/go-keeper/internal/rpc/register"
-	"github.com/bjlag/go-keeper/internal/usecase/user/login"
-	rt "github.com/bjlag/go-keeper/internal/usecase/user/refresh_tokens"
-	"github.com/bjlag/go-keeper/internal/usecase/user/register"
+	"github.com/bjlag/go-keeper/internal/usecase/server/user/login"
+	rt "github.com/bjlag/go-keeper/internal/usecase/server/user/refresh_tokens"
+	"github.com/bjlag/go-keeper/internal/usecase/server/user/register"
 )
 
 type App struct {

@@ -11,7 +11,7 @@ import (
 	pb "github.com/bjlag/go-keeper/internal/generated/rpc"
 	"github.com/bjlag/go-keeper/internal/infrastructure/logger"
 	"github.com/bjlag/go-keeper/internal/infrastructure/validator"
-	"github.com/bjlag/go-keeper/internal/usecase/user/register"
+	"github.com/bjlag/go-keeper/internal/usecase/server/user/register"
 )
 
 type Handler struct {
