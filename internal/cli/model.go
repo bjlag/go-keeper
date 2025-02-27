@@ -10,20 +10,24 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/form/login"
 	"github.com/bjlag/go-keeper/internal/cli/message"
+	"github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
 )
 
 type MainModel struct {
 	help   help.Model
 	header string
 
+	client *client.RPCClient
+
 	accessToken  string
 	refreshToken string
 }
 
-func InitModel() *MainModel {
+func InitModel(client *client.RPCClient) *MainModel {
 	return &MainModel{
 		help:   help.New(),
 		header: "Go Keeper",
+		client: client,
 	}
 }
 

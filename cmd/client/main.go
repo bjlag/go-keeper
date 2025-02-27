@@ -11,7 +11,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/bjlag/go-keeper/internal/app/client"
-	"github.com/bjlag/go-keeper/internal/app/server"
 	"github.com/bjlag/go-keeper/internal/infrastructure/logger"
 )
 
@@ -31,7 +30,7 @@ func main() {
 	flag.StringVar(&configPath, "c", configPathDefault, "Path to config file")
 	flag.Parse()
 
-	var cfg server.Config
+	var cfg client.Config
 	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
 		panic(err)
 	}
@@ -46,7 +45,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	defer cancel()
 
-	if err := client.NewApp().Run(ctx); err != nil {
+	if err := client.NewApp(cfg, log).Run(ctx); err != nil {
 		panic(err)
 	}
 }
