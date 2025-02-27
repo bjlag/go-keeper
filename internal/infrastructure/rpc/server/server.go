@@ -13,7 +13,7 @@ import (
 	"github.com/bjlag/go-keeper/internal/infrastructure/rpc/interceptor"
 )
 
-type Server struct {
+type RPCServer struct {
 	pb.UnimplementedKeeperServer
 
 	host     string
@@ -22,8 +22,8 @@ type Server struct {
 	log      *zap.Logger
 }
 
-func NewServer(opts ...Option) *Server {
-	s := &Server{
+func NewRPCServer(opts ...Option) *RPCServer {
+	s := &RPCServer{
 		handlers: make(map[string]any),
 	}
 
@@ -34,7 +34,7 @@ func NewServer(opts ...Option) *Server {
 	return s
 }
 
-func (s Server) Start(ctx context.Context) error {
+func (s RPCServer) Start(ctx context.Context) error {
 	const op = "rpc.Start"
 
 	s.log.Info("Starting gRPC server",

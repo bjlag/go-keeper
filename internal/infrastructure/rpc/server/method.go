@@ -15,7 +15,7 @@ const (
 	RefreshTokensMethod = "RefreshTokens"
 )
 
-func (s Server) Register(ctx context.Context, in *pb.RegisterIn) (*pb.RegisterOut, error) {
+func (s RPCServer) Register(ctx context.Context, in *pb.RegisterIn) (*pb.RegisterOut, error) {
 	handler, err := s.getHandler(RegisterMethod)
 	if err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func (s Server) Register(ctx context.Context, in *pb.RegisterIn) (*pb.RegisterOu
 	return h(ctx, in)
 }
 
-func (s Server) Login(ctx context.Context, in *pb.LoginIn) (*pb.LoginOut, error) {
+func (s RPCServer) Login(ctx context.Context, in *pb.LoginIn) (*pb.LoginOut, error) {
 	handler, err := s.getHandler(LoginMethod)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (s Server) Login(ctx context.Context, in *pb.LoginIn) (*pb.LoginOut, error)
 	return h(ctx, in)
 }
 
-func (s Server) RefreshTokens(ctx context.Context, in *pb.RefreshTokensIn) (*pb.RefreshTokensOut, error) {
+func (s RPCServer) RefreshTokens(ctx context.Context, in *pb.RefreshTokensIn) (*pb.RefreshTokensOut, error) {
 	handler, err := s.getHandler(RefreshTokensMethod)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (s Server) RefreshTokens(ctx context.Context, in *pb.RefreshTokensIn) (*pb.
 	return h(ctx, in)
 }
 
-func (s Server) getHandler(name string) (any, error) {
+func (s RPCServer) getHandler(name string) (any, error) {
 	handler, ok := s.handlers[name]
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, "handler for %s methos not found", name)

@@ -50,7 +50,7 @@ func (a *App) Run(ctx context.Context) error {
 	ucLogin := login.NewUsecase(userStore, tokeGenerator)
 	ucRefreshTokens := rt.NewUsecase(userStore, tokeGenerator)
 
-	s := server.NewServer(
+	s := server.NewRPCServer(
 		server.WithAddress(a.cfg.Address.Host, a.cfg.Address.Port),
 		server.WithLogger(a.log),
 
