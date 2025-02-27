@@ -1,4 +1,4 @@
-package login
+package register
 
 import (
 	"errors"
@@ -11,7 +11,6 @@ import (
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element"
-	"github.com/bjlag/go-keeper/internal/cli/form/register"
 	"github.com/bjlag/go-keeper/internal/cli/message"
 	"github.com/bjlag/go-keeper/internal/infrastructure/validator"
 )
@@ -20,33 +19,33 @@ const (
 	posEmail int = iota
 	posPassword
 	posSubmitBtn
-	posRegisterBtn
-	posCloseBtn
+	posBackBtn
 
 	emailCharLimit    = 20
 	passwordCharLimit = 20
 )
 
 type Form struct {
-	main     tea.Model
-	help     help.Model
-	header   string
-	elements []interface{}
-	pos      int
-	err      error
+	main      tea.Model
+	prevModel tea.Model
+	help      help.Model
+	header    string
+	elements  []interface{}
+	pos       int
+	err       error
 }
 
-func NewForm(main tea.Model) *Form {
+func NewForm(main, prevModel tea.Model) *Form {
 	f := &Form{
-		main:   main,
-		help:   help.New(),
-		header: "Авторизация",
+		main:      main,
+		prevModel: prevModel,
+		help:      help.New(),
+		header:    "Регистрация",
 		elements: []interface{}{
-			posEmail:       common.CreateDefaultTextInput("Email", emailCharLimit),
-			posPassword:    common.CreateDefaultTextInput("Password", passwordCharLimit),
-			posSubmitBtn:   common.CreateDefaultButton("Вход"),
-			posRegisterBtn: common.CreateDefaultButton("Регистрация"),
-			posCloseBtn:    common.CreateDefaultButton("Закрыть"),
+			posEmail:     common.CreateDefaultTextInput("Email", emailCharLimit),
+			posPassword:  common.CreateDefaultTextInput("Password", passwordCharLimit),
+			posSubmitBtn: common.CreateDefaultButton("Регистрация"),
+			posBackBtn:   common.CreateDefaultButton("Назад"),
 		},
 	}
 
@@ -124,10 +123,8 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch {
 			case f.pos == posSubmitBtn || f.pos == posEmail || f.pos == posPassword:
 				return f.submit()
-			case f.pos == posRegisterBtn:
-				return register.NewForm(f.main, f).Update(tea.ClearScreen)
-			case f.pos == posCloseBtn:
-				return f, tea.Quit
+			case f.pos == posBackBtn:
+				return f.prevModel.Update(tea.ClearScreen)
 			}
 
 			return f, nil
@@ -195,12 +192,12 @@ func (f *Form) submit() (tea.Model, tea.Cmd) {
 
 	if !validator.ValidateEmail(email.Value()) {
 		f.elements[posEmail] = common.SetErrorStyle(email)
-		errValidate.AddError("Неверно заполнен email")
+		errValidate.AddError("Неправильный email")
 	}
 
-	if password.Value() == "" {
+	if !validator.ValidatePassword(password.Value()) {
 		f.elements[posPassword] = common.SetErrorStyle(password)
-		errValidate.AddError("Не заполнен пароль")
+		errValidate.AddError("Недостаточно сложный пароль")
 	}
 
 	if errValidate.HasErrors() {
@@ -208,9 +205,9 @@ func (f *Form) submit() (tea.Model, tea.Cmd) {
 		return f, nil
 	}
 
-	// TODO: выполняем авторизацию
+	// TODO: выполняем регистрацию
 
-	return f.main.Update(message.LoginSuccessMessage{
+	return f.main.Update(message.RegisterSuccessMessage{
 		AccessToken:  "xxxx",
 		RefreshToken: "yyyy",
 	})

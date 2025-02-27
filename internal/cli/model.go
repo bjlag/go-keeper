@@ -12,12 +12,10 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/message"
 )
 
-type state int
-
 type MainModel struct {
-	help         help.Model
-	header       string
-	state        state
+	help   help.Model
+	header string
+
 	accessToken  string
 	refreshToken string
 }
@@ -47,6 +45,9 @@ func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case *login.Form:
 		return msg.Update(msg)
 	case message.LoginSuccessMessage:
+		m.accessToken = msg.AccessToken
+		m.refreshToken = msg.RefreshToken
+	case message.RegisterSuccessMessage:
 		m.accessToken = msg.AccessToken
 		m.refreshToken = msg.RefreshToken
 	}
