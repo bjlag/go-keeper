@@ -47,10 +47,10 @@ func NewForm(usecase *register.Usecase) *Form {
 		help:   help.New(),
 		header: "Регистрация",
 		elements: []interface{}{
-			posEmail:     common.CreateDefaultTextInput("Email", emailCharLimit),
-			posPassword:  common.CreateDefaultTextInput("Password", passwordCharLimit),
-			posSubmitBtn: common.CreateDefaultButton("Регистрация"),
-			posBackBtn:   common.CreateDefaultButton("Назад"),
+			posEmail:     element.CreateDefaultTextInput("Email", emailCharLimit),
+			posPassword:  element.CreateDefaultTextInput("Password", passwordCharLimit),
+			posSubmitBtn: element.CreateDefaultButton("Регистрация"),
+			posBackBtn:   element.CreateDefaultButton("Назад"),
 		},
 		usecase: usecase,
 	}
@@ -58,8 +58,8 @@ func NewForm(usecase *register.Usecase) *Form {
 	for i := range f.elements {
 		if e, ok := f.elements[i].(textinput.Model); ok {
 			if i == posEmail {
-				e.TextStyle = common.FocusedStyle
-				e.PromptStyle = common.FocusedStyle
+				e.TextStyle = element.FocusedStyle
+				e.PromptStyle = element.FocusedStyle
 				e.Focus()
 
 				f.elements[i] = e
@@ -83,7 +83,16 @@ func (f *Form) Init() tea.Cmd {
 }
 
 func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if msg, ok := msg.(tea.KeyMsg); ok {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		for i := range f.elements {
+			switch e := f.elements[i].(type) {
+			case textinput.Model:
+				e.Width = msg.Width
+			}
+		}
+		return f, nil
+	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, common.Keys.Quit):
 			return f, tea.Quit
@@ -105,12 +114,12 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				case textinput.Model:
 					if i == f.pos {
 						e.Focus()
-						f.elements[i] = common.SetFocusStyle(e)
+						f.elements[i] = element.SetFocusStyle(e)
 						continue
 					}
 
 					e.Blur()
-					f.elements[i] = common.SetNoStyle(e)
+					f.elements[i] = element.SetNoStyle(e)
 				case element.Button:
 					if i == f.pos {
 						e.Focus()
@@ -143,7 +152,7 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (f *Form) View() string {
 	var b strings.Builder
 
-	b.WriteString(common.TitleStyle.Render(f.header))
+	b.WriteString(element.TitleStyle.Render(f.header))
 	b.WriteRune('\n')
 
 	for i := range f.elements {
@@ -169,7 +178,7 @@ func (f *Form) View() string {
 
 	// выводим ошибки валидации
 	if f.err != nil && (errors.As(f.err, &errValidate) || errors.As(f.err, &errForm)) {
-		b.WriteString(common.ErrorBlockStyle.Render(f.err.Error()))
+		b.WriteString(element.ErrorBlockStyle.Render(f.err.Error()))
 		b.WriteRune('\n')
 	}
 
@@ -179,7 +188,7 @@ func (f *Form) View() string {
 	// выводим прочие ошибки
 	if f.err != nil && !(errors.As(f.err, &errValidate) || errors.As(f.err, &errForm)) {
 		b.WriteRune('\n')
-		b.WriteString(common.ErrorBlockStyle.Render(f.err.Error()))
+		b.WriteString(element.ErrorBlockStyle.Render(f.err.Error()))
 	}
 
 	return b.String()
@@ -200,12 +209,12 @@ func (f *Form) submit() (tea.Model, tea.Cmd) {
 	}
 
 	if !validator.ValidateEmail(email.Value()) {
-		f.elements[posEmail] = common.SetErrorStyle(email)
+		f.elements[posEmail] = element.SetErrorStyle(email)
 		errValidate.AddError("Неправильный email")
 	}
 
 	if !validator.ValidatePassword(password.Value()) {
-		f.elements[posPassword] = common.SetErrorStyle(password)
+		f.elements[posPassword] = element.SetErrorStyle(password)
 		errValidate.AddError("Недостаточно сложный пароль")
 	}
 
