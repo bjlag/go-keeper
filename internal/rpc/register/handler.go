@@ -31,7 +31,7 @@ func (h *Handler) Handle(ctx context.Context, in *pb.RegisterIn) (*pb.RegisterOu
 		return nil, status.Error(codes.InvalidArgument, "email is invalid")
 	}
 
-	if validator.ValidatePassword(in.GetPassword()) {
+	if !validator.ValidatePassword(in.GetPassword()) {
 		return nil, status.Error(codes.InvalidArgument, "password is invalid (min. length 8 characters)")
 	}
 

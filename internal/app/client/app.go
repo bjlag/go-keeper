@@ -12,6 +12,7 @@ import (
 	formRegister "github.com/bjlag/go-keeper/internal/cli/form/register"
 	rpc "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
 	"github.com/bjlag/go-keeper/internal/usecase/client/login"
+	"github.com/bjlag/go-keeper/internal/usecase/client/register"
 )
 
 type App struct {
@@ -39,10 +40,11 @@ func (a *App) Run(ctx context.Context) error {
 	}()
 
 	ucLogin := login.NewUsecase(rpcClient)
+	ucRegister := register.NewUsecase(rpcClient)
 
 	model := cli.InitModel(
 		cli.WithLoginForm(formLogin.NewForm(ucLogin)),
-		cli.WithRegisterForm(formRegister.NewForm()),
+		cli.WithRegisterForm(formRegister.NewForm(ucRegister)),
 	)
 
 	_, err = tea.NewProgram(model, tea.WithAltScreen(), tea.WithContext(ctx)).Run()

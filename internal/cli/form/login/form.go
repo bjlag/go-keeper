@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"strings"
-	"time"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -220,10 +219,7 @@ func (f *Form) submit() (tea.Model, tea.Cmd) {
 		return f, nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
-	defer cancel()
-
-	result, err := f.usecase.Do(ctx, login.Data{
+	result, err := f.usecase.Do(context.TODO(), login.Data{
 		Email:    email.Value(),
 		Password: password.Value(),
 	})
