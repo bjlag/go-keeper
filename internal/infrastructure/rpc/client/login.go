@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/bjlag/go-keeper/internal/generated/rpc"
 )
@@ -17,6 +18,8 @@ type LoginOut struct {
 }
 
 func (c RPCClient) Login(ctx context.Context, in LoginIn) (*LoginOut, error) {
+	const op = "client.rpc.Login"
+
 	rpcIn := &rpc.LoginIn{
 		Email:    in.Email,
 		Password: in.Password,
@@ -24,7 +27,7 @@ func (c RPCClient) Login(ctx context.Context, in LoginIn) (*LoginOut, error) {
 
 	out, err := c.client.Login(ctx, rpcIn)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return &LoginOut{

@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/bjlag/go-keeper/internal/generated/rpc"
 )
@@ -17,6 +18,8 @@ type RegisterOut struct {
 }
 
 func (c RPCClient) Register(ctx context.Context, in RegisterIn) (*RegisterOut, error) {
+	const op = "client.rpc.Register"
+
 	rpcIn := &rpc.RegisterIn{
 		Email:    in.Email,
 		Password: in.Password,
@@ -24,7 +27,7 @@ func (c RPCClient) Register(ctx context.Context, in RegisterIn) (*RegisterOut, e
 
 	out, err := c.client.Register(ctx, rpcIn)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return &RegisterOut{

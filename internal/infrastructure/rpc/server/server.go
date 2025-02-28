@@ -35,7 +35,7 @@ func NewRPCServer(opts ...Option) *RPCServer {
 }
 
 func (s RPCServer) Start(ctx context.Context) error {
-	const op = "rpc.Start"
+	const op = "server.rpc.Start"
 
 	s.log.Info("Starting gRPC server",
 		zap.String("host", s.host),
