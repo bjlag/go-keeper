@@ -28,3 +28,18 @@ func LoggerServerInterceptor(log *zap.Logger) grpc.UnaryServerInterceptor {
 		return resp, err
 	}
 }
+
+func LoggerClientInterceptor(log *zap.Logger) grpc.UnaryClientInterceptor {
+	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+		err := invoker(ctx, method, req, reply, cc, opts...)
+
+		hLog := log
+		hLog.Info("Send RPC request",
+			zap.String("method", method),
+			zap.Any("request", req),
+			zap.String("code", status.Code(err).String()),
+		)
+
+		return err
+	}
+}

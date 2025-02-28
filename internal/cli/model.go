@@ -9,32 +9,38 @@ import (
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/form/login"
+	"github.com/bjlag/go-keeper/internal/cli/form/register"
 	"github.com/bjlag/go-keeper/internal/cli/message"
-	"github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
 )
 
 type MainModel struct {
 	help   help.Model
 	header string
 
-	client *client.RPCClient
+	loginForm    *login.Form
+	registerForm *register.Form
 
 	accessToken  string
 	refreshToken string
 }
 
-func InitModel(client *client.RPCClient) *MainModel {
-	return &MainModel{
+func InitModel(opts ...Option) *MainModel {
+	m := &MainModel{
 		help:   help.New(),
 		header: "Go Keeper",
-		client: client,
 	}
+
+	for _, opt := range opts {
+		opt(m)
+	}
+
+	return m
 }
 
 func (m *MainModel) Init() tea.Cmd {
 	return tea.Batch(
 		func() tea.Msg {
-			return login.NewForm(m)
+			return message.OpenLoginFormMessage{}
 		},
 	)
 }
@@ -46,8 +52,10 @@ func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, common.Keys.Quit):
 			return m, tea.Quit
 		}
-	case *login.Form:
-		return msg.Update(msg)
+	case message.OpenLoginFormMessage:
+		return m.loginForm.Update(tea.ClearScreen())
+	case message.OpenRegisterFormMessage:
+		return m.registerForm.Update(tea.ClearScreen())
 	case message.LoginSuccessMessage:
 		m.accessToken = msg.AccessToken
 		m.refreshToken = msg.RefreshToken
@@ -65,8 +73,10 @@ func (m *MainModel) View() string {
 	b.WriteString(common.TitleStyle.Render(m.header))
 	b.WriteRune('\n')
 
-	b.WriteString(common.TextStyle.Render("Access token:", m.accessToken, "\n\n"))
-	b.WriteString(common.TextStyle.Render("Refresh token:", m.accessToken, "\n\n"))
+	b.WriteString(common.TextStyle.Render("Access token:", m.accessToken))
+	b.WriteRune('\n')
+	b.WriteString(common.TextStyle.Render("Refresh token:", m.accessToken))
+	b.WriteRune('\n')
 
 	return b.String()
 }

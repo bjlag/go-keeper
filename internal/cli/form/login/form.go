@@ -1,19 +1,23 @@
 package login
 
 import (
+	"context"
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element"
-	"github.com/bjlag/go-keeper/internal/cli/form/register"
 	"github.com/bjlag/go-keeper/internal/cli/message"
 	"github.com/bjlag/go-keeper/internal/infrastructure/validator"
+	"github.com/bjlag/go-keeper/internal/usecase/client/login"
 )
 
 const (
@@ -27,6 +31,8 @@ const (
 	passwordCharLimit = 20
 )
 
+var errPasswordInvalid = common.NewFormError("Неверный email или пароль")
+
 type Form struct {
 	main     tea.Model
 	help     help.Model
@@ -34,11 +40,12 @@ type Form struct {
 	elements []interface{}
 	pos      int
 	err      error
+
+	usecase *login.Usecase
 }
 
-func NewForm(main tea.Model) *Form {
+func NewForm(usecase *login.Usecase) *Form {
 	f := &Form{
-		main:   main,
 		help:   help.New(),
 		header: "Авторизация",
 		elements: []interface{}{
@@ -48,11 +55,12 @@ func NewForm(main tea.Model) *Form {
 			posRegisterBtn: common.CreateDefaultButton("Регистрация"),
 			posCloseBtn:    common.CreateDefaultButton("Закрыть"),
 		},
+
+		usecase: usecase,
 	}
 
 	for i := range f.elements {
-		switch e := f.elements[i].(type) {
-		case textinput.Model:
+		if e, ok := f.elements[i].(textinput.Model); ok {
 			if i == posEmail {
 				e.TextStyle = common.FocusedStyle
 				e.PromptStyle = common.FocusedStyle
@@ -61,10 +69,8 @@ func NewForm(main tea.Model) *Form {
 				f.elements[i] = e
 				continue
 			}
-
 			e.EchoMode = textinput.EchoPassword
 			e.EchoCharacter = '•'
-
 			f.elements[i] = e
 		}
 	}
@@ -72,13 +78,16 @@ func NewForm(main tea.Model) *Form {
 	return f
 }
 
+func (f *Form) SetMainModel(m tea.Model) {
+	f.main = m
+}
+
 func (f *Form) Init() tea.Cmd {
 	return nil
 }
 
 func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch {
 		case key.Matches(msg, common.Keys.Quit):
 			return f, tea.Quit
@@ -125,7 +134,7 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case f.pos == posSubmitBtn || f.pos == posEmail || f.pos == posPassword:
 				return f.submit()
 			case f.pos == posRegisterBtn:
-				return register.NewForm(f.main, f).Update(tea.ClearScreen)
+				return f.main.Update(message.OpenRegisterFormMessage{})
 			case f.pos == posCloseBtn:
 				return f, tea.Quit
 			}
@@ -159,10 +168,13 @@ func (f *Form) View() string {
 		}
 	}
 
-	var errValidate *common.ValidateError
+	var (
+		errValidate *common.ValidateError
+		errForm     *common.FormError
+	)
 
 	// выводим ошибки валидации
-	if f.err != nil && errors.As(f.err, &errValidate) {
+	if f.err != nil && (errors.As(f.err, &errValidate) || errors.As(f.err, &errForm)) {
 		b.WriteString(common.ErrorBlockStyle.Render(f.err.Error()))
 		b.WriteRune('\n')
 	}
@@ -171,7 +183,7 @@ func (f *Form) View() string {
 	b.WriteString(f.help.View(common.Keys))
 
 	// выводим прочие ошибки
-	if f.err != nil && !errors.As(f.err, &errValidate) {
+	if f.err != nil && !(errors.As(f.err, &errValidate) || errors.As(f.err, &errForm)) {
 		b.WriteRune('\n')
 		b.WriteString(common.ErrorBlockStyle.Render(f.err.Error()))
 	}
@@ -208,11 +220,30 @@ func (f *Form) submit() (tea.Model, tea.Cmd) {
 		return f, nil
 	}
 
-	// TODO: выполняем авторизацию
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	defer cancel()
+
+	result, err := f.usecase.Do(ctx, login.Data{
+		Email:    email.Value(),
+		Password: password.Value(),
+	})
+	if err != nil {
+		if s, ok := status.FromError(err); ok {
+			if s.Code() == codes.Unauthenticated {
+				f.err = errPasswordInvalid
+				return f, nil
+			}
+			f.err = common.NewFormError(s.Message())
+			return f, nil
+		}
+
+		f.err = err
+		return f, nil
+	}
 
 	return f.main.Update(message.LoginSuccessMessage{
-		AccessToken:  "xxxx",
-		RefreshToken: "yyyy",
+		AccessToken:  result.AccessToken,
+		RefreshToken: result.RefreshToken,
 	})
 }
 

@@ -6,7 +6,7 @@ type Config struct {
 	Server struct {
 		Host string `yaml:"host" env:"SERVER_HOST" env-description:"Server host" json:"host"`
 		Port int    `yaml:"port" env:"SERVER_PORT" env-description:"Server port" json:"port"`
-	} `yaml:"address" json:"server"`
+	} `yaml:"server" json:"server"`
 
 	Database struct {
 		Host     string `yaml:"host" env:"DB_HOST" env-description:"Database host" json:"host"`

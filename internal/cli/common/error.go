@@ -26,3 +26,17 @@ func (e *ValidateError) HasErrors() bool {
 func (e *ValidateError) Error() string {
 	return strings.Join(e.errors, "\n")
 }
+
+type FormError struct {
+	text string
+}
+
+func NewFormError(text string) *FormError {
+	return &FormError{
+		text: text,
+	}
+}
+
+func (e *FormError) Error() string {
+	return e.text
+}

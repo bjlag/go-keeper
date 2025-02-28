@@ -18,6 +18,8 @@ linters:
         - gochecknoglobals
         - nonamedreturns
         - wrapcheck
+        - gocognit
+        - cyclop
 
 linters-settings:
     revive:

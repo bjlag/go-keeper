@@ -1,9 +1,10 @@
 package common
 
 import (
-	"github.com/bjlag/go-keeper/internal/cli/element"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/lipgloss"
+
+	"github.com/bjlag/go-keeper/internal/cli/element"
 )
 
 var (

@@ -8,7 +8,7 @@ import (
 
 type LoginIn struct {
 	Email    string
-	password string
+	Password string
 }
 
 type LoginOut struct {
@@ -19,7 +19,7 @@ type LoginOut struct {
 func (c RPCClient) Login(ctx context.Context, in LoginIn) (*LoginOut, error) {
 	rpcIn := &rpc.LoginIn{
 		Email:    in.Email,
-		Password: in.password,
+		Password: in.Password,
 	}
 
 	out, err := c.client.Login(ctx, rpcIn)
@@ -28,7 +28,7 @@ func (c RPCClient) Login(ctx context.Context, in LoginIn) (*LoginOut, error) {
 	}
 
 	return &LoginOut{
-		AccessToken:  out.AccessToken,
-		RefreshToken: out.RefreshToken,
+		AccessToken:  out.GetAccessToken(),
+		RefreshToken: out.GetRefreshToken(),
 	}, nil
 }

@@ -26,21 +26,18 @@ const (
 )
 
 type Form struct {
-	main      tea.Model
-	prevModel tea.Model
-	help      help.Model
-	header    string
-	elements  []interface{}
-	pos       int
-	err       error
+	main     tea.Model
+	help     help.Model
+	header   string
+	elements []interface{}
+	pos      int
+	err      error
 }
 
-func NewForm(main, prevModel tea.Model) *Form {
+func NewForm() *Form {
 	f := &Form{
-		main:      main,
-		prevModel: prevModel,
-		help:      help.New(),
-		header:    "Регистрация",
+		help:   help.New(),
+		header: "Регистрация",
 		elements: []interface{}{
 			posEmail:     common.CreateDefaultTextInput("Email", emailCharLimit),
 			posPassword:  common.CreateDefaultTextInput("Password", passwordCharLimit),
@@ -50,8 +47,7 @@ func NewForm(main, prevModel tea.Model) *Form {
 	}
 
 	for i := range f.elements {
-		switch e := f.elements[i].(type) {
-		case textinput.Model:
+		if e, ok := f.elements[i].(textinput.Model); ok {
 			if i == posEmail {
 				e.TextStyle = common.FocusedStyle
 				e.PromptStyle = common.FocusedStyle
@@ -60,10 +56,8 @@ func NewForm(main, prevModel tea.Model) *Form {
 				f.elements[i] = e
 				continue
 			}
-
 			e.EchoMode = textinput.EchoPassword
 			e.EchoCharacter = '•'
-
 			f.elements[i] = e
 		}
 	}
@@ -71,13 +65,16 @@ func NewForm(main, prevModel tea.Model) *Form {
 	return f
 }
 
+func (f *Form) SetMainModel(m tea.Model) {
+	f.main = m
+}
+
 func (f *Form) Init() tea.Cmd {
 	return nil
 }
 
 func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch {
 		case key.Matches(msg, common.Keys.Quit):
 			return f, tea.Quit
@@ -124,7 +121,7 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case f.pos == posSubmitBtn || f.pos == posEmail || f.pos == posPassword:
 				return f.submit()
 			case f.pos == posBackBtn:
-				return f.prevModel.Update(tea.ClearScreen)
+				return f.main.Update(message.OpenLoginFormMessage{})
 			}
 
 			return f, nil
