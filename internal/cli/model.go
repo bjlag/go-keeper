@@ -5,26 +5,25 @@ import (
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element"
+	listf "github.com/bjlag/go-keeper/internal/cli/form/list"
 	"github.com/bjlag/go-keeper/internal/cli/form/login"
+	"github.com/bjlag/go-keeper/internal/cli/form/password"
 	"github.com/bjlag/go-keeper/internal/cli/form/register"
 	"github.com/bjlag/go-keeper/internal/cli/message"
 )
 
-const defaultWidth = 20
-const listHeight = 14
-
 type MainModel struct {
 	help   help.Model
 	header string
-	list   list.Model
 
-	loginForm    *login.Form
-	registerForm *register.Form
+	formLogin    *login.Form
+	formRegister *register.Form
+	formList     *listf.Form
+	formPassword *password.Form
 
 	accessToken  string
 	refreshToken string
@@ -46,51 +45,46 @@ func InitModel(opts ...Option) *MainModel {
 func (m *MainModel) Init() tea.Cmd {
 	return tea.Batch(
 		func() tea.Msg {
-			return message.OpenLoginFormMessage{}
+			return message.SuccessLoginMessage{}
+			//return message.OpenLoginFormMessage{}
 		},
 	)
 }
 
 func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.list.SetWidth(msg.Width)
-		return m, nil
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, common.Keys.Quit):
 			return m, tea.Quit
 		}
+
+	// Forms
 	case message.OpenLoginFormMessage:
-		return m.loginForm.Update(tea.ClearScreen())
+		return m.formLogin.Update(tea.ClearScreen())
 	case message.OpenRegisterFormMessage:
-		return m.registerForm.Update(tea.ClearScreen())
-	case message.LoginSuccessMessage:
+		return m.formRegister.Update(tea.ClearScreen())
+	case message.OpenCategoryListFormMessage:
+		return m.formList.Update(msg)
+	case message.OpenPasswordListFormMessage:
+		return m.formList.Update(msg)
+	case message.OpenPasswordFormMessage:
+		return m.formPassword.Update(msg)
+
+	// Success
+	case message.SuccessLoginMessage:
 		m.accessToken = msg.AccessToken
 		m.refreshToken = msg.RefreshToken
 
-		m.list = element.CreateDefaultList("Категории:", defaultWidth, listHeight,
-			element.Item("Логины"),
-			element.Item("Тексты"),
-			element.Item("Файлы"),
-			element.Item("Банковские карты"),
-		)
-	case message.RegisterSuccessMessage:
+		return m.Update(message.OpenCategoryListFormMessage{})
+	case message.SuccessRegisterMessage:
 		m.accessToken = msg.AccessToken
 		m.refreshToken = msg.RefreshToken
 
-		m.list = element.CreateDefaultList("Категории:", defaultWidth, listHeight,
-			element.Item("Логины"),
-			element.Item("Тексты"),
-			element.Item("Файлы"),
-			element.Item("Банковские карты"),
-		)
+		return m.Update(message.OpenCategoryListFormMessage{})
 	}
 
-	var cmd tea.Cmd
-	m.list, cmd = m.list.Update(msg)
-
-	return m, cmd
+	return m, nil
 }
 
 func (m *MainModel) View() string {
@@ -98,8 +92,6 @@ func (m *MainModel) View() string {
 
 	b.WriteString(element.TitleStyle.Render(m.header))
 	b.WriteRune('\n')
-
-	b.WriteString(m.list.View())
 
 	return b.String()
 }

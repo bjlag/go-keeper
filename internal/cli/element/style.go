@@ -76,6 +76,7 @@ func CreateDefaultList(title string, with, height int, items ...list.Item) list.
 	l.Title = title
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
+	//l.SetShowTitle(false)
 	l.Styles.Title = ListTitleStyle
 	l.Styles.PaginationStyle = ListPaginationStyle
 	l.Styles.HelpStyle = ListHelpStyle

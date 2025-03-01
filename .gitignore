@@ -31,3 +31,6 @@ vendor/
 config/migrator.yaml
 config/server.yaml
 config/client.yaml
+
+# log
+*.log

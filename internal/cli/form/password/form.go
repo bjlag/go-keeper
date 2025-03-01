@@ -1,7 +1,6 @@
-package login
+package password
 
 import (
-	"context"
 	"errors"
 	"strings"
 
@@ -9,28 +8,20 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element"
 	"github.com/bjlag/go-keeper/internal/cli/message"
-	"github.com/bjlag/go-keeper/internal/infrastructure/validator"
-	"github.com/bjlag/go-keeper/internal/usecase/client/login"
+	"github.com/bjlag/go-keeper/internal/usecase/client/register"
 )
 
 const (
-	posEmail int = iota
+	posLogin int = iota
 	posPassword
-	posSubmitBtn
-	posRegisterBtn
-	posCloseBtn
-
-	emailCharLimit    = 20
-	passwordCharLimit = 20
+	posEditBtn
+	posDeleteBtn
+	posBackBtn
 )
-
-var errPasswordInvalid = common.NewFormError("Неверный email или пароль")
 
 type Form struct {
 	main     tea.Model
@@ -40,35 +31,28 @@ type Form struct {
 	pos      int
 	err      error
 
-	usecase *login.Usecase
+	category string
+
+	usecase *register.Usecase
 }
 
-func NewForm(usecase *login.Usecase) *Form {
+func NewForm() *Form {
 	f := &Form{
 		help:   help.New(),
-		header: "Авторизация",
+		header: "Регистрация",
 		elements: []interface{}{
-			posEmail:       element.CreateDefaultTextInput("Email", emailCharLimit),
-			posPassword:    element.CreateDefaultTextInput("Password", passwordCharLimit),
-			posSubmitBtn:   element.CreateDefaultButton("Вход"),
-			posRegisterBtn: element.CreateDefaultButton("Регистрация"),
-			posCloseBtn:    element.CreateDefaultButton("Закрыть"),
+			posLogin:     element.CreateDefaultTextInput("Login", 50),
+			posPassword:  element.CreateDefaultTextInput("Password", 50),
+			posEditBtn:   element.CreateDefaultButton("Изменить"),
+			posDeleteBtn: element.CreateDefaultButton("Удалить"),
+			posBackBtn:   element.CreateDefaultButton("Назад"),
 		},
-
-		usecase: usecase,
+		//usecase: usecase,
 	}
 
-	for i := range f.elements {
-		if e, ok := f.elements[i].(textinput.Model); ok {
-			if i == posEmail {
-				e.Focus()
-				f.elements[i] = element.SetFocusStyle(e)
-				continue
-			}
-			e.EchoMode = textinput.EchoPassword
-			e.EchoCharacter = '•'
-			f.elements[i] = e
-		}
+	if e, ok := f.elements[posLogin].(textinput.Model); ok {
+		e.Focus()
+		f.elements[posLogin] = element.SetFocusStyle(e)
 	}
 
 	return f
@@ -91,6 +75,23 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				e.Width = msg.Width
 			}
 		}
+		return f, nil
+	case message.OpenPasswordFormMessage:
+		// todo получаем данные из базы
+
+		f.header = msg.Item.Name
+		f.category = "Категория"
+
+		if input, ok := f.elements[posLogin].(textinput.Model); ok {
+			input.SetValue("login")
+			f.elements[posLogin] = input
+		}
+
+		if input, ok := f.elements[posPassword].(textinput.Model); ok {
+			input.SetValue("password")
+			f.elements[posPassword] = input
+		}
+
 		return f, nil
 	case tea.KeyMsg:
 		switch {
@@ -136,15 +137,13 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			f.err = nil
 
 			switch {
-			case f.pos == posSubmitBtn || f.pos == posEmail || f.pos == posPassword:
-				return f.submit()
-			case f.pos == posRegisterBtn:
-				return f.main.Update(message.OpenRegisterFormMessage{})
-			case f.pos == posCloseBtn:
-				return f, tea.Quit
+			case f.pos == posBackBtn:
+				return f.main.Update(message.OpenPasswordListFormMessage{})
 			}
 
 			return f, nil
+		case key.Matches(msg, common.Keys.Back):
+			return f.main.Update(message.OpenPasswordListFormMessage{})
 		}
 	}
 
@@ -157,9 +156,16 @@ func (f *Form) View() string {
 	b.WriteString(element.TitleStyle.Render(f.header))
 	b.WriteRune('\n')
 
+	b.WriteString("Категория: ")
+	b.WriteString(f.category)
+	b.WriteRune('\n')
+
 	for i := range f.elements {
 		if e, ok := f.elements[i].(textinput.Model); ok {
+			b.WriteString(e.Placeholder)
+			b.WriteRune('\n')
 			b.WriteString(e.View())
+			b.WriteRune('\n')
 			b.WriteRune('\n')
 		}
 	}
@@ -194,59 +200,6 @@ func (f *Form) View() string {
 	}
 
 	return b.String()
-}
-
-func (f *Form) submit() (tea.Model, tea.Cmd) {
-	errValidate := common.NewValidateError()
-
-	email, ok := f.elements[posEmail].(textinput.Model)
-	if !ok {
-		f.err = common.ErrInvalidElement
-		return f, nil
-	}
-	password, ok := f.elements[posPassword].(textinput.Model)
-	if !ok {
-		f.err = common.ErrInvalidElement
-		return f, nil
-	}
-
-	if !validator.ValidateEmail(email.Value()) {
-		f.elements[posEmail] = element.SetErrorStyle(email)
-		errValidate.AddError("Неверно заполнен email")
-	}
-
-	if password.Value() == "" {
-		f.elements[posPassword] = element.SetErrorStyle(password)
-		errValidate.AddError("Не заполнен пароль")
-	}
-
-	if errValidate.HasErrors() {
-		f.err = errValidate
-		return f, nil
-	}
-
-	result, err := f.usecase.Do(context.TODO(), login.Data{
-		Email:    email.Value(),
-		Password: password.Value(),
-	})
-	if err != nil {
-		if s, ok := status.FromError(err); ok {
-			if s.Code() == codes.Unauthenticated {
-				f.err = errPasswordInvalid
-				return f, nil
-			}
-			f.err = common.NewFormError(s.Message())
-			return f, nil
-		}
-
-		f.err = err
-		return f, nil
-	}
-
-	return f.main.Update(message.SuccessLoginMessage{
-		AccessToken:  result.AccessToken,
-		RefreshToken: result.RefreshToken,
-	})
 }
 
 func (f *Form) updateInputs(msg tea.Msg) tea.Cmd {

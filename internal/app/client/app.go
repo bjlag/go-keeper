@@ -3,6 +3,9 @@ package client
 import (
 	"context"
 	"fmt"
+	"github.com/bjlag/go-keeper/internal/cli/form/list"
+	"github.com/bjlag/go-keeper/internal/cli/form/password"
+	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"go.uber.org/zap"
@@ -45,7 +48,18 @@ func (a *App) Run(ctx context.Context) error {
 	model := cli.InitModel(
 		cli.WithLoginForm(formLogin.NewForm(ucLogin)),
 		cli.WithRegisterForm(formRegister.NewForm(ucRegister)),
+		cli.WithListFormForm(list.NewForm()),
+		cli.WithShowPasswordForm(password.NewForm()),
 	)
+
+	f, err := tea.LogToFile("debug.log", "debug")
+	if err != nil {
+		fmt.Println("fatal:", err)
+		os.Exit(1)
+	}
+	defer func() {
+		_ = f.Close()
+	}()
 
 	_, err = tea.NewProgram(model, tea.WithAltScreen(), tea.WithContext(ctx)).Run()
 	if err != nil {

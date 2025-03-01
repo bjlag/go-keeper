@@ -241,7 +241,7 @@ func (f *Form) submit() (tea.Model, tea.Cmd) {
 		return f, nil
 	}
 
-	return f.main.Update(message.RegisterSuccessMessage{
+	return f.main.Update(message.SuccessRegisterMessage{
 		AccessToken:  result.AccessToken,
 		RefreshToken: result.RefreshToken,
 	})

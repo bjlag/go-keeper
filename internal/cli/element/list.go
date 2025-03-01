@@ -9,7 +9,10 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type Item string
+type Item struct {
+	ID   string
+	Name string
+}
 
 func (i Item) FilterValue() string { return "" }
 
@@ -33,7 +36,7 @@ func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		return
 	}
 
-	str := fmt.Sprintf("%d. %s", index+1, i)
+	str := fmt.Sprintf("%d. %s", index+1, i.Name)
 
 	fn := ListItemStyle.Render
 	if index == m.Index() {
