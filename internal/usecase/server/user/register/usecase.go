@@ -28,7 +28,7 @@ func NewUsecase(userStore userStore, tokenGenerator tokenGenerator) *Usecase {
 }
 
 func (u Usecase) Do(ctx context.Context, data Data) (*Result, error) {
-	const op = "usecase.register.Do"
+	const op = "usecase.user.register.Do"
 
 	exist, err := u.isUserExists(ctx, data.Email)
 	if err != nil {

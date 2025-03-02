@@ -22,15 +22,19 @@ const (
 	Keeper_Register_FullMethodName      = "/keeper.Keeper/Register"
 	Keeper_Login_FullMethodName         = "/keeper.Keeper/Login"
 	Keeper_RefreshTokens_FullMethodName = "/keeper.Keeper/RefreshTokens"
+	Keeper_GetAllData_FullMethodName    = "/keeper.Keeper/GetAllData"
 )
 
 // KeeperClient is the client API for Keeper service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type KeeperClient interface {
+	// auth
 	Register(ctx context.Context, in *RegisterIn, opts ...grpc.CallOption) (*RegisterOut, error)
 	Login(ctx context.Context, in *LoginIn, opts ...grpc.CallOption) (*LoginOut, error)
 	RefreshTokens(ctx context.Context, in *RefreshTokensIn, opts ...grpc.CallOption) (*RefreshTokensOut, error)
+	// data
+	GetAllData(ctx context.Context, in *GetAllDataIn, opts ...grpc.CallOption) (*GetAllDataOut, error)
 }
 
 type keeperClient struct {
@@ -71,13 +75,26 @@ func (c *keeperClient) RefreshTokens(ctx context.Context, in *RefreshTokensIn, o
 	return out, nil
 }
 
+func (c *keeperClient) GetAllData(ctx context.Context, in *GetAllDataIn, opts ...grpc.CallOption) (*GetAllDataOut, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAllDataOut)
+	err := c.cc.Invoke(ctx, Keeper_GetAllData_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // KeeperServer is the server API for Keeper service.
 // All implementations should embed UnimplementedKeeperServer
 // for forward compatibility.
 type KeeperServer interface {
+	// auth
 	Register(context.Context, *RegisterIn) (*RegisterOut, error)
 	Login(context.Context, *LoginIn) (*LoginOut, error)
 	RefreshTokens(context.Context, *RefreshTokensIn) (*RefreshTokensOut, error)
+	// data
+	GetAllData(context.Context, *GetAllDataIn) (*GetAllDataOut, error)
 }
 
 // UnimplementedKeeperServer should be embedded to have
@@ -95,6 +112,9 @@ func (UnimplementedKeeperServer) Login(context.Context, *LoginIn) (*LoginOut, er
 }
 func (UnimplementedKeeperServer) RefreshTokens(context.Context, *RefreshTokensIn) (*RefreshTokensOut, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RefreshTokens not implemented")
+}
+func (UnimplementedKeeperServer) GetAllData(context.Context, *GetAllDataIn) (*GetAllDataOut, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllData not implemented")
 }
 func (UnimplementedKeeperServer) testEmbeddedByValue() {}
 
@@ -170,6 +190,24 @@ func _Keeper_RefreshTokens_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Keeper_GetAllData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllDataIn)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeeperServer).GetAllData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Keeper_GetAllData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeeperServer).GetAllData(ctx, req.(*GetAllDataIn))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Keeper_ServiceDesc is the grpc.ServiceDesc for Keeper service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -188,6 +226,10 @@ var Keeper_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RefreshTokens",
 			Handler:    _Keeper_RefreshTokens_Handler,
+		},
+		{
+			MethodName: "GetAllData",
+			Handler:    _Keeper_GetAllData_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

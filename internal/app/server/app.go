@@ -9,10 +9,13 @@ import (
 	"github.com/bjlag/go-keeper/internal/infrastructure/auth/jwt"
 	"github.com/bjlag/go-keeper/internal/infrastructure/db/pg"
 	"github.com/bjlag/go-keeper/internal/infrastructure/rpc/server"
+	"github.com/bjlag/go-keeper/internal/infrastructure/store/data"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/user"
+	rpcGetAllData "github.com/bjlag/go-keeper/internal/rpc/get_all_data"
 	rpcLogin "github.com/bjlag/go-keeper/internal/rpc/login"
 	rpcRefreshTokens "github.com/bjlag/go-keeper/internal/rpc/refresh_tokens"
 	rpcRegister "github.com/bjlag/go-keeper/internal/rpc/register"
+	"github.com/bjlag/go-keeper/internal/usecase/server/data/get_all"
 	"github.com/bjlag/go-keeper/internal/usecase/server/user/login"
 	rt "github.com/bjlag/go-keeper/internal/usecase/server/user/refresh_tokens"
 	"github.com/bjlag/go-keeper/internal/usecase/server/user/register"
@@ -44,11 +47,13 @@ func (a *App) Run(ctx context.Context) error {
 	}()
 
 	userStore := user.NewStore(db)
+	dataStore := data.NewStore(db)
 	tokeGenerator := jwt.NewGenerator(a.cfg.Auth.SecretKey, a.cfg.Auth.AccessTokenExp, a.cfg.Auth.RefreshTokenExp)
 
 	ucRegister := register.NewUsecase(userStore, tokeGenerator)
 	ucLogin := login.NewUsecase(userStore, tokeGenerator)
 	ucRefreshTokens := rt.NewUsecase(userStore, tokeGenerator)
+	ucGetAllData := get_all.NewUsecase(dataStore)
 
 	s := server.NewRPCServer(
 		server.WithAddress(a.cfg.Address.Host, a.cfg.Address.Port),
@@ -57,6 +62,7 @@ func (a *App) Run(ctx context.Context) error {
 		server.WithHandler(server.RegisterMethod, rpcRegister.New(ucRegister).Handle),
 		server.WithHandler(server.LoginMethod, rpcLogin.New(ucLogin).Handle),
 		server.WithHandler(server.RefreshTokensMethod, rpcRefreshTokens.New(ucRefreshTokens).Handle),
+		server.WithHandler(server.GetAllDataMethod, rpcGetAllData.New(ucGetAllData).Handle),
 	)
 
 	err = s.Start(ctx)

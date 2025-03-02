@@ -1,15 +1,22 @@
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
+
 package keeper;
 
 option go_package = "internal/generated/rpc";
 
 service Keeper {
+  // auth
   rpc Register(RegisterIn) returns (RegisterOut);
   rpc Login(LoginIn) returns (LoginOut);
   rpc RefreshTokens(RefreshTokensIn) returns (RefreshTokensOut);
+
+  // data
+  rpc GetAllData(GetAllDataIn) returns (GetAllDataOut);
 }
 
+// auth
 message RegisterIn {
   string email = 1;
   string password = 2;
@@ -37,4 +44,21 @@ message RefreshTokensIn {
 message RefreshTokensOut {
   string access_token = 1;
   string refresh_token = 2;
+}
+
+// data
+message GetAllDataIn {
+  uint32 limit = 1;
+  uint32 offset = 2;
+}
+
+message GetAllDataOut {
+  repeated Item items = 1;
+}
+
+message Item {
+  string guid = 1;
+  bytes encryptedData = 2;
+  google.protobuf.Timestamp CreatedAt = 3;
+  google.protobuf.Timestamp UpdatedAt = 4;
 }

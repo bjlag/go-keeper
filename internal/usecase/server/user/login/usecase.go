@@ -28,7 +28,7 @@ func NewUsecase(userStore userStore, tokenGenerator tokenGenerator) *Usecase {
 }
 
 func (u Usecase) Do(ctx context.Context, data Data) (*Result, error) {
-	const op = "usecase.login.Do"
+	const op = "usecase.user.login.Do"
 
 	user, err := u.userStore.GetByEmail(ctx, data.Email)
 	if err != nil {

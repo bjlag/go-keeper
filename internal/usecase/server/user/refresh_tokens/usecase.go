@@ -27,7 +27,7 @@ func NewUsecase(userStore userStore, tokenGenerator tokenGenerator) *Usecase {
 }
 
 func (u Usecase) Do(ctx context.Context, data Data) (*Result, error) {
-	const op = "usecase.refreshTokens.Do"
+	const op = "usecase.user.refreshTokens.Do"
 
 	guid, err := u.tokenGenerator.GetUserGUID(data.RefreshToken)
 	if err != nil {
