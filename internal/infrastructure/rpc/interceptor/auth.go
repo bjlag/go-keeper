@@ -13,7 +13,6 @@ import (
 
 	"github.com/bjlag/go-keeper/internal/generated/rpc"
 	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
-	"github.com/bjlag/go-keeper/internal/infrastructure/auth/jwt"
 )
 
 const (
@@ -27,7 +26,7 @@ var methodSkip = map[string]struct{}{
 	rpc.Keeper_RefreshTokens_FullMethodName: {},
 }
 
-func CheckAccessTokenInterceptor(jwtGenerator *jwt.Generator, log *zap.Logger) grpc.UnaryServerInterceptor {
+func CheckAccessTokenInterceptor(jwt *auth.JWT, log *zap.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		if _, ok := methodSkip[info.FullMethod]; ok {
 			return handler(ctx, req)
@@ -48,9 +47,9 @@ func CheckAccessTokenInterceptor(jwtGenerator *jwt.Generator, log *zap.Logger) g
 			return nil, status.Errorf(codes.PermissionDenied, "permission denied")
 		}
 
-		userGUID, err := jwtGenerator.GetUserGUIDFromAccessToken(strings.TrimLeft(token, " "))
+		userGUID, err := jwt.GetUserGUIDFromAccessToken(strings.TrimLeft(token, " "))
 		if err != nil {
-			if errors.Is(err, jwt.ErrInvalidToken) {
+			if errors.Is(err, auth.ErrInvalidToken) {
 				return nil, status.Errorf(codes.PermissionDenied, "permission denied")
 			}
 			log.Error("Failed to get user GUID", zap.Error(err))

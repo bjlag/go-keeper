@@ -1,8 +1,9 @@
 package server
 
 import (
-	"github.com/bjlag/go-keeper/internal/infrastructure/auth/jwt"
 	"go.uber.org/zap"
+
+	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
 )
 
 type Option func(*RPCServer)
@@ -20,7 +21,7 @@ func WithLogger(logger *zap.Logger) Option {
 	}
 }
 
-func WithJWTGenerator(jwt *jwt.Generator) Option {
+func WithJWT(jwt *auth.JWT) Option {
 	return func(s *RPCServer) {
 		s.jwt = jwt
 	}

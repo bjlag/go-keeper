@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/bjlag/go-keeper/internal/infrastructure/auth/jwt"
+	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
 	storeUser "github.com/bjlag/go-keeper/internal/infrastructure/store/user"
 )
 
@@ -31,7 +31,7 @@ func (u Usecase) Do(ctx context.Context, data Data) (*Result, error) {
 
 	guid, err := u.tokenGenerator.GetUserGUIDFromRefreshToken(data.RefreshToken)
 	if err != nil {
-		if errors.Is(err, jwt.ErrInvalidToken) {
+		if errors.Is(err, auth.ErrInvalidToken) {
 			return nil, ErrInvalidRefreshToken
 		}
 		return nil, fmt.Errorf("%s: %w", op, err)

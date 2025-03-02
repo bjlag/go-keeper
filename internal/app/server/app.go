@@ -6,7 +6,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/bjlag/go-keeper/internal/infrastructure/auth/jwt"
+	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
 	"github.com/bjlag/go-keeper/internal/infrastructure/db/pg"
 	"github.com/bjlag/go-keeper/internal/infrastructure/rpc/server"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/data"
@@ -48,16 +48,16 @@ func (a *App) Run(ctx context.Context) error {
 
 	userStore := user.NewStore(db)
 	dataStore := data.NewStore(db)
-	jwtGenerator := jwt.NewGenerator(a.cfg.Auth.SecretKey, a.cfg.Auth.AccessTokenExp, a.cfg.Auth.RefreshTokenExp)
+	jwt := auth.NewJWT(a.cfg.Auth.SecretKey, a.cfg.Auth.AccessTokenExp, a.cfg.Auth.RefreshTokenExp)
 
-	ucRegister := register.NewUsecase(userStore, jwtGenerator)
-	ucLogin := login.NewUsecase(userStore, jwtGenerator)
-	ucRefreshTokens := rt.NewUsecase(userStore, jwtGenerator)
+	ucRegister := register.NewUsecase(userStore, jwt)
+	ucLogin := login.NewUsecase(userStore, jwt)
+	ucRefreshTokens := rt.NewUsecase(userStore, jwt)
 	ucGetAllData := get_all.NewUsecase(dataStore)
 
 	s := server.NewRPCServer(
 		server.WithAddress(a.cfg.Address.Host, a.cfg.Address.Port),
-		server.WithJWTGenerator(jwtGenerator),
+		server.WithJWT(jwt),
 		server.WithLogger(a.log),
 
 		server.WithHandler(server.RegisterMethod, rpcRegister.New(ucRegister).Handle),

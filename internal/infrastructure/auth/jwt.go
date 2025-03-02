@@ -1,4 +1,4 @@
-package jwt
+package auth
 
 import (
 	"errors"
@@ -26,21 +26,21 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-type Generator struct {
+type JWT struct {
 	secretKey       string
 	accessTokenExp  time.Duration
 	refreshTokenExp time.Duration
 }
 
-func NewGenerator(secretKey string, accessTokenExp, refreshTokenExp time.Duration) *Generator {
-	return &Generator{
+func NewJWT(secretKey string, accessTokenExp, refreshTokenExp time.Duration) *JWT {
+	return &JWT{
 		secretKey:       secretKey,
 		accessTokenExp:  accessTokenExp,
 		refreshTokenExp: refreshTokenExp,
 	}
 }
 
-func (g *Generator) GetUserGUIDFromAccessToken(tokenString string) (uuid.UUID, error) {
+func (g *JWT) GetUserGUIDFromAccessToken(tokenString string) (uuid.UUID, error) {
 	const op = prefixOp + "GetUserGUIDFromAccessToken"
 
 	token, clams, err := g.ParseToken(tokenString, subjectAccessToken)
@@ -64,7 +64,7 @@ func (g *Generator) GetUserGUIDFromAccessToken(tokenString string) (uuid.UUID, e
 	return guid, nil
 }
 
-func (g *Generator) GetUserGUIDFromRefreshToken(tokenString string) (uuid.UUID, error) {
+func (g *JWT) GetUserGUIDFromRefreshToken(tokenString string) (uuid.UUID, error) {
 	const op = prefixOp + "GetUserGUIDFromRefreshToken"
 
 	token, clams, err := g.ParseToken(tokenString, subjectRefreshToken)
@@ -88,7 +88,7 @@ func (g *Generator) GetUserGUIDFromRefreshToken(tokenString string) (uuid.UUID, 
 	return guid, nil
 }
 
-func (g *Generator) GenerateTokens(uuid string) (accessToken string, refreshToken string, err error) {
+func (g *JWT) GenerateTokens(uuid string) (accessToken string, refreshToken string, err error) {
 	const op = prefixOp + "GenerateTokens"
 
 	var claim *Claims
@@ -107,7 +107,7 @@ func (g *Generator) GenerateTokens(uuid string) (accessToken string, refreshToke
 	return
 }
 
-func (g *Generator) GenerateAccessToken(uuid string) (string, *Claims, error) {
+func (g *JWT) GenerateAccessToken(uuid string) (string, *Claims, error) {
 	const op = prefixOp + "GenerateAccessToken"
 
 	now := time.Now()
@@ -129,7 +129,7 @@ func (g *Generator) GenerateAccessToken(uuid string) (string, *Claims, error) {
 	return tokenString, claim, nil
 }
 
-func (g *Generator) GenerateRefreshToken(cl *Claims) (string, error) {
+func (g *JWT) GenerateRefreshToken(cl *Claims) (string, error) {
 	const op = prefixOp + "GenerateRefreshToken"
 
 	now := time.Now()
@@ -151,7 +151,7 @@ func (g *Generator) GenerateRefreshToken(cl *Claims) (string, error) {
 	return tokenString, nil
 }
 
-func (g *Generator) ParseToken(tokenString, subjectClaim string) (*jwt.Token, *Claims, error) {
+func (g *JWT) ParseToken(tokenString, subjectClaim string) (*jwt.Token, *Claims, error) {
 	const op = prefixOp + "ParseToken"
 
 	c := &Claims{}

@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc"
 
 	pb "github.com/bjlag/go-keeper/internal/generated/rpc"
-	"github.com/bjlag/go-keeper/internal/infrastructure/auth/jwt"
+	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
 	"github.com/bjlag/go-keeper/internal/infrastructure/rpc/interceptor"
 )
 
@@ -20,7 +20,7 @@ type RPCServer struct {
 	host     string
 	port     int
 	handlers map[string]any
-	jwt      *jwt.Generator
+	jwt      *auth.JWT
 	log      *zap.Logger
 }
 
