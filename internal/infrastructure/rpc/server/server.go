@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc"
 
 	pb "github.com/bjlag/go-keeper/internal/generated/rpc"
+	"github.com/bjlag/go-keeper/internal/infrastructure/auth/jwt"
 	"github.com/bjlag/go-keeper/internal/infrastructure/rpc/interceptor"
 )
 
@@ -19,6 +20,7 @@ type RPCServer struct {
 	host     string
 	port     int
 	handlers map[string]any
+	jwt      *jwt.Generator
 	log      *zap.Logger
 }
 
@@ -50,6 +52,7 @@ func (s RPCServer) Start(ctx context.Context) error {
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			interceptor.LoggerServerInterceptor(s.log),
+			interceptor.CheckAccessTokenInterceptor(s.jwt, s.log),
 		),
 	)
 

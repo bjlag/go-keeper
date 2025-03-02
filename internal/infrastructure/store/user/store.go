@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 
 	"github.com/jmoiron/sqlx"
 
@@ -23,7 +24,7 @@ func NewStore(db *sqlx.DB) *Store {
 	}
 }
 
-func (s Store) GetByGUID(ctx context.Context, guid string) (*model.User, error) {
+func (s Store) GetByGUID(ctx context.Context, guid uuid.UUID) (*model.User, error) {
 	const op = "store.user.GetByGUID"
 
 	query := `

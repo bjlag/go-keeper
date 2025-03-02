@@ -11,6 +11,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	pb "github.com/bjlag/go-keeper/internal/generated/rpc"
+	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
 	"github.com/bjlag/go-keeper/internal/infrastructure/logger"
 	"github.com/bjlag/go-keeper/internal/usecase/server/data/get_all"
 )
@@ -33,6 +34,11 @@ func New(usecase usecase) *Handler {
 func (h *Handler) Handle(ctx context.Context, in *pb.GetAllDataIn) (*pb.GetAllDataOut, error) {
 	log := logger.FromCtx(ctx)
 
+	userGUID := auth.UserGUIDFromCtx(ctx)
+	if userGUID == uuid.Nil {
+		return nil, status.Error(codes.PermissionDenied, "permission denied")
+	}
+
 	if in.GetLimit() > limitMax {
 		in.Limit = limitMax
 	}
@@ -45,14 +51,10 @@ func (h *Handler) Handle(ctx context.Context, in *pb.GetAllDataIn) (*pb.GetAllDa
 		in.Offset = 0
 	}
 
-	// todo проверить авторизацию
-	// todo достать GUID пользователя из контекста
-	userGUID := uuid.New()
-
 	result, err := h.usecase.Do(ctx, get_all.Data{
 		UserGUID: userGUID,
-		Limit:    in.Limit,
-		Offset:   in.Offset,
+		Limit:    in.GetLimit(),
+		Offset:   in.GetOffset(),
 	})
 	if err != nil {
 		if !errors.Is(err, get_all.ErrNoData) {

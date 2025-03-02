@@ -48,15 +48,16 @@ func (a *App) Run(ctx context.Context) error {
 
 	userStore := user.NewStore(db)
 	dataStore := data.NewStore(db)
-	tokeGenerator := jwt.NewGenerator(a.cfg.Auth.SecretKey, a.cfg.Auth.AccessTokenExp, a.cfg.Auth.RefreshTokenExp)
+	jwtGenerator := jwt.NewGenerator(a.cfg.Auth.SecretKey, a.cfg.Auth.AccessTokenExp, a.cfg.Auth.RefreshTokenExp)
 
-	ucRegister := register.NewUsecase(userStore, tokeGenerator)
-	ucLogin := login.NewUsecase(userStore, tokeGenerator)
-	ucRefreshTokens := rt.NewUsecase(userStore, tokeGenerator)
+	ucRegister := register.NewUsecase(userStore, jwtGenerator)
+	ucLogin := login.NewUsecase(userStore, jwtGenerator)
+	ucRefreshTokens := rt.NewUsecase(userStore, jwtGenerator)
 	ucGetAllData := get_all.NewUsecase(dataStore)
 
 	s := server.NewRPCServer(
 		server.WithAddress(a.cfg.Address.Host, a.cfg.Address.Port),
+		server.WithJWTGenerator(jwtGenerator),
 		server.WithLogger(a.log),
 
 		server.WithHandler(server.RegisterMethod, rpcRegister.New(ucRegister).Handle),

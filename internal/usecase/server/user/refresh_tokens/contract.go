@@ -3,14 +3,16 @@ package refresh_tokens
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	model "github.com/bjlag/go-keeper/internal/domain/user"
 )
 
 type userStore interface {
-	GetByGUID(ctx context.Context, guid string) (*model.User, error)
+	GetByGUID(ctx context.Context, guid uuid.UUID) (*model.User, error)
 }
 
 type tokenGenerator interface {
-	GetUserGUID(tokenString string) (string, error)
+	GetUserGUIDFromRefreshToken(tokenString string) (uuid.UUID, error)
 	GenerateTokens(guid string) (accessToken, refreshToken string, err error)
 }

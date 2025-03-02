@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/bjlag/go-keeper/internal/infrastructure/auth/jwt"
 	"go.uber.org/zap"
 )
 
@@ -16,6 +17,12 @@ func WithAddress(host string, port int) Option {
 func WithLogger(logger *zap.Logger) Option {
 	return func(s *RPCServer) {
 		s.log = logger
+	}
+}
+
+func WithJWTGenerator(jwt *jwt.Generator) Option {
+	return func(s *RPCServer) {
+		s.jwt = jwt
 	}
 }
 

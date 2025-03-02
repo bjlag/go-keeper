@@ -6,11 +6,20 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
+)
+
+const (
+	prefixOp = "auth.jwt."
+
+	subjectAccessToken  = "access_token"
+	subjectRefreshToken = "refresh_token"
 )
 
 var (
 	ErrInvalidToken            = errors.New("invalid token")
 	ErrUnexpectedSigningMethod = errors.New("unexpected signing method")
+	ErrUnexpectedTypeToken     = errors.New("unexpected type token")
 )
 
 type Claims struct {
@@ -31,32 +40,56 @@ func NewGenerator(secretKey string, accessTokenExp, refreshTokenExp time.Duratio
 	}
 }
 
-func (g *Generator) GetUserGUID(tokenString string) (string, error) {
-	c := &Claims{}
+func (g *Generator) GetUserGUIDFromAccessToken(tokenString string) (uuid.UUID, error) {
+	const op = prefixOp + "GetUserGUIDFromAccessToken"
 
-	token, err := jwt.ParseWithClaims(tokenString, c, func(t *jwt.Token) (interface{}, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("%w: %v", ErrUnexpectedSigningMethod, t.Header["alg"])
-		}
-		return []byte(g.secretKey), nil
-	})
+	token, clams, err := g.ParseToken(tokenString, subjectAccessToken)
 	if err != nil {
 		var e *jwt.ValidationError
 		if errors.As(err, &e) {
-			return "", ErrInvalidToken
+			return uuid.Nil, ErrInvalidToken
 		}
-		return "", err
+		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	if !token.Valid || c.Issuer == "" {
-		return "", ErrInvalidToken
+	if !token.Valid || clams.Issuer == "" {
+		return uuid.Nil, ErrInvalidToken
 	}
 
-	return c.Issuer, nil
+	guid, err := uuid.Parse(clams.Issuer)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return guid, nil
+}
+
+func (g *Generator) GetUserGUIDFromRefreshToken(tokenString string) (uuid.UUID, error) {
+	const op = prefixOp + "GetUserGUIDFromRefreshToken"
+
+	token, clams, err := g.ParseToken(tokenString, subjectRefreshToken)
+	if err != nil {
+		var e *jwt.ValidationError
+		if errors.As(err, &e) {
+			return uuid.Nil, ErrInvalidToken
+		}
+		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	if !token.Valid || clams.Issuer == "" {
+		return uuid.Nil, ErrInvalidToken
+	}
+
+	guid, err := uuid.Parse(clams.Issuer)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return guid, nil
 }
 
 func (g *Generator) GenerateTokens(uuid string) (accessToken string, refreshToken string, err error) {
-	const op = "GenerateTokens"
+	const op = prefixOp + "GenerateTokens"
 
 	var claim *Claims
 
@@ -75,14 +108,14 @@ func (g *Generator) GenerateTokens(uuid string) (accessToken string, refreshToke
 }
 
 func (g *Generator) GenerateAccessToken(uuid string) (string, *Claims, error) {
-	const op = "GenerateAccessToken"
+	const op = prefixOp + "GenerateAccessToken"
 
 	now := time.Now()
 	claim := &Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    uuid,
 			ExpiresAt: jwt.NewNumericDate(now.Add(g.accessTokenExp)),
-			Subject:   "access_token",
+			Subject:   subjectAccessToken,
 			IssuedAt:  jwt.NewNumericDate(now),
 		},
 	}
@@ -97,14 +130,14 @@ func (g *Generator) GenerateAccessToken(uuid string) (string, *Claims, error) {
 }
 
 func (g *Generator) GenerateRefreshToken(cl *Claims) (string, error) {
-	const op = "GenerateRefreshToken"
+	const op = prefixOp + "GenerateRefreshToken"
 
 	now := time.Now()
 	claim := &Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    cl.Issuer,
 			ExpiresAt: jwt.NewNumericDate(now.Add(g.refreshTokenExp)),
-			Subject:   "refresh_token",
+			Subject:   subjectRefreshToken,
 			IssuedAt:  jwt.NewNumericDate(now),
 		},
 	}
@@ -116,4 +149,27 @@ func (g *Generator) GenerateRefreshToken(cl *Claims) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+func (g *Generator) ParseToken(tokenString, subjectClaim string) (*jwt.Token, *Claims, error) {
+	const op = prefixOp + "ParseToken"
+
+	c := &Claims{}
+	fn := func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("%w: %v", ErrUnexpectedSigningMethod, t.Header["alg"])
+		}
+		claim, ok := t.Claims.(*Claims)
+		if ok && claim.Subject != subjectClaim {
+			return nil, fmt.Errorf("%w: %v", ErrUnexpectedTypeToken, claim.Subject)
+		}
+		return []byte(g.secretKey), nil
+	}
+
+	t, err := jwt.ParseWithClaims(tokenString, c, fn)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return t, c, nil
 }
