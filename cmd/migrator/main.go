@@ -4,13 +4,17 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/fs"
 	logNative "log"
 
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/pgx/v5"
+	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
 
 	"github.com/bjlag/go-keeper/internal/infrastructure/db/pg"
@@ -18,7 +22,8 @@ import (
 )
 
 const (
-	configPathDefault = "./config/migrator.yaml"
+	typePG     = "pg"
+	typeSqlite = "sqlite"
 )
 
 func main() {
@@ -30,7 +35,7 @@ func main() {
 
 	var configPath string
 
-	flag.StringVar(&configPath, "c", configPathDefault, "Path to config file")
+	flag.StringVar(&configPath, "c", "", "Path to config file")
 	flag.Parse()
 
 	var cfg Config
@@ -44,10 +49,23 @@ func main() {
 	}()
 
 	log.Debug("Config loaded", zap.Any("config", cfg))
+	log = log.With(zap.String("db_type", cfg.Database.Type))
 
-	dbConf := cfg.Database
-	db, err := pg.New(pg.GetDSN(dbConf.Host, dbConf.Port, dbConf.Name, dbConf.User, dbConf.Password)).Connect()
+	var (
+		err error
+		db  *sqlx.DB
+	)
+
+	switch cfg.Database.Type {
+	case typePG:
+		dbConf := cfg.Database
+		db, err = pg.New(pg.GetDSN(dbConf.Host, dbConf.Port, dbConf.Name, dbConf.User, dbConf.Password)).Connect()
+	case typeSqlite:
+		db, err = sqlx.Open("sqlite3", "./client.db")
+	}
+
 	if err != nil {
+		log.Error("Failed to open db", zap.Error(err))
 		panic(err)
 	}
 
@@ -64,6 +82,11 @@ func main() {
 			log.Info("No changes")
 			return
 		}
+		var e *fs.PathError
+		if errors.As(err, &e) {
+			log.Info("No migration files")
+			return
+		}
 		log.Error("Migration failed", zap.Error(err))
 		return
 	}
@@ -74,9 +97,7 @@ func main() {
 func initMigrator(db *sqlx.DB, cfg Config) (*migrate.Migrate, error) {
 	const op = "initMigrator"
 
-	driver, err := pgx.WithInstance(db.DB, &pgx.Config{
-		MigrationsTable: cfg.MigrationsTable,
-	})
+	driver, err := getDBDriver(db, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("%s get driver: %w", op, err)
 	}
@@ -91,4 +112,19 @@ func initMigrator(db *sqlx.DB, cfg Config) (*migrate.Migrate, error) {
 	}
 
 	return m, nil
+}
+
+func getDBDriver(db *sqlx.DB, cfg Config) (database.Driver, error) {
+	switch cfg.Database.Type {
+	case typePG:
+		return pgx.WithInstance(db.DB, &pgx.Config{
+			MigrationsTable: cfg.MigrationsTable,
+		})
+	case typeSqlite:
+		return sqlite3.WithInstance(db.DB, &sqlite3.Config{
+			MigrationsTable: cfg.MigrationsTable,
+		})
+	default:
+		return nil, fmt.Errorf("uknown database type: %s", cfg.Database.Type) //nolint:err113
+	}
 }

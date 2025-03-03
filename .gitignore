@@ -28,9 +28,13 @@ vendor/
 .vscode
 
 # Configs
-config/migrator.yaml
+config/migrator_client.yaml
+config/migrator_server.yaml
 config/server.yaml
 config/client.yaml
 
 # log
 *.log
+
+# client
+client.db

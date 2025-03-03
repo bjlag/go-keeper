@@ -6,6 +6,7 @@ type Config struct {
 	MigrationsTable string `yaml:"migrationsTable" env:"MIGRATIONS_TABLE" env-default:"migrations" env-description:"Migrations table name" json:"migrations_table"`
 
 	Database struct {
+		Type     string `yaml:"type" env:"DB_TYPE" env-default:"pg" env-description:"Database type" json:"type"`
 		Host     string `yaml:"host" env:"DB_HOST" env-description:"Database host" json:"host"`
 		Port     string `yaml:"port" env:"DB_PORT" env-description:"Database port" json:"port"`
 		Name     string `yaml:"name" env:"DB_NAME" env-description:"Database name" json:"name"`
