@@ -5,9 +5,16 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/form/login"
 	"github.com/bjlag/go-keeper/internal/cli/form/password"
 	"github.com/bjlag/go-keeper/internal/cli/form/register"
+	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/token"
 )
 
 type Option func(*MainModel)
+
+func WithStoreTokens(store *token.Store) Option {
+	return func(m *MainModel) {
+		m.storeTokens = store
+	}
+}
 
 func WithLoginForm(form *login.Form) Option {
 	return func(m *MainModel) {

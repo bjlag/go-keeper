@@ -14,6 +14,7 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/form/password"
 	"github.com/bjlag/go-keeper/internal/cli/form/register"
 	"github.com/bjlag/go-keeper/internal/cli/message"
+	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/token"
 )
 
 type MainModel struct {
@@ -25,8 +26,7 @@ type MainModel struct {
 	formList     *listf.Form
 	formPassword *password.Form
 
-	accessToken  string
-	refreshToken string
+	storeTokens *token.Store
 }
 
 func InitModel(opts ...Option) *MainModel {
@@ -73,13 +73,13 @@ func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Success
 	case message.SuccessLoginMessage:
-		m.accessToken = msg.AccessToken
-		m.refreshToken = msg.RefreshToken
+		m.storeTokens.SaveTokens(msg.AccessToken, msg.RefreshToken)
+
+		// todo получить все данные
 
 		return m.Update(message.OpenCategoryListFormMessage{})
 	case message.SuccessRegisterMessage:
-		m.accessToken = msg.AccessToken
-		m.refreshToken = msg.RefreshToken
+		m.storeTokens.SaveTokens(msg.AccessToken, msg.RefreshToken)
 
 		return m.Update(message.OpenCategoryListFormMessage{})
 	}

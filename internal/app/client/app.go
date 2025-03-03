@@ -2,18 +2,21 @@ package client
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
-	"github.com/bjlag/go-keeper/internal/cli/form/list"
-	"github.com/bjlag/go-keeper/internal/cli/form/password"
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
+	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
 
 	"github.com/bjlag/go-keeper/internal/cli"
+	"github.com/bjlag/go-keeper/internal/cli/form/list"
 	formLogin "github.com/bjlag/go-keeper/internal/cli/form/login"
+	"github.com/bjlag/go-keeper/internal/cli/form/password"
 	formRegister "github.com/bjlag/go-keeper/internal/cli/form/register"
 	rpc "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
+	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/token"
 	"github.com/bjlag/go-keeper/internal/usecase/client/login"
 	"github.com/bjlag/go-keeper/internal/usecase/client/register"
 )
@@ -42,10 +45,21 @@ func (a *App) Run(ctx context.Context) error {
 		_ = rpcClient.Close()
 	}()
 
+	db, err := sql.Open("sqlite3", "./client.db")
+	if err != nil {
+		a.log.Error("failed to open db", zap.Error(err))
+		return fmt.Errorf("%s%w", op, err)
+	}
+
+	_ = db
+
+	storeTokens := token.NewStore()
+
 	ucLogin := login.NewUsecase(rpcClient)
 	ucRegister := register.NewUsecase(rpcClient)
 
 	model := cli.InitModel(
+		cli.WithStoreTokens(storeTokens),
 		cli.WithLoginForm(formLogin.NewForm(ucLogin)),
 		cli.WithRegisterForm(formRegister.NewForm(ucRegister)),
 		cli.WithListFormForm(list.NewForm()),
