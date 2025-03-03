@@ -1,6 +1,10 @@
 package list
 
 import (
+	"context"
+	"github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -34,16 +38,18 @@ type Form struct {
 	passwords  list.Model
 	err        error
 
+	rpcClient *client.RPCClient
 	//usecase *login.Usecase
 }
 
-func NewForm() *Form {
+func NewForm(rpcClient *client.RPCClient) *Form {
 	f := &Form{
 		help:       help.New(),
 		header:     "Категории",
 		categories: element.CreateDefaultList("Категории:", defaultWidth, listHeight),
 		passwords:  element.CreateDefaultList("Пароли:", defaultWidth, listHeight),
 
+		rpcClient: rpcClient,
 		//usecase: usecase,
 	}
 
@@ -68,6 +74,25 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		f.state = stateShowCategoryList
 
 		// todo получаем данные из базы
+		// todo получить все данные
+		in := &client.GetAllDataIn{
+			Limit:  10,
+			Offset: 0,
+		}
+		out, err := f.rpcClient.GetAllData(context.TODO(), in)
+		if err != nil {
+			if s, ok := status.FromError(err); ok {
+				if s.Code() == codes.PermissionDenied {
+					return f.main.Update(message.OpenLoginFormMessage{})
+				}
+				return f, nil
+			}
+
+			f.err = err
+			return f, nil
+		}
+
+		_ = out
 
 		f.categories.SetItems(nil)
 		f.categories.InsertItem(len(f.categories.Items()), element.Item{Name: "Логины"})

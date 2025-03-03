@@ -52,7 +52,7 @@ func (s RPCServer) Start(ctx context.Context) error {
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			interceptor.LoggerServerInterceptor(s.log),
-			interceptor.CheckAccessTokenInterceptor(s.jwt, s.log),
+			interceptor.CheckAccessTokenServerInterceptor(s.jwt, s.log),
 		),
 	)
 

@@ -45,8 +45,8 @@ func InitModel(opts ...Option) *MainModel {
 func (m *MainModel) Init() tea.Cmd {
 	return tea.Batch(
 		func() tea.Msg {
-			return message.SuccessLoginMessage{}
-			//return message.OpenLoginFormMessage{}
+			//return message.SuccessLoginMessage{}
+			return message.OpenLoginFormMessage{}
 		},
 	)
 }
@@ -61,7 +61,7 @@ func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Forms
 	case message.OpenLoginFormMessage:
-		return m.formLogin.Update(tea.ClearScreen())
+		return m.formLogin.Update(message.OpenLoginFormMessage{})
 	case message.OpenRegisterFormMessage:
 		return m.formRegister.Update(tea.ClearScreen())
 	case message.OpenCategoryListFormMessage:
@@ -74,8 +74,6 @@ func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Success
 	case message.SuccessLoginMessage:
 		m.storeTokens.SaveTokens(msg.AccessToken, msg.RefreshToken)
-
-		// todo получить все данные
 
 		return m.Update(message.OpenCategoryListFormMessage{})
 	case message.SuccessRegisterMessage:

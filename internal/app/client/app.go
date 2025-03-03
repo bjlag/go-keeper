@@ -36,7 +36,9 @@ func NewApp(cfg Config, log *zap.Logger) *App {
 func (a *App) Run(ctx context.Context) error {
 	const op = "app.Run"
 
-	rpcClient, err := rpc.NewRPCClient(a.cfg.Server.Host, a.cfg.Server.Port, a.log)
+	storeTokens := token.NewStore()
+
+	rpcClient, err := rpc.NewRPCClient(a.cfg.Server.Host, a.cfg.Server.Port, storeTokens, a.log)
 	if err != nil {
 		a.log.Error("failed to create rpc client", zap.Error(err))
 		return fmt.Errorf("%s:%w", op, err)
@@ -53,16 +55,15 @@ func (a *App) Run(ctx context.Context) error {
 
 	_ = db
 
-	storeTokens := token.NewStore()
-
 	ucLogin := login.NewUsecase(rpcClient)
 	ucRegister := register.NewUsecase(rpcClient)
 
 	model := cli.InitModel(
 		cli.WithStoreTokens(storeTokens),
+
 		cli.WithLoginForm(formLogin.NewForm(ucLogin)),
 		cli.WithRegisterForm(formRegister.NewForm(ucRegister)),
-		cli.WithListFormForm(list.NewForm()),
+		cli.WithListFormForm(list.NewForm(rpcClient)),
 		cli.WithShowPasswordForm(password.NewForm()),
 	)
 

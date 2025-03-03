@@ -3,6 +3,7 @@ package interceptor
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"go.uber.org/zap"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/bjlag/go-keeper/internal/generated/rpc"
 	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
+	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/token"
 )
 
 const (
@@ -26,7 +28,7 @@ var methodSkip = map[string]struct{}{
 	rpc.Keeper_RefreshTokens_FullMethodName: {},
 }
 
-func CheckAccessTokenInterceptor(jwt *auth.JWT, log *zap.Logger) grpc.UnaryServerInterceptor {
+func CheckAccessTokenServerInterceptor(jwt *auth.JWT, log *zap.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		if _, ok := methodSkip[info.FullMethod]; ok {
 			return handler(ctx, req)
@@ -42,12 +44,12 @@ func CheckAccessTokenInterceptor(jwt *auth.JWT, log *zap.Logger) grpc.UnaryServe
 			return nil, status.Errorf(codes.PermissionDenied, "permission denied")
 		}
 
-		token, found := strings.CutPrefix(meta[0], bearerAuth)
+		accessToken, found := strings.CutPrefix(meta[0], bearerAuth)
 		if !found {
 			return nil, status.Errorf(codes.PermissionDenied, "permission denied")
 		}
 
-		userGUID, err := jwt.GetUserGUIDFromAccessToken(strings.TrimLeft(token, " "))
+		userGUID, err := jwt.GetUserGUIDFromAccessToken(strings.TrimLeft(accessToken, " "))
 		if err != nil {
 			if errors.Is(err, auth.ErrInvalidToken) {
 				return nil, status.Errorf(codes.PermissionDenied, "permission denied")
@@ -57,5 +59,41 @@ func CheckAccessTokenInterceptor(jwt *auth.JWT, log *zap.Logger) grpc.UnaryServe
 		}
 
 		return handler(auth.UserGUIDWithCtx(ctx, userGUID), req)
+	}
+}
+
+func AuthClientInterceptor(tokens *token.Store) grpc.UnaryClientInterceptor {
+	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+		if _, ok := methodSkip[method]; ok {
+			return invoker(ctx, method, req, reply, cc, opts...)
+		}
+
+		ctx = metadata.AppendToOutgoingContext(ctx, AuthMeta, fmt.Sprintf("%s %s", bearerAuth, tokens.AccessToken()))
+		err := invoker(ctx, method, req, reply, cc, opts...)
+		if status.Code(err) == codes.PermissionDenied {
+			in := &rpc.RefreshTokensIn{
+				RefreshToken: tokens.RefreshToken(),
+			}
+			out := &rpc.RefreshTokensOut{}
+			err = cc.Invoke(ctx, rpc.Keeper_RefreshTokens_FullMethodName, in, out)
+			if err != nil {
+				if status.Code(err) == codes.FailedPrecondition {
+					return status.Errorf(codes.PermissionDenied, err.Error())
+				}
+				return err
+			}
+
+			tokens.SaveTokens(out.GetAccessToken(), out.GetRefreshToken())
+
+			md, ok := metadata.FromOutgoingContext(ctx)
+			if !ok {
+				md = metadata.New(nil)
+			}
+
+			md.Set(AuthMeta, fmt.Sprintf("%s %s", bearerAuth, tokens.AccessToken()))
+			err = invoker(metadata.NewOutgoingContext(ctx, md), method, req, reply, cc, opts...)
+		}
+
+		return err
 	}
 }

@@ -24,7 +24,7 @@ type GetAllDataItem struct {
 	UpdatedAt     time.Time
 }
 
-func (c RPCClient) GetAllData(ctx context.Context, in GetAllDataIn) (*GetAllDataOut, error) {
+func (c RPCClient) GetAllData(ctx context.Context, in *GetAllDataIn) (*GetAllDataOut, error) {
 	const op = "client.rpc.GetAllData"
 
 	rpcIn := &rpc.GetAllDataIn{
@@ -37,17 +37,17 @@ func (c RPCClient) GetAllData(ctx context.Context, in GetAllDataIn) (*GetAllData
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	if out == nil || len(out.Items) == 0 {
+	if out == nil || len(out.GetItems()) == 0 {
 		return nil, nil
 	}
 
-	items := make([]GetAllDataItem, len(out.Items))
-	for i, item := range out.Items {
+	items := make([]GetAllDataItem, len(out.GetItems()))
+	for i, item := range out.GetItems() {
 		items[i] = GetAllDataItem{
-			GUID:          item.Guid,
-			EncryptedData: item.EncryptedData,
-			CreatedAt:     item.CreatedAt.AsTime(),
-			UpdatedAt:     item.UpdatedAt.AsTime(),
+			GUID:          item.GetGuid(),
+			EncryptedData: item.GetEncryptedData(),
+			CreatedAt:     item.GetCreatedAt().AsTime(),
+			UpdatedAt:     item.GetUpdatedAt().AsTime(),
 		}
 	}
 
