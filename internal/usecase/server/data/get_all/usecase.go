@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	storeUser "github.com/bjlag/go-keeper/internal/infrastructure/store/user"
+	storeUser "github.com/bjlag/go-keeper/internal/infrastructure/store/server/user"
 )
 
 var ErrNoData = errors.New("no data")

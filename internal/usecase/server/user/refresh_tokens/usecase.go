@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
-	storeUser "github.com/bjlag/go-keeper/internal/infrastructure/store/user"
+	storeUser "github.com/bjlag/go-keeper/internal/infrastructure/store/server/user"
 )
 
 var (

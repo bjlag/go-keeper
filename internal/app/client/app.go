@@ -2,9 +2,7 @@ package client
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
 	_ "github.com/mattn/go-sqlite3"
@@ -15,6 +13,7 @@ import (
 	formLogin "github.com/bjlag/go-keeper/internal/cli/model/login"
 	"github.com/bjlag/go-keeper/internal/cli/model/master"
 	formRegister "github.com/bjlag/go-keeper/internal/cli/model/register"
+	"github.com/bjlag/go-keeper/internal/infrastructure/db/sqlite"
 	rpc "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/token"
 	"github.com/bjlag/go-keeper/internal/usecase/client/login"
@@ -47,10 +46,10 @@ func (a *App) Run(ctx context.Context) error {
 		_ = rpcClient.Close()
 	}()
 
-	db, err := sql.Open("sqlite3", "./client.db")
+	db, err := sqlite.New("./client.db").Connect()
 	if err != nil {
 		a.log.Error("failed to open db", zap.Error(err))
-		return fmt.Errorf("%s%w", op, err)
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	_ = db
@@ -69,8 +68,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	f, err := tea.LogToFile("debug.log", "debug")
 	if err != nil {
-		fmt.Println("fatal:", err)
-		os.Exit(1)
+		panic(err)
 	}
 	defer func() {
 		_ = f.Close()

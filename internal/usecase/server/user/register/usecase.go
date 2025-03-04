@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	model "github.com/bjlag/go-keeper/internal/domain/user"
-	storeUser "github.com/bjlag/go-keeper/internal/infrastructure/store/user"
+	storeUser "github.com/bjlag/go-keeper/internal/infrastructure/store/server/user"
 )
 
 var ErrUserAlreadyExists = errors.New("user already exists")

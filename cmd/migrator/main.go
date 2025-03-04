@@ -18,6 +18,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/bjlag/go-keeper/internal/infrastructure/db/pg"
+	"github.com/bjlag/go-keeper/internal/infrastructure/db/sqlite"
 	"github.com/bjlag/go-keeper/internal/infrastructure/logger"
 )
 
@@ -61,8 +62,11 @@ func main() {
 		dbConf := cfg.Database
 		db, err = pg.New(pg.GetDSN(dbConf.Host, dbConf.Port, dbConf.Name, dbConf.User, dbConf.Password)).Connect()
 	case typeSqlite:
-		db, err = sqlx.Open("sqlite3", "./client.db")
+		db, err = sqlite.New("./client.db").Connect()
 	}
+	defer func() {
+		_ = db.Close()
+	}()
 
 	if err != nil {
 		log.Error("Failed to open db", zap.Error(err))
