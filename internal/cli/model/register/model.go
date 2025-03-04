@@ -14,7 +14,7 @@ import (
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element"
-	"github.com/bjlag/go-keeper/internal/cli/message"
+	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/infrastructure/validator"
 	"github.com/bjlag/go-keeper/internal/usecase/client/register"
 )
@@ -31,7 +31,7 @@ const (
 
 var errUserAlreadyRegistered = common.NewFormError("Пользователь уже зарегистрирован")
 
-type Form struct {
+type Model struct {
 	main     tea.Model
 	help     help.Model
 	header   string
@@ -39,11 +39,12 @@ type Form struct {
 	pos      int
 	err      error
 
-	usecase *register.Usecase
+	backModel tea.Model
+	usecase   *register.Usecase
 }
 
-func NewForm(usecase *register.Usecase) *Form {
-	f := &Form{
+func InitModel(usecase *register.Usecase) *Model {
+	f := &Model{
 		help:   help.New(),
 		header: "Регистрация",
 		elements: []interface{}{
@@ -58,8 +59,8 @@ func NewForm(usecase *register.Usecase) *Form {
 	for i := range f.elements {
 		if e, ok := f.elements[i].(textinput.Model); ok {
 			if i == posEmail {
-				e.TextStyle = element.FocusedStyle
-				e.PromptStyle = element.FocusedStyle
+				e.TextStyle = style.FocusedStyle
+				e.PromptStyle = style.FocusedStyle
 				e.Focus()
 
 				f.elements[i] = e
@@ -74,15 +75,15 @@ func NewForm(usecase *register.Usecase) *Form {
 	return f
 }
 
-func (f *Form) SetMainModel(m tea.Model) {
+func (f *Model) SetMainModel(m tea.Model) {
 	f.main = m
 }
 
-func (f *Form) Init() tea.Cmd {
+func (f *Model) Init() tea.Cmd {
 	return nil
 }
 
-func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		for i := range f.elements {
@@ -92,6 +93,8 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		return f, nil
+	case OpenMessage:
+		f.backModel = msg.BackModel
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, common.Keys.Quit):
@@ -114,12 +117,12 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				case textinput.Model:
 					if i == f.pos {
 						e.Focus()
-						f.elements[i] = element.SetFocusStyle(e)
+						f.elements[i] = style.SetFocusStyle(e)
 						continue
 					}
 
 					e.Blur()
-					f.elements[i] = element.SetNoStyle(e)
+					f.elements[i] = style.SetNoStyle(e)
 				case element.Button:
 					if i == f.pos {
 						e.Focus()
@@ -132,6 +135,8 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			return f, nil
+		case key.Matches(msg, common.Keys.Back):
+			return f.backModel.Update(common.BackMessage{})
 		case key.Matches(msg, common.Keys.Enter):
 			f.err = nil
 
@@ -139,7 +144,7 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case f.pos == posSubmitBtn || f.pos == posEmail || f.pos == posPassword:
 				return f.submit()
 			case f.pos == posBackBtn:
-				return f.main.Update(message.OpenLoginFormMessage{})
+				return f.main.Update(common.BackMessage{})
 			}
 
 			return f, nil
@@ -149,10 +154,10 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return f, f.updateInputs(msg)
 }
 
-func (f *Form) View() string {
+func (f *Model) View() string {
 	var b strings.Builder
 
-	b.WriteString(element.TitleStyle.Render(f.header))
+	b.WriteString(style.TitleStyle.Render(f.header))
 	b.WriteRune('\n')
 
 	for i := range f.elements {
@@ -178,7 +183,7 @@ func (f *Form) View() string {
 
 	// выводим ошибки валидации
 	if f.err != nil && (errors.As(f.err, &errValidate) || errors.As(f.err, &errForm)) {
-		b.WriteString(element.ErrorBlockStyle.Render(f.err.Error()))
+		b.WriteString(style.ErrorBlockStyle.Render(f.err.Error()))
 		b.WriteRune('\n')
 	}
 
@@ -188,13 +193,13 @@ func (f *Form) View() string {
 	// выводим прочие ошибки
 	if f.err != nil && !(errors.As(f.err, &errValidate) || errors.As(f.err, &errForm)) {
 		b.WriteRune('\n')
-		b.WriteString(element.ErrorBlockStyle.Render(f.err.Error()))
+		b.WriteString(style.ErrorBlockStyle.Render(f.err.Error()))
 	}
 
 	return b.String()
 }
 
-func (f *Form) submit() (tea.Model, tea.Cmd) {
+func (f *Model) submit() (tea.Model, tea.Cmd) {
 	errValidate := common.NewValidateError()
 
 	email, ok := f.elements[posEmail].(textinput.Model)
@@ -209,12 +214,12 @@ func (f *Form) submit() (tea.Model, tea.Cmd) {
 	}
 
 	if !validator.ValidateEmail(email.Value()) {
-		f.elements[posEmail] = element.SetErrorStyle(email)
+		f.elements[posEmail] = style.SetErrorStyle(email)
 		errValidate.AddError("Неправильный email")
 	}
 
 	if !validator.ValidatePassword(password.Value()) {
-		f.elements[posPassword] = element.SetErrorStyle(password)
+		f.elements[posPassword] = style.SetErrorStyle(password)
 		errValidate.AddError("Недостаточно сложный пароль")
 	}
 
@@ -241,13 +246,13 @@ func (f *Form) submit() (tea.Model, tea.Cmd) {
 		return f, nil
 	}
 
-	return f.main.Update(message.SuccessRegisterMessage{
+	return f.main.Update(SuccessMessage{
 		AccessToken:  result.AccessToken,
 		RefreshToken: result.RefreshToken,
 	})
 }
 
-func (f *Form) updateInputs(msg tea.Msg) tea.Cmd {
+func (f *Model) updateInputs(msg tea.Msg) tea.Cmd {
 	cmds := make([]tea.Cmd, len(f.elements))
 
 	for i := range f.elements {

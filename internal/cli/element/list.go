@@ -5,9 +5,24 @@ import (
 	"io"
 	"strings"
 
+	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 )
+
+func CreateDefaultList(title string, with, height int, items ...list.Item) list.Model {
+	l := list.New(items, ItemDelegate{}, with, height)
+
+	l.Title = title
+	l.SetShowStatusBar(false)
+	l.SetFilteringEnabled(false)
+	//l.SetShowTitle(false)
+	l.Styles.Title = style.ListTitleStyle
+	l.Styles.PaginationStyle = style.ListPaginationStyle
+	l.Styles.HelpStyle = style.ListHelpStyle
+
+	return l
+}
 
 type Item struct {
 	ID   string
@@ -38,10 +53,10 @@ func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 
 	str := fmt.Sprintf("%d. %s", index+1, i.Name)
 
-	fn := ListItemStyle.Render
+	fn := style.ListItemStyle.Render
 	if index == m.Index() {
 		fn = func(s ...string) string {
-			return SelectedListItemStyle.Render("> " + strings.Join(s, " "))
+			return style.SelectedListItemStyle.Render("> " + strings.Join(s, " "))
 		}
 	}
 

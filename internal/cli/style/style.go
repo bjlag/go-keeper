@@ -1,4 +1,4 @@
-package element
+package style
 
 import (
 	"github.com/charmbracelet/bubbles/list"
@@ -49,37 +49,4 @@ func SetFocusStyle(input textinput.Model) textinput.Model {
 func SetErrorStyle(input textinput.Model) textinput.Model {
 	input.PromptStyle = ErrorStyle
 	return input
-}
-
-func CreateDefaultTextInput(placeholder string, limit int) textinput.Model {
-	m := textinput.New()
-
-	m.Cursor.Style = CursorStyle
-	m.PlaceholderStyle = BlurredStyle
-	m.CharLimit = limit
-	m.Placeholder = placeholder
-
-	return m
-}
-
-func CreateDefaultButton(text string) Button {
-	b := NewButton(text)
-	b.FocusedStyle = FocusedStyle
-	b.BlurredStyle = BlurredStyle
-
-	return b
-}
-
-func CreateDefaultList(title string, with, height int, items ...list.Item) list.Model {
-	l := list.New(items, ItemDelegate{}, with, height)
-
-	l.Title = title
-	l.SetShowStatusBar(false)
-	l.SetFilteringEnabled(false)
-	//l.SetShowTitle(false)
-	l.Styles.Title = ListTitleStyle
-	l.Styles.PaginationStyle = ListPaginationStyle
-	l.Styles.HelpStyle = ListHelpStyle
-
-	return l
 }

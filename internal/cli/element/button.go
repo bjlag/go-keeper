@@ -2,7 +2,7 @@ package element
 
 import (
 	"fmt"
-
+	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -19,6 +19,14 @@ func NewButton(text string) Button {
 		FocusedStyle: lipgloss.NewStyle(),
 		BlurredStyle: lipgloss.NewStyle(),
 	}
+}
+
+func CreateDefaultButton(text string) Button {
+	b := NewButton(text)
+	b.FocusedStyle = style.FocusedStyle
+	b.BlurredStyle = style.BlurredStyle
+
+	return b
 }
 
 func (b *Button) String() string {

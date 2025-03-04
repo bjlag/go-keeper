@@ -1,4 +1,4 @@
-package password
+package item
 
 import (
 	"errors"
@@ -11,8 +11,7 @@ import (
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element"
-	"github.com/bjlag/go-keeper/internal/cli/message"
-	"github.com/bjlag/go-keeper/internal/usecase/client/register"
+	"github.com/bjlag/go-keeper/internal/cli/style"
 )
 
 const (
@@ -23,7 +22,7 @@ const (
 	posBackBtn
 )
 
-type Form struct {
+type Model struct {
 	main     tea.Model
 	help     help.Model
 	header   string
@@ -31,13 +30,14 @@ type Form struct {
 	pos      int
 	err      error
 
-	category string
+	backModel tea.Model
+	backState int
 
-	usecase *register.Usecase
+	category string
 }
 
-func NewForm() *Form {
-	f := &Form{
+func InitModel() *Model {
+	f := &Model{
 		help:   help.New(),
 		header: "Регистрация",
 		elements: []interface{}{
@@ -52,21 +52,21 @@ func NewForm() *Form {
 
 	if e, ok := f.elements[posLogin].(textinput.Model); ok {
 		e.Focus()
-		f.elements[posLogin] = element.SetFocusStyle(e)
+		f.elements[posLogin] = style.SetFocusStyle(e)
 	}
 
 	return f
 }
 
-func (f *Form) SetMainModel(m tea.Model) {
+func (f *Model) SetMainModel(m tea.Model) {
 	f.main = m
 }
 
-func (f *Form) Init() tea.Cmd {
+func (f *Model) Init() tea.Cmd {
 	return nil
 }
 
-func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		for i := range f.elements {
@@ -76,11 +76,14 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		return f, nil
-	case message.OpenPasswordFormMessage:
+	case OpenMessage:
 		// todo получаем данные из базы
 
 		f.header = msg.Item.Name
 		f.category = "Категория"
+
+		f.backState = msg.BackState
+		f.backModel = msg.BackModel
 
 		if input, ok := f.elements[posLogin].(textinput.Model); ok {
 			input.SetValue("login")
@@ -115,12 +118,12 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				case textinput.Model:
 					if i == f.pos {
 						e.Focus()
-						f.elements[i] = element.SetFocusStyle(e)
+						f.elements[i] = style.SetFocusStyle(e)
 						continue
 					}
 
 					e.Blur()
-					f.elements[i] = element.SetNoStyle(e)
+					f.elements[i] = style.SetNoStyle(e)
 				case element.Button:
 					if i == f.pos {
 						e.Focus()
@@ -138,22 +141,26 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			switch {
 			case f.pos == posBackBtn:
-				return f.main.Update(message.OpenPasswordListFormMessage{})
+				return f.backModel.Update(common.BackMessage{
+					State: f.backState,
+				})
 			}
 
 			return f, nil
 		case key.Matches(msg, common.Keys.Back):
-			return f.main.Update(message.OpenPasswordListFormMessage{})
+			return f.backModel.Update(common.BackMessage{
+				State: f.backState,
+			})
 		}
 	}
 
 	return f, f.updateInputs(msg)
 }
 
-func (f *Form) View() string {
+func (f *Model) View() string {
 	var b strings.Builder
 
-	b.WriteString(element.TitleStyle.Render(f.header))
+	b.WriteString(style.TitleStyle.Render(f.header))
 	b.WriteRune('\n')
 
 	b.WriteString("Категория: ")
@@ -186,7 +193,7 @@ func (f *Form) View() string {
 
 	// выводим ошибки валидации
 	if f.err != nil && (errors.As(f.err, &errValidate) || errors.As(f.err, &errForm)) {
-		b.WriteString(element.ErrorBlockStyle.Render(f.err.Error()))
+		b.WriteString(style.ErrorBlockStyle.Render(f.err.Error()))
 		b.WriteRune('\n')
 	}
 
@@ -196,13 +203,13 @@ func (f *Form) View() string {
 	// выводим прочие ошибки
 	if f.err != nil && !(errors.As(f.err, &errValidate) || errors.As(f.err, &errForm)) {
 		b.WriteRune('\n')
-		b.WriteString(element.ErrorBlockStyle.Render(f.err.Error()))
+		b.WriteString(style.ErrorBlockStyle.Render(f.err.Error()))
 	}
 
 	return b.String()
 }
 
-func (f *Form) updateInputs(msg tea.Msg) tea.Cmd {
+func (f *Model) updateInputs(msg tea.Msg) tea.Cmd {
 	cmds := make([]tea.Cmd, len(f.elements))
 
 	for i := range f.elements {

@@ -2,26 +2,26 @@ package list
 
 import (
 	"context"
-	"github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element"
-	"github.com/bjlag/go-keeper/internal/cli/message"
+	"github.com/bjlag/go-keeper/internal/cli/model/item"
+	"github.com/bjlag/go-keeper/internal/cli/model/login"
+	"github.com/bjlag/go-keeper/internal/cli/style"
+	"github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
 )
 
-type state int
-
 const (
-	stateShowCategoryList state = iota
-	stateShowPasswordList
+	stateCategoryList int = iota
+	statePasswordList
 )
 
 const (
@@ -29,10 +29,10 @@ const (
 	listHeight   = 14
 )
 
-type Form struct {
+type Model struct {
 	main       tea.Model
 	help       help.Model
-	state      state
+	state      int
 	header     string
 	categories list.Model
 	passwords  list.Model
@@ -42,8 +42,8 @@ type Form struct {
 	//usecase *login.Usecase
 }
 
-func NewForm(rpcClient *client.RPCClient) *Form {
-	f := &Form{
+func InitModel(rpcClient *client.RPCClient) *Model {
+	f := &Model{
 		help:       help.New(),
 		header:     "Категории",
 		categories: element.CreateDefaultList("Категории:", defaultWidth, listHeight),
@@ -56,25 +56,31 @@ func NewForm(rpcClient *client.RPCClient) *Form {
 	return f
 }
 
-func (f *Form) SetMainModel(m tea.Model) {
+func (f *Model) SetMainModel(m tea.Model) {
 	f.main = m
 }
 
-func (f *Form) Init() tea.Cmd {
+func (f *Model) Init() tea.Cmd {
 	return nil
 }
 
-func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		f.categories.SetWidth(msg.Width)
 		f.passwords.SetWidth(msg.Width)
 		return f, nil
-	case message.OpenCategoryListFormMessage:
-		f.state = stateShowCategoryList
+	case common.BackMessage:
+		switch msg.State {
+		case stateCategoryList:
+			return f.Update(OpenCategoryListMessage{})
+		case statePasswordList:
+			return f.Update(OpenPasswordListMessage{})
+		}
 
-		// todo получаем данные из базы
-		// todo получить все данные
+	case GetAllDataMessage:
+		f.state = stateCategoryList
+
 		in := &client.GetAllDataIn{
 			Limit:  10,
 			Offset: 0,
@@ -83,7 +89,7 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if err != nil {
 			if s, ok := status.FromError(err); ok {
 				if s.Code() == codes.PermissionDenied {
-					return f.main.Update(message.OpenLoginFormMessage{})
+					return f.main.Update(login.OpenMessage{})
 				}
 				return f, nil
 			}
@@ -94,6 +100,12 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		_ = out
 
+		return f.Update(OpenCategoryListMessage{})
+	case OpenCategoryListMessage:
+		f.state = stateCategoryList
+
+		// todo получаем данные из базы
+
 		f.categories.SetItems(nil)
 		f.categories.InsertItem(len(f.categories.Items()), element.Item{Name: "Логины"})
 		f.categories.InsertItem(len(f.categories.Items()), element.Item{Name: "Тексты"})
@@ -101,8 +113,8 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		f.categories.InsertItem(len(f.categories.Items()), element.Item{Name: "Банковские карты"})
 
 		return f, nil
-	case message.OpenPasswordListFormMessage:
-		f.state = stateShowPasswordList
+	case OpenPasswordListMessage:
+		f.state = statePasswordList
 
 		// todo получаем данные из базы
 
@@ -120,16 +132,18 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return f, tea.Quit
 		case key.Matches(msg, common.Keys.Enter):
 			switch f.state {
-			case stateShowCategoryList:
+			case stateCategoryList:
 				if i, ok := f.categories.SelectedItem().(element.Item); ok {
-					return f.Update(message.OpenPasswordListFormMessage{
+					return f.Update(OpenPasswordListMessage{
 						Category: i,
 					})
 				}
-			case stateShowPasswordList:
+			case statePasswordList:
 				if i, ok := f.passwords.SelectedItem().(element.Item); ok {
-					return f.main.Update(message.OpenPasswordFormMessage{
-						Item: i,
+					return f.main.Update(item.OpenMessage{
+						BackModel: f,
+						BackState: f.state,
+						Item:      i,
 					})
 				}
 			}
@@ -137,33 +151,33 @@ func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return f, nil
 		case key.Matches(msg, common.Keys.Back):
 			switch f.state {
-			case stateShowPasswordList:
-				return f.Update(message.OpenCategoryListFormMessage{})
+			case statePasswordList:
+				return f.Update(OpenCategoryListMessage{})
 			}
 		}
 	}
 
 	var cmd tea.Cmd
 	switch f.state {
-	case stateShowCategoryList:
+	case stateCategoryList:
 		f.categories, cmd = f.categories.Update(msg)
-	case stateShowPasswordList:
+	case statePasswordList:
 		f.passwords, cmd = f.passwords.Update(msg)
 	}
 
 	return f, cmd
 }
 
-func (f *Form) View() string {
+func (f *Model) View() string {
 	var b strings.Builder
 
-	b.WriteString(element.TitleStyle.Render(f.header))
+	b.WriteString(style.TitleStyle.Render(f.header))
 	b.WriteRune('\n')
 
 	switch f.state {
-	case stateShowCategoryList:
+	case stateCategoryList:
 		b.WriteString(f.categories.View())
-	case stateShowPasswordList:
+	case statePasswordList:
 		b.WriteString(f.passwords.View())
 	}
 
@@ -173,7 +187,7 @@ func (f *Form) View() string {
 	// выводим прочие ошибки
 	if f.err != nil {
 		b.WriteRune('\n')
-		b.WriteString(element.ErrorBlockStyle.Render(f.err.Error()))
+		b.WriteString(style.ErrorBlockStyle.Render(f.err.Error()))
 	}
 
 	return b.String()

@@ -10,11 +10,11 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
 
-	"github.com/bjlag/go-keeper/internal/cli"
-	"github.com/bjlag/go-keeper/internal/cli/form/list"
-	formLogin "github.com/bjlag/go-keeper/internal/cli/form/login"
-	"github.com/bjlag/go-keeper/internal/cli/form/password"
-	formRegister "github.com/bjlag/go-keeper/internal/cli/form/register"
+	"github.com/bjlag/go-keeper/internal/cli/model/item"
+	"github.com/bjlag/go-keeper/internal/cli/model/list"
+	formLogin "github.com/bjlag/go-keeper/internal/cli/model/login"
+	"github.com/bjlag/go-keeper/internal/cli/model/master"
+	formRegister "github.com/bjlag/go-keeper/internal/cli/model/register"
 	rpc "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/token"
 	"github.com/bjlag/go-keeper/internal/usecase/client/login"
@@ -58,13 +58,13 @@ func (a *App) Run(ctx context.Context) error {
 	ucLogin := login.NewUsecase(rpcClient)
 	ucRegister := register.NewUsecase(rpcClient)
 
-	model := cli.InitModel(
-		cli.WithStoreTokens(storeTokens),
+	m := master.InitModel(
+		master.WithStoreTokens(storeTokens),
 
-		cli.WithLoginForm(formLogin.NewForm(ucLogin)),
-		cli.WithRegisterForm(formRegister.NewForm(ucRegister)),
-		cli.WithListFormForm(list.NewForm(rpcClient)),
-		cli.WithShowPasswordForm(password.NewForm()),
+		master.WithLoginForm(formLogin.InitModel(ucLogin)),
+		master.WithRegisterForm(formRegister.InitModel(ucRegister)),
+		master.WithListFormForm(list.InitModel(rpcClient)),
+		master.WithShowPasswordForm(item.InitModel()),
 	)
 
 	f, err := tea.LogToFile("debug.log", "debug")
@@ -76,7 +76,7 @@ func (a *App) Run(ctx context.Context) error {
 		_ = f.Close()
 	}()
 
-	_, err = tea.NewProgram(model, tea.WithAltScreen(), tea.WithContext(ctx)).Run()
+	_, err = tea.NewProgram(m, tea.WithAltScreen(), tea.WithContext(ctx)).Run()
 	if err != nil {
 		a.log.Error("failed to run cli program", zap.Error(err))
 	}
