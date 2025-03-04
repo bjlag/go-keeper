@@ -9,5 +9,5 @@ import (
 )
 
 type dataStore interface {
-	GetAllByUser(ctx context.Context, userGUID uuid.UUID, limit, offset uint32) ([]model.Data, error)
+	GetAllByUser(ctx context.Context, userGUID uuid.UUID, limit, offset uint32) ([]model.Item, error)
 }

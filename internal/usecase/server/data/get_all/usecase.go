@@ -21,7 +21,7 @@ func NewUsecase(dataStore dataStore) *Usecase {
 }
 
 func (u Usecase) Do(ctx context.Context, data Data) (*Result, error) {
-	const op = "usecase.data.getAll.Do"
+	const op = "usecase.item.getAll.Do"
 
 	rows, err := u.dataStore.GetAllByUser(ctx, data.UserGUID, data.Limit, data.Offset)
 	if err != nil {

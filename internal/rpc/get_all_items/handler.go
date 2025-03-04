@@ -1,4 +1,4 @@
-package get_all_data
+package get_all_items
 
 import (
 	"context"
@@ -31,7 +31,7 @@ func New(usecase usecase) *Handler {
 	}
 }
 
-func (h *Handler) Handle(ctx context.Context, in *pb.GetAllDataIn) (*pb.GetAllDataOut, error) {
+func (h *Handler) Handle(ctx context.Context, in *pb.GetAllItemsIn) (*pb.GetAllItemsOut, error) {
 	log := logger.FromCtx(ctx)
 
 	userGUID := auth.UserGUIDFromCtx(ctx)
@@ -58,7 +58,7 @@ func (h *Handler) Handle(ctx context.Context, in *pb.GetAllDataIn) (*pb.GetAllDa
 	})
 	if err != nil {
 		if !errors.Is(err, get_all.ErrNoData) {
-			log.Error("Failed to get all data", zap.Error(err))
+			log.Error("Failed to get all item", zap.Error(err))
 			return nil, status.Error(codes.Internal, "internal error")
 		}
 	}
@@ -73,7 +73,7 @@ func (h *Handler) Handle(ctx context.Context, in *pb.GetAllDataIn) (*pb.GetAllDa
 		})
 	}
 
-	return &pb.GetAllDataOut{
+	return &pb.GetAllItemsOut{
 		Items: itemsOut,
 	}, nil
 }

@@ -1,4 +1,4 @@
-package get_all_data
+package get_all_items
 
 import (
 	"context"

@@ -22,7 +22,7 @@ const (
 	Keeper_Register_FullMethodName      = "/keeper.Keeper/Register"
 	Keeper_Login_FullMethodName         = "/keeper.Keeper/Login"
 	Keeper_RefreshTokens_FullMethodName = "/keeper.Keeper/RefreshTokens"
-	Keeper_GetAllData_FullMethodName    = "/keeper.Keeper/GetAllData"
+	Keeper_GetAllItems_FullMethodName   = "/keeper.Keeper/GetAllItems"
 )
 
 // KeeperClient is the client API for Keeper service.
@@ -34,7 +34,7 @@ type KeeperClient interface {
 	Login(ctx context.Context, in *LoginIn, opts ...grpc.CallOption) (*LoginOut, error)
 	RefreshTokens(ctx context.Context, in *RefreshTokensIn, opts ...grpc.CallOption) (*RefreshTokensOut, error)
 	// data
-	GetAllData(ctx context.Context, in *GetAllDataIn, opts ...grpc.CallOption) (*GetAllDataOut, error)
+	GetAllItems(ctx context.Context, in *GetAllItemsIn, opts ...grpc.CallOption) (*GetAllItemsOut, error)
 }
 
 type keeperClient struct {
@@ -75,10 +75,10 @@ func (c *keeperClient) RefreshTokens(ctx context.Context, in *RefreshTokensIn, o
 	return out, nil
 }
 
-func (c *keeperClient) GetAllData(ctx context.Context, in *GetAllDataIn, opts ...grpc.CallOption) (*GetAllDataOut, error) {
+func (c *keeperClient) GetAllItems(ctx context.Context, in *GetAllItemsIn, opts ...grpc.CallOption) (*GetAllItemsOut, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAllDataOut)
-	err := c.cc.Invoke(ctx, Keeper_GetAllData_FullMethodName, in, out, cOpts...)
+	out := new(GetAllItemsOut)
+	err := c.cc.Invoke(ctx, Keeper_GetAllItems_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ type KeeperServer interface {
 	Login(context.Context, *LoginIn) (*LoginOut, error)
 	RefreshTokens(context.Context, *RefreshTokensIn) (*RefreshTokensOut, error)
 	// data
-	GetAllData(context.Context, *GetAllDataIn) (*GetAllDataOut, error)
+	GetAllItems(context.Context, *GetAllItemsIn) (*GetAllItemsOut, error)
 }
 
 // UnimplementedKeeperServer should be embedded to have
@@ -113,8 +113,8 @@ func (UnimplementedKeeperServer) Login(context.Context, *LoginIn) (*LoginOut, er
 func (UnimplementedKeeperServer) RefreshTokens(context.Context, *RefreshTokensIn) (*RefreshTokensOut, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RefreshTokens not implemented")
 }
-func (UnimplementedKeeperServer) GetAllData(context.Context, *GetAllDataIn) (*GetAllDataOut, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAllData not implemented")
+func (UnimplementedKeeperServer) GetAllItems(context.Context, *GetAllItemsIn) (*GetAllItemsOut, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllItems not implemented")
 }
 func (UnimplementedKeeperServer) testEmbeddedByValue() {}
 
@@ -190,20 +190,20 @@ func _Keeper_RefreshTokens_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Keeper_GetAllData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAllDataIn)
+func _Keeper_GetAllItems_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllItemsIn)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(KeeperServer).GetAllData(ctx, in)
+		return srv.(KeeperServer).GetAllItems(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Keeper_GetAllData_FullMethodName,
+		FullMethod: Keeper_GetAllItems_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KeeperServer).GetAllData(ctx, req.(*GetAllDataIn))
+		return srv.(KeeperServer).GetAllItems(ctx, req.(*GetAllItemsIn))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -228,8 +228,8 @@ var Keeper_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Keeper_RefreshTokens_Handler,
 		},
 		{
-			MethodName: "GetAllData",
-			Handler:    _Keeper_GetAllData_Handler,
+			MethodName: "GetAllItems",
+			Handler:    _Keeper_GetAllItems_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

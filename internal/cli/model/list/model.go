@@ -81,11 +81,11 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case GetAllDataMessage:
 		f.state = stateCategoryList
 
-		in := &client.GetAllDataIn{
+		in := &client.GetAllItemsIn{
 			Limit:  10,
 			Offset: 0,
 		}
-		out, err := f.rpcClient.GetAllData(context.TODO(), in)
+		out, err := f.rpcClient.GetAllItems(context.TODO(), in)
 		if err != nil {
 			if s, ok := status.FromError(err); ok {
 				if s.Code() == codes.PermissionDenied {

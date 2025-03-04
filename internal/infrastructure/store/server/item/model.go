@@ -1,4 +1,4 @@
-package data
+package item
 
 import (
 	"time"
@@ -16,8 +16,8 @@ type Row struct {
 	UpdatedAt     time.Time `db:"updated_at"`
 }
 
-func (r *Row) convertToModel() data.Data {
-	return data.Data{
+func (r *Row) convertToModel() data.Item {
+	return data.Item{
 		GUID:          r.GUID,
 		UserGUID:      r.UserGUID,
 		EncryptedData: r.EncryptedData,
@@ -26,8 +26,8 @@ func (r *Row) convertToModel() data.Data {
 	}
 }
 
-func convertToModels(rows []Row) []data.Data {
-	result := make([]data.Data, 0, len(rows))
+func convertToModels(rows []Row) []data.Item {
+	result := make([]data.Item, 0, len(rows))
 	for _, row := range rows {
 		result = append(result, row.convertToModel())
 	}

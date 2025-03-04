@@ -1,4 +1,4 @@
-package data
+package item
 
 import (
 	"context"
@@ -20,12 +20,12 @@ func NewStore(db *sqlx.DB) *Store {
 	}
 }
 
-func (s *Store) GetAllByUser(ctx context.Context, userGUID uuid.UUID, limit, offset uint32) ([]model.Data, error) {
-	const op = "store.data.GetAllByUser"
+func (s *Store) GetAllByUser(ctx context.Context, userGUID uuid.UUID, limit, offset uint32) ([]model.Item, error) {
+	const op = "store.item.GetAllByUser"
 
 	query := `
 		SELECT guid, user_guid, encrypted_data, created_at, updated_at
-		FROM data
+		FROM items
 		WHERE user_guid = $1
 		LIMIT $2
 		OFFSET $3

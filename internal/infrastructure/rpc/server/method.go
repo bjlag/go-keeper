@@ -13,7 +13,7 @@ const (
 	RegisterMethod      = "Register"
 	LoginMethod         = "Login"
 	RefreshTokensMethod = "RefreshTokens"
-	GetAllDataMethod    = "GetAllData"
+	GetAllItemsMethod   = "GetAllItems"
 )
 
 func (s RPCServer) Register(ctx context.Context, in *pb.RegisterIn) (*pb.RegisterOut, error) {
@@ -58,15 +58,15 @@ func (s RPCServer) RefreshTokens(ctx context.Context, in *pb.RefreshTokensIn) (*
 	return h(ctx, in)
 }
 
-func (s RPCServer) GetAllData(ctx context.Context, in *pb.GetAllDataIn) (*pb.GetAllDataOut, error) {
-	handler, err := s.getHandler(GetAllDataMethod)
+func (s RPCServer) GetAllItems(ctx context.Context, in *pb.GetAllItemsIn) (*pb.GetAllItemsOut, error) {
+	handler, err := s.getHandler(GetAllItemsMethod)
 	if err != nil {
 		return nil, err
 	}
 
-	h, ok := handler.(func(context.Context, *pb.GetAllDataIn) (*pb.GetAllDataOut, error))
+	h, ok := handler.(func(context.Context, *pb.GetAllItemsIn) (*pb.GetAllItemsOut, error))
 	if !ok {
-		return nil, status.Errorf(codes.Internal, "handler for %s method not found", GetAllDataMethod)
+		return nil, status.Errorf(codes.Internal, "handler for %s method not found", GetAllItemsMethod)
 	}
 
 	return h(ctx, in)

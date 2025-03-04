@@ -15,7 +15,7 @@ const (
 	CategoryBankCard
 )
 
-type Data struct {
+type Item struct {
 	GUID          uuid.UUID
 	UserGUID      uuid.UUID
 	EncryptedData []byte

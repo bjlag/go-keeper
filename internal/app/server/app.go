@@ -9,9 +9,9 @@ import (
 	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
 	"github.com/bjlag/go-keeper/internal/infrastructure/db/pg"
 	"github.com/bjlag/go-keeper/internal/infrastructure/rpc/server"
-	"github.com/bjlag/go-keeper/internal/infrastructure/store/server/data"
+	"github.com/bjlag/go-keeper/internal/infrastructure/store/server/item"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/server/user"
-	rpcGetAllData "github.com/bjlag/go-keeper/internal/rpc/get_all_data"
+	rpcGetAllItems "github.com/bjlag/go-keeper/internal/rpc/get_all_items"
 	rpcLogin "github.com/bjlag/go-keeper/internal/rpc/login"
 	rpcRefreshTokens "github.com/bjlag/go-keeper/internal/rpc/refresh_tokens"
 	rpcRegister "github.com/bjlag/go-keeper/internal/rpc/register"
@@ -47,7 +47,7 @@ func (a *App) Run(ctx context.Context) error {
 	}()
 
 	userStore := user.NewStore(db)
-	dataStore := data.NewStore(db)
+	dataStore := item.NewStore(db)
 	jwt := auth.NewJWT(a.cfg.Auth.SecretKey, a.cfg.Auth.AccessTokenExp, a.cfg.Auth.RefreshTokenExp)
 
 	ucRegister := register.NewUsecase(userStore, jwt)
@@ -63,7 +63,7 @@ func (a *App) Run(ctx context.Context) error {
 		server.WithHandler(server.RegisterMethod, rpcRegister.New(ucRegister).Handle),
 		server.WithHandler(server.LoginMethod, rpcLogin.New(ucLogin).Handle),
 		server.WithHandler(server.RefreshTokensMethod, rpcRefreshTokens.New(ucRefreshTokens).Handle),
-		server.WithHandler(server.GetAllDataMethod, rpcGetAllData.New(ucGetAllData).Handle),
+		server.WithHandler(server.GetAllItemsMethod, rpcGetAllItems.New(ucGetAllData).Handle),
 	)
 
 	err = s.Start(ctx)

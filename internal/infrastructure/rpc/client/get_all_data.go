@@ -8,12 +8,12 @@ import (
 	"github.com/bjlag/go-keeper/internal/generated/rpc"
 )
 
-type GetAllDataIn struct {
+type GetAllItemsIn struct {
 	Limit  uint32
 	Offset uint32
 }
 
-type GetAllDataOut struct {
+type GetAllItemsOut struct {
 	Items []GetAllDataItem
 }
 
@@ -24,15 +24,15 @@ type GetAllDataItem struct {
 	UpdatedAt     time.Time
 }
 
-func (c RPCClient) GetAllData(ctx context.Context, in *GetAllDataIn) (*GetAllDataOut, error) {
-	const op = "client.rpc.GetAllData"
+func (c RPCClient) GetAllItems(ctx context.Context, in *GetAllItemsIn) (*GetAllItemsOut, error) {
+	const op = "client.rpc.GetAllItems"
 
-	rpcIn := &rpc.GetAllDataIn{
+	rpcIn := &rpc.GetAllItemsIn{
 		Limit:  in.Limit,
 		Offset: in.Offset,
 	}
 
-	out, err := c.client.GetAllData(ctx, rpcIn)
+	out, err := c.client.GetAllItems(ctx, rpcIn)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -51,7 +51,7 @@ func (c RPCClient) GetAllData(ctx context.Context, in *GetAllDataIn) (*GetAllDat
 		}
 	}
 
-	return &GetAllDataOut{
+	return &GetAllItemsOut{
 		Items: items,
 	}, nil
 }
