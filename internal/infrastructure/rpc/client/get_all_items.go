@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"time"
 
 	"github.com/bjlag/go-keeper/internal/generated/rpc"
@@ -18,7 +19,7 @@ type GetAllItemsOut struct {
 }
 
 type GetAllDataItem struct {
-	GUID          string
+	GUID          uuid.UUID
 	EncryptedData []byte
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
@@ -43,8 +44,13 @@ func (c RPCClient) GetAllItems(ctx context.Context, in *GetAllItemsIn) (*GetAllI
 
 	items := make([]GetAllDataItem, len(out.GetItems()))
 	for i, item := range out.GetItems() {
+		guid, err := uuid.Parse(item.GetGuid())
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+
 		items[i] = GetAllDataItem{
-			GUID:          item.GetGuid(),
+			GUID:          guid,
 			EncryptedData: item.GetEncryptedData(),
 			CreatedAt:     item.GetCreatedAt().AsTime(),
 			UpdatedAt:     item.GetUpdatedAt().AsTime(),

@@ -4,19 +4,15 @@ import (
 	"context"
 	"strings"
 
+	"github.com/bjlag/go-keeper/internal/cli/common"
+	"github.com/bjlag/go-keeper/internal/cli/element"
+	"github.com/bjlag/go-keeper/internal/cli/model/item"
+	"github.com/bjlag/go-keeper/internal/cli/style"
+	"github.com/bjlag/go-keeper/internal/usecase/client/sync"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
-	"github.com/bjlag/go-keeper/internal/cli/common"
-	"github.com/bjlag/go-keeper/internal/cli/element"
-	"github.com/bjlag/go-keeper/internal/cli/model/item"
-	"github.com/bjlag/go-keeper/internal/cli/model/login"
-	"github.com/bjlag/go-keeper/internal/cli/style"
-	"github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
 )
 
 const (
@@ -38,19 +34,17 @@ type Model struct {
 	passwords  list.Model
 	err        error
 
-	rpcClient *client.RPCClient
-	//usecase *login.Usecase
+	usecase *sync.Usecase
 }
 
-func InitModel(rpcClient *client.RPCClient) *Model {
+func InitModel(usecase *sync.Usecase) *Model {
 	f := &Model{
 		help:       help.New(),
 		header:     "Категории",
 		categories: element.CreateDefaultList("Категории:", defaultWidth, listHeight),
 		passwords:  element.CreateDefaultList("Пароли:", defaultWidth, listHeight),
 
-		rpcClient: rpcClient,
-		//usecase: usecase,
+		usecase: usecase,
 	}
 
 	return f
@@ -80,25 +74,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case GetAllDataMessage:
 		f.state = stateCategoryList
-
-		in := &client.GetAllItemsIn{
-			Limit:  10,
-			Offset: 0,
-		}
-		out, err := f.rpcClient.GetAllItems(context.TODO(), in)
-		if err != nil {
-			if s, ok := status.FromError(err); ok {
-				if s.Code() == codes.PermissionDenied {
-					return f.main.Update(login.OpenMessage{})
-				}
-				return f, nil
-			}
-
-			f.err = err
-			return f, nil
-		}
-
-		_ = out
+		f.err = f.usecase.Do(context.TODO())
 
 		return f.Update(OpenCategoryListMessage{})
 	case OpenCategoryListMessage:

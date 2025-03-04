@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
-	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
 
 	"github.com/bjlag/go-keeper/internal/cli/model/item"
@@ -15,9 +14,11 @@ import (
 	formRegister "github.com/bjlag/go-keeper/internal/cli/model/register"
 	"github.com/bjlag/go-keeper/internal/infrastructure/db/sqlite"
 	rpc "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
+	sItem "github.com/bjlag/go-keeper/internal/infrastructure/store/client/item"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/token"
 	"github.com/bjlag/go-keeper/internal/usecase/client/login"
 	"github.com/bjlag/go-keeper/internal/usecase/client/register"
+	"github.com/bjlag/go-keeper/internal/usecase/client/sync"
 )
 
 type App struct {
@@ -46,23 +47,26 @@ func (a *App) Run(ctx context.Context) error {
 		_ = rpcClient.Close()
 	}()
 
+	// todo базу создавать и подключаться после успешного логин
+	// todo название файла базы должно быть уникальным под каждую учетку под которой авторизовались
 	db, err := sqlite.New("./client.db").Connect()
 	if err != nil {
 		a.log.Error("failed to open db", zap.Error(err))
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	_ = db
+	storeItem := sItem.NewStore(db)
 
 	ucLogin := login.NewUsecase(rpcClient)
 	ucRegister := register.NewUsecase(rpcClient)
+	ucSync := sync.NewUsecase(rpcClient, storeItem)
 
 	m := master.InitModel(
 		master.WithStoreTokens(storeTokens),
 
 		master.WithLoginForm(formLogin.InitModel(ucLogin)),
 		master.WithRegisterForm(formRegister.InitModel(ucRegister)),
-		master.WithListFormForm(list.InitModel(rpcClient)),
+		master.WithListFormForm(list.InitModel(ucSync)),
 		master.WithShowPasswordForm(item.InitModel()),
 	)
 
