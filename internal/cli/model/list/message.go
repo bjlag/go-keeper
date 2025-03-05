@@ -1,11 +1,13 @@
 package list
 
-import "github.com/bjlag/go-keeper/internal/cli/element"
+import (
+	"github.com/bjlag/go-keeper/internal/domain/client"
+)
 
 type GetAllDataMessage struct{}
 
 type OpenCategoryListMessage struct{}
 
-type OpenPasswordListMessage struct {
-	Category element.Item
+type OpenItemListMessage struct {
+	Category client.Category
 }

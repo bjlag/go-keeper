@@ -2,6 +2,8 @@ package item
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
@@ -21,7 +23,7 @@ func NewStore(db *sqlx.DB) *Store {
 	}
 }
 
-func (s *Store) SaveItems(ctx context.Context, items []model.Item) error {
+func (s *Store) SaveItems(ctx context.Context, items []model.RawItem) error {
 	const op = prefixOp + "SaveItems"
 
 	tx, err := s.db.BeginTx(ctx, nil)
@@ -34,7 +36,7 @@ func (s *Store) SaveItems(ctx context.Context, items []model.Item) error {
 
 	for _, i := range items {
 		query := `
-			INSERT INTO items (guid, categoryid, title, value, notes, created_at, updated_at)
+			INSERT INTO items (guid, category_id, title, value, notes, created_at, updated_at)
 			VALUES ($1, $2, $3, $4, $5, $6, $7)
 			ON CONFLICT (guid) DO UPDATE SET
     			title = excluded.title,
@@ -55,4 +57,24 @@ func (s *Store) SaveItems(ctx context.Context, items []model.Item) error {
 	}
 
 	return nil
+}
+
+func (s *Store) ItemsByCategory(ctx context.Context, category model.Category) ([]model.RawItem, error) {
+	const op = prefixOp + "Passwords"
+
+	query := `
+		SELECT guid, category_id, title, value, notes, created_at, updated_at
+		FROM items
+		WHERE category_id = $1;
+	`
+	var rows []row
+	err := s.db.SelectContext(ctx, &rows, query, category)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return toModels(rows), nil
 }

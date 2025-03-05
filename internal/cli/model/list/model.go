@@ -4,20 +4,23 @@ import (
 	"context"
 	"strings"
 
-	"github.com/bjlag/go-keeper/internal/cli/common"
-	"github.com/bjlag/go-keeper/internal/cli/element"
-	"github.com/bjlag/go-keeper/internal/cli/model/item"
-	"github.com/bjlag/go-keeper/internal/cli/style"
-	"github.com/bjlag/go-keeper/internal/usecase/client/sync"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+
+	"github.com/bjlag/go-keeper/internal/cli/common"
+	"github.com/bjlag/go-keeper/internal/cli/element"
+	itemModel "github.com/bjlag/go-keeper/internal/cli/model/item"
+	"github.com/bjlag/go-keeper/internal/cli/style"
+	"github.com/bjlag/go-keeper/internal/domain/client"
+	"github.com/bjlag/go-keeper/internal/usecase/client/item"
+	"github.com/bjlag/go-keeper/internal/usecase/client/sync"
 )
 
 const (
 	stateCategoryList int = iota
-	statePasswordList
+	stateItemList
 )
 
 const (
@@ -31,20 +34,22 @@ type Model struct {
 	state      int
 	header     string
 	categories list.Model
-	passwords  list.Model
+	items      list.Model
 	err        error
 
-	usecase *sync.Usecase
+	usecaseSync *sync.Usecase
+	usecaseItem *item.Usecase
 }
 
-func InitModel(usecase *sync.Usecase) *Model {
+func InitModel(usecaseSync *sync.Usecase, usecaseItem *item.Usecase) *Model {
 	f := &Model{
 		help:       help.New(),
 		header:     "Категории",
-		categories: element.CreateDefaultList("Категории:", defaultWidth, listHeight),
-		passwords:  element.CreateDefaultList("Пароли:", defaultWidth, listHeight),
+		categories: element.CreateDefaultList("Категории:", defaultWidth, listHeight, element.CategoryDelegate{}),
+		items:      element.CreateDefaultList("Пароли:", defaultWidth, listHeight, element.ItemDelegate{}),
 
-		usecase: usecase,
+		usecaseSync: usecaseSync,
+		usecaseItem: usecaseItem,
 	}
 
 	return f
@@ -62,44 +67,46 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		f.categories.SetWidth(msg.Width)
-		f.passwords.SetWidth(msg.Width)
+		f.items.SetWidth(msg.Width)
 		return f, nil
 	case common.BackMessage:
 		switch msg.State {
 		case stateCategoryList:
 			return f.Update(OpenCategoryListMessage{})
-		case statePasswordList:
-			return f.Update(OpenPasswordListMessage{})
+		case stateItemList:
+			return f.Update(OpenItemListMessage{})
 		}
 
 	case GetAllDataMessage:
 		f.state = stateCategoryList
-		f.err = f.usecase.Do(context.TODO())
+		f.err = f.usecaseSync.Do(context.TODO())
 
 		return f.Update(OpenCategoryListMessage{})
 	case OpenCategoryListMessage:
 		f.state = stateCategoryList
 
-		// todo получаем данные из базы
-
 		f.categories.SetItems(nil)
-		f.categories.InsertItem(len(f.categories.Items()), element.Item{Name: "Логины"})
-		f.categories.InsertItem(len(f.categories.Items()), element.Item{Name: "Тексты"})
-		f.categories.InsertItem(len(f.categories.Items()), element.Item{Name: "Файлы"})
-		f.categories.InsertItem(len(f.categories.Items()), element.Item{Name: "Банковские карты"})
+		f.categories.InsertItem(len(f.categories.Items()), element.Category{ID: client.CategoryPassword, Name: "Пароли"})
+		f.categories.InsertItem(len(f.categories.Items()), element.Category{ID: client.CategoryText, Name: "Тексты"})
+		f.categories.InsertItem(len(f.categories.Items()), element.Category{ID: client.CategoryBlob, Name: "Файлы"})
+		f.categories.InsertItem(len(f.categories.Items()), element.Category{ID: client.CategoryBankCard, Name: "Банковские карты"})
 
 		return f, nil
-	case OpenPasswordListMessage:
-		f.state = statePasswordList
+	case OpenItemListMessage:
+		f.state = stateItemList
 
-		// todo получаем данные из базы
+		items, err := f.usecaseItem.ItemsByCategory(context.TODO(), msg.Category)
+		if err != nil {
+			f.err = err
+			return f, nil
+		}
 
-		f.passwords.SetItems(nil)
-		f.passwords.Title = f.categories.SelectedItem().(element.Item).Name + ":"
-		f.passwords.InsertItem(len(f.categories.Items()), element.Item{Name: "Пароль 1"})
-		f.passwords.InsertItem(len(f.categories.Items()), element.Item{Name: "Пароль 2"})
-		f.passwords.InsertItem(len(f.categories.Items()), element.Item{Name: "Пароль 3"})
-		f.passwords.InsertItem(len(f.categories.Items()), element.Item{Name: "Пароль 4"})
+		f.items.SetItems(nil)
+		f.items.Title = f.categories.SelectedItem().(element.Category).Name + ":"
+
+		for _, p := range items {
+			f.items.InsertItem(len(f.categories.Items()), element.Item{Name: p.Title})
+		}
 
 		return f, nil
 	case tea.KeyMsg:
@@ -109,14 +116,14 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, common.Keys.Enter):
 			switch f.state {
 			case stateCategoryList:
-				if i, ok := f.categories.SelectedItem().(element.Item); ok {
-					return f.Update(OpenPasswordListMessage{
-						Category: i,
+				if c, ok := f.categories.SelectedItem().(element.Category); ok {
+					return f.Update(OpenItemListMessage{
+						Category: c.ID,
 					})
 				}
-			case statePasswordList:
-				if i, ok := f.passwords.SelectedItem().(element.Item); ok {
-					return f.main.Update(item.OpenMessage{
+			case stateItemList:
+				if i, ok := f.items.SelectedItem().(element.Item); ok {
+					return f.main.Update(itemModel.OpenMessage{
 						BackModel: f,
 						BackState: f.state,
 						Item:      i,
@@ -127,7 +134,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return f, nil
 		case key.Matches(msg, common.Keys.Back):
 			switch f.state {
-			case statePasswordList:
+			case stateItemList:
 				return f.Update(OpenCategoryListMessage{})
 			}
 		}
@@ -137,8 +144,8 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch f.state {
 	case stateCategoryList:
 		f.categories, cmd = f.categories.Update(msg)
-	case statePasswordList:
-		f.passwords, cmd = f.passwords.Update(msg)
+	case stateItemList:
+		f.items, cmd = f.items.Update(msg)
 	}
 
 	return f, cmd
@@ -153,8 +160,8 @@ func (f *Model) View() string {
 	switch f.state {
 	case stateCategoryList:
 		b.WriteString(f.categories.View())
-	case statePasswordList:
-		b.WriteString(f.passwords.View())
+	case stateItemList:
+		b.WriteString(f.items.View())
 	}
 
 	//b.WriteRune('\n')

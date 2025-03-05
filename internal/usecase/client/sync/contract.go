@@ -12,5 +12,5 @@ type client interface {
 }
 
 type store interface {
-	SaveItems(ctx context.Context, items []model.Item) error
+	SaveItems(ctx context.Context, items []model.RawItem) error
 }

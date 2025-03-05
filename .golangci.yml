@@ -20,6 +20,7 @@ linters:
         - wrapcheck
         - gocognit
         - cyclop
+        - exhaustive
 
 linters-settings:
     revive:
@@ -46,4 +47,3 @@ linters-settings:
             - empty
             - stdlib
             - github\.com\/charmbracelet\/bubbletea\.Model
-#            - github\.com\/charmbracelet\/bubbletea\.Cmd

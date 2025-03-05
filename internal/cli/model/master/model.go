@@ -65,7 +65,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.formRegister.Update(msg)
 	case listf.OpenCategoryListMessage:
 		return m.formList.Update(msg)
-	case listf.OpenPasswordListMessage:
+	case listf.OpenItemListMessage:
 		return m.formList.Update(msg)
 	case item.OpenMessage:
 		return m.formPassword.Update(msg)

@@ -6,15 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type Category int
-
-const (
-	CategoryLogin Category = iota
-	CategoryText
-	CategoryFile
-	CategoryBankCard
-)
-
 type Item struct {
 	GUID          uuid.UUID
 	UserGUID      uuid.UUID

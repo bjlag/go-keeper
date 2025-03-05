@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS items (
     guid text PRIMARY KEY NOT NULL,
-    categoryId INT NOT NULL,
+    category_id INT NOT NULL,
     title text NOT NULL,
     value text,
     notes text NOT NULL,

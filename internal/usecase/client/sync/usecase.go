@@ -38,6 +38,10 @@ func (d *Data) UnmarshalJSON(data []byte) error {
 
 	if alias.Value != nil {
 		value := []byte(*alias.Value)
+
+		if alias.CategoryID == model.CategoryPassword {
+
+		}
 		d.Value = &value
 	}
 
@@ -74,7 +78,7 @@ func (u *Usecase) Do(ctx context.Context) error {
 			break
 		}
 
-		items := make([]model.Item, 0, len(out.Items))
+		items := make([]model.RawItem, 0, len(out.Items))
 		for _, item := range out.Items {
 			// todo расшифровка
 			// todo общие данные в отдельных полях
@@ -85,7 +89,7 @@ func (u *Usecase) Do(ctx context.Context) error {
 				return fmt.Errorf("%s: %w", op, err)
 			}
 
-			items = append(items, model.Item{
+			items = append(items, model.RawItem{
 				GUID:       item.GUID,
 				CategoryID: data.CategoryID,
 				Title:      data.Title,
