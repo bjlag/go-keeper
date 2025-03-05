@@ -34,14 +34,16 @@ func (s *Store) SaveItems(ctx context.Context, items []model.Item) error {
 
 	for _, i := range items {
 		query := `
-			INSERT INTO items (guid, data, created_at, updated_at)
-			VALUES ($1, $2, $3, $4)
+			INSERT INTO items (guid, categoryid, title, value, notes, created_at, updated_at)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)
 			ON CONFLICT (guid) DO UPDATE SET
-    			data = excluded.data,
+    			title = excluded.title,
+    			value = excluded.value,
+    			notes = excluded.notes,
     			updated_at = excluded.updated_at;
 		`
 
-		_, err := tx.ExecContext(ctx, query, i.GUID, i.Data, i.CreatedAt, i.UpdatedAt)
+		_, err := tx.ExecContext(ctx, query, i.GUID, i.CategoryID, i.Title, i.Value, i.Notes, i.CreatedAt, i.UpdatedAt)
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
 		}

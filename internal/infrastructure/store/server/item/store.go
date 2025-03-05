@@ -27,6 +27,7 @@ func (s *Store) GetAllByUser(ctx context.Context, userGUID uuid.UUID, limit, off
 		SELECT guid, user_guid, encrypted_data, created_at, updated_at
 		FROM items
 		WHERE user_guid = $1
+		ORDER BY guid
 		LIMIT $2
 		OFFSET $3
 	`

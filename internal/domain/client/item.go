@@ -11,13 +11,16 @@ type Category int
 const (
 	CategoryLogin Category = iota
 	CategoryText
-	CategoryFile
+	CategoryBlob
 	CategoryBankCard
 )
 
 type Item struct {
-	GUID      uuid.UUID
-	Data      []byte
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	GUID       uuid.UUID
+	CategoryID Category
+	Title      string
+	Value      *[]byte
+	Notes      string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }

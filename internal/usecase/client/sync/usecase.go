@@ -2,6 +2,7 @@ package sync
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	model "github.com/bjlag/go-keeper/internal/domain/client"
@@ -13,6 +14,35 @@ const (
 
 	limit = 1
 )
+
+type Data struct {
+	Title      string         `json:"title"`
+	CategoryID model.Category `json:"category_id"`
+	Value      *[]byte        `json:"value,omitempty"`
+	Notes      string         `json:"notes"`
+}
+
+func (d *Data) UnmarshalJSON(data []byte) error {
+	type Alias Data
+
+	alias := &struct {
+		*Alias
+		Value *json.RawMessage `json:"value,omitempty"`
+	}{
+		Alias: (*Alias)(d),
+	}
+
+	if err := json.Unmarshal(data, alias); err != nil {
+		return fmt.Errorf("unmarshal data: %w", err)
+	}
+
+	if alias.Value != nil {
+		value := []byte(*alias.Value)
+		d.Value = &value
+	}
+
+	return nil
+}
 
 type Usecase struct {
 	client client
@@ -48,11 +78,21 @@ func (u *Usecase) Do(ctx context.Context) error {
 		for _, item := range out.Items {
 			// todo расшифровка
 			// todo общие данные в отдельных полях
+
+			var data Data
+			err = json.Unmarshal(item.EncryptedData, &data)
+			if err != nil {
+				return fmt.Errorf("%s: %w", op, err)
+			}
+
 			items = append(items, model.Item{
-				GUID:      item.GUID,
-				Data:      item.EncryptedData,
-				CreatedAt: item.CreatedAt,
-				UpdatedAt: item.UpdatedAt,
+				GUID:       item.GUID,
+				CategoryID: data.CategoryID,
+				Title:      data.Title,
+				Value:      data.Value,
+				Notes:      data.Notes,
+				CreatedAt:  item.CreatedAt,
+				UpdatedAt:  item.UpdatedAt,
 			})
 		}
 
