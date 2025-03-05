@@ -1,4 +1,4 @@
-package item
+package password
 
 import (
 	"errors"
@@ -12,11 +12,15 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element"
 	"github.com/bjlag/go-keeper/internal/cli/style"
+	"github.com/bjlag/go-keeper/internal/domain/client"
+	"github.com/charmbracelet/bubbles/textarea"
 )
 
 const (
-	posLogin int = iota
+	posTitle int = iota
+	posLogin
 	posPassword
+	posNotes
 	posEditBtn
 	posDeleteBtn
 	posBackBtn
@@ -41,18 +45,15 @@ func InitModel() *Model {
 		help:   help.New(),
 		header: "Регистрация",
 		elements: []interface{}{
-			posLogin:     element.CreateDefaultTextInput("Login", 50),
-			posPassword:  element.CreateDefaultTextInput("Password", 50),
+			posTitle:     element.CreateDefaultTextInput("Название", 50, element.WithFocused()),
+			posLogin:     element.CreateDefaultTextInput("Логин", 50),
+			posPassword:  element.CreateDefaultTextInput("Пароль", 50),
+			posNotes:     element.CreateDefaultTextArea("Заметки"),
 			posEditBtn:   element.CreateDefaultButton("Изменить"),
 			posDeleteBtn: element.CreateDefaultButton("Удалить"),
 			posBackBtn:   element.CreateDefaultButton("Назад"),
 		},
 		//usecase: usecase,
-	}
-
-	if e, ok := f.elements[posLogin].(textinput.Model); ok {
-		e.Focus()
-		f.elements[posLogin] = style.SetFocusStyle(e)
 	}
 
 	return f
@@ -77,22 +78,38 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return f, nil
 	case OpenMessage:
-		// todo получаем данные из базы
-
-		f.header = msg.Item.Name
-		f.category = "Категория"
-
 		f.backState = msg.BackState
 		f.backModel = msg.BackModel
 
-		if input, ok := f.elements[posLogin].(textinput.Model); ok {
-			input.SetValue("login")
-			f.elements[posLogin] = input
+		f.header = msg.Item.Title
+		f.category = msg.Item.Category.String()
+
+		value, ok := msg.Item.Value.(*client.Password)
+		if !ok {
+			f.err = errors.New("it is not password")
+			return f, nil
 		}
 
-		if input, ok := f.elements[posPassword].(textinput.Model); ok {
-			input.SetValue("password")
-			f.elements[posPassword] = input
+		for i, e := range f.elements {
+			switch input := e.(type) {
+			case textinput.Model:
+				switch i {
+				case posTitle:
+					input.SetValue(msg.Item.Title)
+					f.elements[i] = input
+				case posLogin:
+					input.SetValue(value.Login)
+					f.elements[i] = input
+				case posPassword:
+					input.SetValue(value.Password)
+					f.elements[i] = input
+				default:
+					continue
+				}
+			case textarea.Model:
+				input.SetValue(msg.Item.Notes)
+				f.elements[i] = input
+			}
 		}
 
 		return f, nil
@@ -124,6 +141,15 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 					e.Blur()
 					f.elements[i] = style.SetNoStyle(e)
+				case textarea.Model:
+					if i == f.pos {
+						e.Focus()
+						f.elements[i] = e
+						continue
+					}
+
+					e.Blur()
+					f.elements[i] = e
 				case element.Button:
 					if i == f.pos {
 						e.Focus()
@@ -168,7 +194,14 @@ func (f *Model) View() string {
 	b.WriteRune('\n')
 
 	for i := range f.elements {
-		if e, ok := f.elements[i].(textinput.Model); ok {
+		switch e := f.elements[i].(type) {
+		case textinput.Model:
+			b.WriteString(e.Placeholder)
+			b.WriteRune('\n')
+			b.WriteString(e.View())
+			b.WriteRune('\n')
+			b.WriteRune('\n')
+		case textarea.Model:
 			b.WriteString(e.Placeholder)
 			b.WriteRune('\n')
 			b.WriteString(e.View())
@@ -213,7 +246,10 @@ func (f *Model) updateInputs(msg tea.Msg) tea.Cmd {
 	cmds := make([]tea.Cmd, len(f.elements))
 
 	for i := range f.elements {
-		if m, ok := f.elements[i].(textinput.Model); ok {
+		switch m := f.elements[i].(type) {
+		case textinput.Model:
+			f.elements[i], cmds[i] = m.Update(msg)
+		case textarea.Model:
 			f.elements[i], cmds[i] = m.Update(msg)
 		}
 	}

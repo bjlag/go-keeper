@@ -3,12 +3,15 @@ package item
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	model "github.com/bjlag/go-keeper/internal/domain/client"
 )
 
 const prefixOp = "usecase.item"
+
+var ErrUnknownCategory = errors.New("unknown category")
 
 type Usecase struct {
 	itemStore itemStore
@@ -40,7 +43,7 @@ func (u *Usecase) ItemsByCategory(ctx context.Context, category model.Category) 
 			case model.CategoryBankCard:
 				v = &model.BankCard{}
 			default:
-				return nil, fmt.Errorf("unknown item category: %d", item.CategoryID)
+				return nil, fmt.Errorf("%w: %d", ErrUnknownCategory, item.CategoryID)
 			}
 
 			err = json.Unmarshal(*item.Value, &v)

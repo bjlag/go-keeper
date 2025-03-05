@@ -2,14 +2,15 @@ package element
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"io"
 	"strings"
 
-	"github.com/bjlag/go-keeper/internal/cli/style"
-	"github.com/bjlag/go-keeper/internal/domain/client"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/google/uuid"
+
+	"github.com/bjlag/go-keeper/internal/cli/style"
+	"github.com/bjlag/go-keeper/internal/domain/client"
 )
 
 func CreateDefaultList(title string, with, height int, itemDelegate list.ItemDelegate, items ...list.Item) list.Model {
@@ -26,8 +27,8 @@ func CreateDefaultList(title string, with, height int, itemDelegate list.ItemDel
 }
 
 type Category struct {
-	ID   client.Category
-	Name string
+	ID    client.Category
+	Title string
 }
 
 func (i Category) FilterValue() string { return "" }
@@ -52,7 +53,7 @@ func (d CategoryDelegate) Render(w io.Writer, m list.Model, index int, listItem 
 		return
 	}
 
-	str := fmt.Sprintf("%d. %s", index+1, i.Name)
+	str := fmt.Sprintf("%d. %s", index+1, i.Title)
 
 	fn := style.ListItemStyle.Render
 	if index == m.Index() {
@@ -65,8 +66,11 @@ func (d CategoryDelegate) Render(w io.Writer, m list.Model, index int, listItem 
 }
 
 type Item struct {
-	GUID uuid.UUID
-	Name string
+	GUID     uuid.UUID
+	Category client.Category
+	Title    string
+	Value    interface{}
+	Notes    string
 }
 
 func (i Item) FilterValue() string { return "" }
@@ -91,7 +95,7 @@ func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		return
 	}
 
-	str := fmt.Sprintf("%d. %s", index+1, i.Name)
+	str := fmt.Sprintf("%d. %s", index+1, i.Title)
 
 	fn := style.ListItemStyle.Render
 	if index == m.Index() {

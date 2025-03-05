@@ -11,7 +11,7 @@ import (
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element"
-	itemModel "github.com/bjlag/go-keeper/internal/cli/model/item"
+	"github.com/bjlag/go-keeper/internal/cli/model/item/password"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/domain/client"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item"
@@ -86,10 +86,10 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		f.state = stateCategoryList
 
 		f.categories.SetItems(nil)
-		f.categories.InsertItem(len(f.categories.Items()), element.Category{ID: client.CategoryPassword, Name: "Пароли"})
-		f.categories.InsertItem(len(f.categories.Items()), element.Category{ID: client.CategoryText, Name: "Тексты"})
-		f.categories.InsertItem(len(f.categories.Items()), element.Category{ID: client.CategoryBlob, Name: "Файлы"})
-		f.categories.InsertItem(len(f.categories.Items()), element.Category{ID: client.CategoryBankCard, Name: "Банковские карты"})
+		f.categories.InsertItem(len(f.categories.Items()), element.Category{ID: client.CategoryPassword, Title: client.CategoryPassword.String()})
+		f.categories.InsertItem(len(f.categories.Items()), element.Category{ID: client.CategoryText, Title: client.CategoryText.String()})
+		f.categories.InsertItem(len(f.categories.Items()), element.Category{ID: client.CategoryBlob, Title: client.CategoryBlob.String()})
+		f.categories.InsertItem(len(f.categories.Items()), element.Category{ID: client.CategoryBankCard, Title: client.CategoryBankCard.String()})
 
 		return f, nil
 	case OpenItemListMessage:
@@ -101,11 +101,19 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return f, nil
 		}
 
-		f.items.SetItems(nil)
-		f.items.Title = f.categories.SelectedItem().(element.Category).Name + ":"
+		if c, ok := f.categories.SelectedItem().(element.Category); ok {
+			f.items.Title = c.Title + ":"
+		}
 
+		f.items.SetItems(nil)
 		for _, p := range items {
-			f.items.InsertItem(len(f.categories.Items()), element.Item{Name: p.Title})
+			f.items.InsertItem(len(f.categories.Items()), element.Item{
+				GUID:     p.GUID,
+				Category: p.CategoryID,
+				Title:    p.Title,
+				Value:    p.Value,
+				Notes:    p.Notes,
+			})
 		}
 
 		return f, nil
@@ -123,7 +131,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case stateItemList:
 				if i, ok := f.items.SelectedItem().(element.Item); ok {
-					return f.main.Update(itemModel.OpenMessage{
+					return f.main.Update(password.OpenMessage{
 						BackModel: f,
 						BackState: f.state,
 						Item:      i,

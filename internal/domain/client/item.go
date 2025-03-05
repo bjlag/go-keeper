@@ -15,6 +15,20 @@ const (
 	CategoryBankCard
 )
 
+func (c Category) String() string {
+	switch c {
+	case CategoryPassword:
+		return "Пароль"
+	case CategoryText:
+		return "Текст"
+	case CategoryBlob:
+		return "Файл"
+	case CategoryBankCard:
+		return "Банковская карта"
+	}
+	return ""
+}
+
 type RawItem struct {
 	GUID       uuid.UUID
 	CategoryID Category

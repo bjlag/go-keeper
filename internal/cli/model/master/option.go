@@ -1,7 +1,7 @@
 package master
 
 import (
-	"github.com/bjlag/go-keeper/internal/cli/model/item"
+	"github.com/bjlag/go-keeper/internal/cli/model/item/password"
 	"github.com/bjlag/go-keeper/internal/cli/model/list"
 	"github.com/bjlag/go-keeper/internal/cli/model/login"
 	"github.com/bjlag/go-keeper/internal/cli/model/register"
@@ -37,7 +37,7 @@ func WithListFormForm(form *list.Model) Option {
 	}
 }
 
-func WithShowPasswordForm(form *item.Model) Option {
+func WithShowPasswordForm(form *password.Model) Option {
 	return func(m *Model) {
 		form.SetMainModel(m)
 		m.formPassword = form

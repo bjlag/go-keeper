@@ -3,11 +3,11 @@ package client
 import (
 	"context"
 	"fmt"
+	modelItem "github.com/bjlag/go-keeper/internal/cli/model/item/password"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"go.uber.org/zap"
 
-	modelItem "github.com/bjlag/go-keeper/internal/cli/model/item"
 	"github.com/bjlag/go-keeper/internal/cli/model/list"
 	formLogin "github.com/bjlag/go-keeper/internal/cli/model/login"
 	"github.com/bjlag/go-keeper/internal/cli/model/master"

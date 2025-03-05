@@ -8,7 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
-	"github.com/bjlag/go-keeper/internal/cli/model/item"
+	"github.com/bjlag/go-keeper/internal/cli/model/item/password"
 	listf "github.com/bjlag/go-keeper/internal/cli/model/list"
 	"github.com/bjlag/go-keeper/internal/cli/model/login"
 	"github.com/bjlag/go-keeper/internal/cli/model/register"
@@ -23,7 +23,7 @@ type Model struct {
 	formLogin    *login.Model
 	formRegister *register.Model
 	formList     *listf.Model
-	formPassword *item.Model
+	formPassword *password.Model
 
 	storeTokens *token.Store
 }
@@ -67,7 +67,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.formList.Update(msg)
 	case listf.OpenItemListMessage:
 		return m.formList.Update(msg)
-	case item.OpenMessage:
+	case password.OpenMessage:
 		return m.formPassword.Update(msg)
 
 	// Success

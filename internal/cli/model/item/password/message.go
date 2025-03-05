@@ -1,4 +1,4 @@
-package item
+package password
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
