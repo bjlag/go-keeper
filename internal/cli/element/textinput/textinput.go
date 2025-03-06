@@ -1,4 +1,4 @@
-package element
+package textinput
 
 import (
 	"github.com/charmbracelet/bubbles/textinput"
@@ -14,16 +14,22 @@ func WithFocused() TextInputOption {
 	}
 }
 
-func CreateDefaultTextInput(placeholder string, limit int, opts ...TextInputOption) textinput.Model {
+func WithValue(value string) TextInputOption {
+	return func(m *textinput.Model) {
+		m.SetValue(value)
+	}
+}
+
+func CreateDefaultTextInput(placeholder string, opts ...TextInputOption) textinput.Model {
 	m := textinput.New()
 
 	m.Cursor.Style = style.CursorStyle
 	m.PlaceholderStyle = style.BlurredStyle
-	m.CharLimit = limit
+	m.CharLimit = 50
 	m.Placeholder = placeholder
 
-	for _, o := range opts {
-		o(&m)
+	for _, opt := range opts {
+		opt(&m)
 	}
 
 	return m

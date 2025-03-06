@@ -14,6 +14,9 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/domain/client"
 	"github.com/charmbracelet/bubbles/textarea"
+
+	tarea "github.com/bjlag/go-keeper/internal/cli/element/textarea"
+	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
 )
 
 const (
@@ -44,15 +47,7 @@ func InitModel() *Model {
 	f := &Model{
 		help:   help.New(),
 		header: "Регистрация",
-		elements: []interface{}{
-			posTitle:     element.CreateDefaultTextInput("Название", 50, element.WithFocused()),
-			posLogin:     element.CreateDefaultTextInput("Логин", 50),
-			posPassword:  element.CreateDefaultTextInput("Пароль", 50),
-			posNotes:     element.CreateDefaultTextArea("Заметки"),
-			posEditBtn:   element.CreateDefaultButton("Изменить"),
-			posDeleteBtn: element.CreateDefaultButton("Удалить"),
-			posBackBtn:   element.CreateDefaultButton("Назад"),
-		},
+
 		//usecase: usecase,
 	}
 
@@ -80,7 +75,6 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case OpenMessage:
 		f.backState = msg.BackState
 		f.backModel = msg.BackModel
-
 		f.header = msg.Item.Title
 		f.category = msg.Item.Category.String()
 
@@ -90,26 +84,14 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return f, nil
 		}
 
-		for i, e := range f.elements {
-			switch input := e.(type) {
-			case textinput.Model:
-				switch i {
-				case posTitle:
-					input.SetValue(msg.Item.Title)
-					f.elements[i] = input
-				case posLogin:
-					input.SetValue(value.Login)
-					f.elements[i] = input
-				case posPassword:
-					input.SetValue(value.Password)
-					f.elements[i] = input
-				default:
-					continue
-				}
-			case textarea.Model:
-				input.SetValue(msg.Item.Notes)
-				f.elements[i] = input
-			}
+		f.elements = []interface{}{
+			posTitle:     tinput.CreateDefaultTextInput("Название", tinput.WithValue(msg.Item.Title), tinput.WithFocused()),
+			posLogin:     tinput.CreateDefaultTextInput("Логин", tinput.WithValue(value.Login)),
+			posPassword:  tinput.CreateDefaultTextInput("Пароль", tinput.WithValue(value.Password)),
+			posNotes:     tarea.CreateDefaultTextArea("Заметки", tarea.WithValue(msg.Item.Notes)),
+			posEditBtn:   element.CreateDefaultButton("Изменить"),
+			posDeleteBtn: element.CreateDefaultButton("Удалить"),
+			posBackBtn:   element.CreateDefaultButton("Назад"),
 		}
 
 		return f, nil

@@ -11,7 +11,6 @@ import (
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element"
-	"github.com/bjlag/go-keeper/internal/cli/model/item/password"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/domain/client"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item"
@@ -131,7 +130,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case stateItemList:
 				if i, ok := f.items.SelectedItem().(element.Item); ok {
-					return f.main.Update(password.OpenMessage{
+					return f.main.Update(common.OpenItemMessage{
 						BackModel: f,
 						BackState: f.state,
 						Item:      i,

@@ -1,6 +1,7 @@
 package master
 
 import (
+	"github.com/bjlag/go-keeper/internal/domain/client"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/password"
+	"github.com/bjlag/go-keeper/internal/cli/model/item/text"
 	listf "github.com/bjlag/go-keeper/internal/cli/model/list"
 	"github.com/bjlag/go-keeper/internal/cli/model/login"
 	"github.com/bjlag/go-keeper/internal/cli/model/register"
@@ -24,6 +26,7 @@ type Model struct {
 	formRegister *register.Model
 	formList     *listf.Model
 	formPassword *password.Model
+	formText     *text.Model
 
 	storeTokens *token.Store
 }
@@ -67,8 +70,25 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.formList.Update(msg)
 	case listf.OpenItemListMessage:
 		return m.formList.Update(msg)
-	case password.OpenMessage:
-		return m.formPassword.Update(msg)
+	//case password.OpenMessage:
+	//	return m.formPassword.Update(msg)
+	//case text.OpenMessage:
+	//	return m.formText.Update(msg)
+	case common.OpenItemMessage:
+		switch msg.Item.Category {
+		case client.CategoryPassword:
+			return m.formPassword.Update(password.OpenMessage{
+				BackModel: msg.BackModel,
+				BackState: msg.BackState,
+				Item:      msg.Item,
+			})
+		case client.CategoryText:
+			return m.formText.Update(text.OpenMessage{
+				BackModel: msg.BackModel,
+				BackState: msg.BackState,
+				Item:      msg.Item,
+			})
+		}
 
 	// Success
 	case login.SuccessMessage:

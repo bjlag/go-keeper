@@ -3,11 +3,12 @@ package client
 import (
 	"context"
 	"fmt"
-	modelItem "github.com/bjlag/go-keeper/internal/cli/model/item/password"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"go.uber.org/zap"
 
+	"github.com/bjlag/go-keeper/internal/cli/model/item/password"
+	"github.com/bjlag/go-keeper/internal/cli/model/item/text"
 	"github.com/bjlag/go-keeper/internal/cli/model/list"
 	formLogin "github.com/bjlag/go-keeper/internal/cli/model/login"
 	"github.com/bjlag/go-keeper/internal/cli/model/master"
@@ -69,7 +70,8 @@ func (a *App) Run(ctx context.Context) error {
 		master.WithLoginForm(formLogin.InitModel(ucLogin)),
 		master.WithRegisterForm(formRegister.InitModel(ucRegister)),
 		master.WithListFormForm(list.InitModel(ucSync, ucItem)),
-		master.WithShowPasswordForm(modelItem.InitModel()),
+		master.WithPasswordItemForm(password.InitModel()),
+		master.WithTextItemForm(text.InitModel()),
 	)
 
 	f, err := tea.LogToFile("debug.log", "debug")

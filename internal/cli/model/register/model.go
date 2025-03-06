@@ -14,6 +14,7 @@ import (
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element"
+	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/infrastructure/validator"
 	"github.com/bjlag/go-keeper/internal/usecase/client/register"
@@ -24,9 +25,6 @@ const (
 	posPassword
 	posSubmitBtn
 	posBackBtn
-
-	emailCharLimit    = 20
-	passwordCharLimit = 20
 )
 
 var errUserAlreadyRegistered = common.NewFormError("Пользователь уже зарегистрирован")
@@ -48,8 +46,8 @@ func InitModel(usecase *register.Usecase) *Model {
 		help:   help.New(),
 		header: "Регистрация",
 		elements: []interface{}{
-			posEmail:     element.CreateDefaultTextInput("Email", emailCharLimit),
-			posPassword:  element.CreateDefaultTextInput("Password", passwordCharLimit),
+			posEmail:     tinput.CreateDefaultTextInput("Email"),
+			posPassword:  tinput.CreateDefaultTextInput("Пароль"),
 			posSubmitBtn: element.CreateDefaultButton("Регистрация"),
 			posBackBtn:   element.CreateDefaultButton("Назад"),
 		},

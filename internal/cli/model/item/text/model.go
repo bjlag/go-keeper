@@ -1,7 +1,6 @@
-package login
+package text
 
 import (
-	"context"
 	"errors"
 	"strings"
 
@@ -9,27 +8,22 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element"
+	tarea "github.com/bjlag/go-keeper/internal/cli/element/textarea"
 	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
-	"github.com/bjlag/go-keeper/internal/cli/model/register"
 	"github.com/bjlag/go-keeper/internal/cli/style"
-	"github.com/bjlag/go-keeper/internal/infrastructure/validator"
-	"github.com/bjlag/go-keeper/internal/usecase/client/login"
+	"github.com/charmbracelet/bubbles/textarea"
 )
 
 const (
-	posEmail int = iota
-	posPassword
-	posSubmitBtn
-	posRegisterBtn
-	posCloseBtn
+	posTitle int = iota
+	posNotes
+	posEditBtn
+	posDeleteBtn
+	posBackBtn
 )
-
-var errPasswordInvalid = common.NewFormError("Неверный email или пароль")
 
 type Model struct {
 	main     tea.Model
@@ -39,35 +33,18 @@ type Model struct {
 	pos      int
 	err      error
 
-	usecase *login.Usecase
+	backModel tea.Model
+	backState int
+
+	category string
 }
 
-func InitModel(usecase *login.Usecase) *Model {
+func InitModel() *Model {
 	f := &Model{
 		help:   help.New(),
-		header: "Авторизация",
-		elements: []interface{}{
-			posEmail:       tinput.CreateDefaultTextInput("Email"),
-			posPassword:    tinput.CreateDefaultTextInput("Пароль"),
-			posSubmitBtn:   element.CreateDefaultButton("Вход"),
-			posRegisterBtn: element.CreateDefaultButton("Регистрация"),
-			posCloseBtn:    element.CreateDefaultButton("Закрыть"),
-		},
-
-		usecase: usecase,
-	}
-
-	for i := range f.elements {
-		if e, ok := f.elements[i].(textinput.Model); ok {
-			if i == posEmail {
-				e.Focus()
-				f.elements[i] = style.SetFocusStyle(e)
-				continue
-			}
-			e.EchoMode = textinput.EchoPassword
-			e.EchoCharacter = '•'
-			f.elements[i] = e
-		}
+		header: "Регистрация",
+		//elements: make([]interface{}, 5),
+		//usecase: usecase,
 	}
 
 	return f
@@ -85,19 +62,43 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		for i := range f.elements {
-			if e, ok := f.elements[i].(textinput.Model); ok {
+			switch e := f.elements[i].(type) {
+			case textinput.Model:
 				e.Width = msg.Width
 			}
 		}
 		return f, nil
 	case OpenMessage:
-		for i := range f.elements {
-			switch e := f.elements[i].(type) {
-			case textinput.Model:
-				e.SetValue("")
-				f.elements[i] = e
-			}
+		f.backState = msg.BackState
+		f.backModel = msg.BackModel
+		f.header = msg.Item.Title
+		f.category = msg.Item.Category.String()
+
+		f.elements = []interface{}{
+			posTitle:     tinput.CreateDefaultTextInput("Название", tinput.WithValue(msg.Item.Title), tinput.WithFocused()),
+			posNotes:     tarea.CreateDefaultTextArea("Текст", tarea.WithValue(msg.Item.Notes)),
+			posEditBtn:   element.CreateDefaultButton("Изменить"),
+			posDeleteBtn: element.CreateDefaultButton("Удалить"),
+			posBackBtn:   element.CreateDefaultButton("Назад"),
 		}
+
+		//for i, e := range f.elements {
+		//	switch input := e.(type) {
+		//	case textinput.Model:
+		//		switch i {
+		//		case posTitle:
+		//			input.SetValue(msg.Item.Title)
+		//			f.elements[i] = input
+		//		default:
+		//			continue
+		//		}
+		//	case textarea.Model:
+		//		input.SetValue(msg.Item.Notes)
+		//		f.elements[i] = input
+		//	}
+		//}
+
+		return f, nil
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, common.Keys.Quit):
@@ -126,6 +127,15 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 					e.Blur()
 					f.elements[i] = style.SetNoStyle(e)
+				case textarea.Model:
+					if i == f.pos {
+						e.Focus()
+						f.elements[i] = e
+						continue
+					}
+
+					e.Blur()
+					f.elements[i] = e
 				case element.Button:
 					if i == f.pos {
 						e.Focus()
@@ -142,17 +152,17 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			f.err = nil
 
 			switch {
-			case f.pos == posSubmitBtn || f.pos == posEmail || f.pos == posPassword:
-				return f.submit()
-			case f.pos == posRegisterBtn:
-				return f.main.Update(register.OpenMessage{
-					BackModel: f,
+			case f.pos == posBackBtn:
+				return f.backModel.Update(common.BackMessage{
+					State: f.backState,
 				})
-			case f.pos == posCloseBtn:
-				return f, tea.Quit
 			}
 
 			return f, nil
+		case key.Matches(msg, common.Keys.Back):
+			return f.backModel.Update(common.BackMessage{
+				State: f.backState,
+			})
 		}
 	}
 
@@ -165,9 +175,23 @@ func (f *Model) View() string {
 	b.WriteString(style.TitleStyle.Render(f.header))
 	b.WriteRune('\n')
 
+	b.WriteString("Категория: ")
+	b.WriteString(f.category)
+	b.WriteRune('\n')
+
 	for i := range f.elements {
-		if e, ok := f.elements[i].(textinput.Model); ok {
+		switch e := f.elements[i].(type) {
+		case textinput.Model:
+			b.WriteString(e.Placeholder)
+			b.WriteRune('\n')
 			b.WriteString(e.View())
+			b.WriteRune('\n')
+			b.WriteRune('\n')
+		case textarea.Model:
+			b.WriteString(e.Placeholder)
+			b.WriteRune('\n')
+			b.WriteString(e.View())
+			b.WriteRune('\n')
 			b.WriteRune('\n')
 		}
 	}
@@ -204,64 +228,14 @@ func (f *Model) View() string {
 	return b.String()
 }
 
-func (f *Model) submit() (tea.Model, tea.Cmd) {
-	errValidate := common.NewValidateError()
-
-	email, ok := f.elements[posEmail].(textinput.Model)
-	if !ok {
-		f.err = common.ErrInvalidElement
-		return f, nil
-	}
-	password, ok := f.elements[posPassword].(textinput.Model)
-	if !ok {
-		f.err = common.ErrInvalidElement
-		return f, nil
-	}
-
-	if !validator.ValidateEmail(email.Value()) {
-		f.elements[posEmail] = style.SetErrorStyle(email)
-		errValidate.AddError("Неверно заполнен email")
-	}
-
-	if password.Value() == "" {
-		f.elements[posPassword] = style.SetErrorStyle(password)
-		errValidate.AddError("Не заполнен пароль")
-	}
-
-	if errValidate.HasErrors() {
-		f.err = errValidate
-		return f, nil
-	}
-
-	result, err := f.usecase.Do(context.TODO(), login.Data{
-		Email:    email.Value(),
-		Password: password.Value(),
-	})
-	if err != nil {
-		if s, ok := status.FromError(err); ok {
-			if s.Code() == codes.Unauthenticated {
-				f.err = errPasswordInvalid
-				return f, nil
-			}
-			f.err = common.NewFormError(s.Message())
-			return f, nil
-		}
-
-		f.err = err
-		return f, nil
-	}
-
-	return f.main.Update(SuccessMessage{
-		AccessToken:  result.AccessToken,
-		RefreshToken: result.RefreshToken,
-	})
-}
-
 func (f *Model) updateInputs(msg tea.Msg) tea.Cmd {
 	cmds := make([]tea.Cmd, len(f.elements))
 
 	for i := range f.elements {
-		if m, ok := f.elements[i].(textinput.Model); ok {
+		switch m := f.elements[i].(type) {
+		case textinput.Model:
+			f.elements[i], cmds[i] = m.Update(msg)
+		case textarea.Model:
 			f.elements[i], cmds[i] = m.Update(msg)
 		}
 	}
