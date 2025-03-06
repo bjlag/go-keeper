@@ -53,13 +53,13 @@ func (u *Usecase) ItemsByCategory(ctx context.Context, category model.Category) 
 		}
 
 		items[i] = model.Item{
-			GUID:       item.GUID,
-			CategoryID: item.CategoryID,
-			Title:      item.Title,
-			Value:      v,
-			Notes:      item.Notes,
-			CreatedAt:  item.CreatedAt,
-			UpdatedAt:  item.UpdatedAt,
+			GUID:      item.GUID,
+			Category:  item.CategoryID,
+			Title:     item.Title,
+			Value:     v,
+			Notes:     item.Notes,
+			CreatedAt: item.CreatedAt,
+			UpdatedAt: item.UpdatedAt,
 		}
 	}
 

@@ -70,7 +70,7 @@ func (a *App) Run(ctx context.Context) error {
 		master.WithLoginForm(formLogin.InitModel(ucLogin)),
 		master.WithRegisterForm(formRegister.InitModel(ucRegister)),
 		master.WithListFormForm(list.InitModel(ucSync, ucItem)),
-		master.WithPasswordItemForm(password.InitModel()),
+		master.WithPasswordItemForm(password.InitModel(storeItem)),
 		master.WithTextItemForm(text.InitModel()),
 	)
 

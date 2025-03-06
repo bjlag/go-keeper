@@ -23,6 +23,32 @@ func NewStore(db *sqlx.DB) *Store {
 	}
 }
 
+func (s *Store) SaveItem(ctx context.Context, item model.Item) error {
+	const op = prefixOp + "SaveItem"
+
+	query := `
+		UPDATE items
+		SET title = :title,
+			value = :value,
+			notes = :notes,
+			updated_at = datetime()
+		WHERE guid = :guid 	
+	`
+
+	r, err := toRow(item)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	_, err = s.db.NamedExecContext(ctx, query, r)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}
+
+// todo пределать на модель model.Item
 func (s *Store) SaveItems(ctx context.Context, items []model.RawItem) error {
 	const op = prefixOp + "SaveItems"
 

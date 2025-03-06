@@ -1,6 +1,7 @@
 package item
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,6 +17,23 @@ type row struct {
 	Notes      string         `db:"notes"`
 	CreatedAt  time.Time      `db:"created_at"`
 	UpdatedAt  time.Time      `db:"updated_at"`
+}
+
+func toRow(model model.Item) (row, error) {
+	value, err := json.Marshal(model.Value)
+	if err != nil {
+		return row{}, err
+	}
+
+	return row{
+		GUID:       model.GUID,
+		CategoryID: model.Category,
+		Title:      model.Title,
+		Value:      &value,
+		Notes:      model.Notes,
+		CreatedAt:  model.CreatedAt,
+		UpdatedAt:  model.UpdatedAt,
+	}, nil
 }
 
 func toModels(rows []row) []model.RawItem {

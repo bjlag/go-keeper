@@ -1,6 +1,7 @@
 package password
 
 import (
+	"context"
 	"errors"
 	"strings"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/google/uuid"
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element"
@@ -15,8 +17,10 @@ import (
 	"github.com/bjlag/go-keeper/internal/domain/client"
 	"github.com/charmbracelet/bubbles/textarea"
 
+	"github.com/bjlag/go-keeper/internal/cli/element/button"
 	tarea "github.com/bjlag/go-keeper/internal/cli/element/textarea"
 	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
+	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/item"
 )
 
 const (
@@ -40,15 +44,18 @@ type Model struct {
 	backModel tea.Model
 	backState int
 
-	category string
+	guid     uuid.UUID
+	category client.Category
+
+	storeItem *item.Store
 }
 
-func InitModel() *Model {
+func InitModel(storeItem *item.Store) *Model {
 	f := &Model{
 		help:   help.New(),
 		header: "Регистрация",
 
-		//usecase: usecase,
+		storeItem: storeItem,
 	}
 
 	return f
@@ -76,7 +83,8 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		f.backState = msg.BackState
 		f.backModel = msg.BackModel
 		f.header = msg.Item.Title
-		f.category = msg.Item.Category.String()
+		f.guid = msg.Item.GUID
+		f.category = msg.Item.Category
 
 		value, ok := msg.Item.Value.(*client.Password)
 		if !ok {
@@ -89,9 +97,9 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			posLogin:     tinput.CreateDefaultTextInput("Логин", tinput.WithValue(value.Login)),
 			posPassword:  tinput.CreateDefaultTextInput("Пароль", tinput.WithValue(value.Password)),
 			posNotes:     tarea.CreateDefaultTextArea("Заметки", tarea.WithValue(msg.Item.Notes)),
-			posEditBtn:   element.CreateDefaultButton("Изменить"),
-			posDeleteBtn: element.CreateDefaultButton("Удалить"),
-			posBackBtn:   element.CreateDefaultButton("Назад"),
+			posEditBtn:   button.CreateDefaultButton("Изменить"),
+			posDeleteBtn: button.CreateDefaultButton("Удалить"),
+			posBackBtn:   button.CreateDefaultButton("Назад"),
 		}
 
 		return f, nil
@@ -132,7 +140,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 					e.Blur()
 					f.elements[i] = e
-				case element.Button:
+				case button.Button:
 					if i == f.pos {
 						e.Focus()
 						f.elements[i] = e
@@ -147,8 +155,15 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, common.Keys.Enter):
 			f.err = nil
 
-			switch {
-			case f.pos == posBackBtn:
+			switch f.pos {
+			case posEditBtn:
+				err := f.edit()
+				if err != nil {
+					f.err = err
+					return f, nil
+				}
+				return f, nil
+			case posBackBtn:
 				return f.backModel.Update(common.BackMessage{
 					State: f.backState,
 				})
@@ -172,7 +187,7 @@ func (f *Model) View() string {
 	b.WriteRune('\n')
 
 	b.WriteString("Категория: ")
-	b.WriteString(f.category)
+	b.WriteString(f.category.String())
 	b.WriteRune('\n')
 
 	for i := range f.elements {
@@ -195,7 +210,7 @@ func (f *Model) View() string {
 	b.WriteRune('\n')
 
 	for i := range f.elements {
-		if e, ok := f.elements[i].(element.Button); ok {
+		if e, ok := f.elements[i].(button.Button); ok {
 			b.WriteString(e.String())
 			b.WriteRune('\n')
 		}
@@ -237,4 +252,19 @@ func (f *Model) updateInputs(msg tea.Msg) tea.Cmd {
 	}
 
 	return tea.Batch(cmds...)
+}
+
+func (f *Model) edit() error {
+	i := client.Item{
+		GUID:     f.guid,
+		Category: f.category,
+		Title:    element.GetValue(f.elements, posTitle),
+		Value: client.Password{
+			Password: element.GetValue(f.elements, posPassword),
+			Login:    element.GetValue(f.elements, posLogin),
+		},
+		Notes: element.GetValue(f.elements, posNotes),
+	}
+
+	return f.storeItem.SaveItem(context.TODO(), i)
 }

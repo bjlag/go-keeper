@@ -38,10 +38,6 @@ func (d *Data) UnmarshalJSON(data []byte) error {
 
 	if alias.Value != nil {
 		value := []byte(*alias.Value)
-
-		if alias.CategoryID == model.CategoryPassword {
-
-		}
 		d.Value = &value
 	}
 

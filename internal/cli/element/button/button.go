@@ -1,9 +1,11 @@
-package element
+package button
 
 import (
 	"fmt"
-	"github.com/bjlag/go-keeper/internal/cli/style"
+
 	"github.com/charmbracelet/lipgloss"
+
+	"github.com/bjlag/go-keeper/internal/cli/style"
 )
 
 type Button struct {

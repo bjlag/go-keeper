@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
-	"github.com/bjlag/go-keeper/internal/cli/element"
+	"github.com/bjlag/go-keeper/internal/cli/element/button"
 	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/infrastructure/validator"
@@ -48,8 +48,8 @@ func InitModel(usecase *register.Usecase) *Model {
 		elements: []interface{}{
 			posEmail:     tinput.CreateDefaultTextInput("Email"),
 			posPassword:  tinput.CreateDefaultTextInput("Пароль"),
-			posSubmitBtn: element.CreateDefaultButton("Регистрация"),
-			posBackBtn:   element.CreateDefaultButton("Назад"),
+			posSubmitBtn: button.CreateDefaultButton("Регистрация"),
+			posBackBtn:   button.CreateDefaultButton("Назад"),
 		},
 		usecase: usecase,
 	}
@@ -121,7 +121,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 					e.Blur()
 					f.elements[i] = style.SetNoStyle(e)
-				case element.Button:
+				case button.Button:
 					if i == f.pos {
 						e.Focus()
 						f.elements[i] = e
@@ -168,7 +168,7 @@ func (f *Model) View() string {
 	b.WriteRune('\n')
 
 	for i := range f.elements {
-		if e, ok := f.elements[i].(element.Button); ok {
+		if e, ok := f.elements[i].(button.Button); ok {
 			b.WriteString(e.String())
 			b.WriteRune('\n')
 		}

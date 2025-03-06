@@ -40,13 +40,13 @@ type RawItem struct {
 }
 
 type Item struct {
-	GUID       uuid.UUID
-	CategoryID Category
-	Title      string
-	Value      interface{}
-	Notes      string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	GUID      uuid.UUID
+	Category  Category
+	Title     string
+	Value     interface{}
+	Notes     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type Password struct {

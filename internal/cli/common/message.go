@@ -3,7 +3,7 @@ package common
 import (
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/bjlag/go-keeper/internal/cli/element"
+	"github.com/bjlag/go-keeper/internal/cli/element/list"
 )
 
 type BackMessage struct {
@@ -13,5 +13,5 @@ type BackMessage struct {
 type OpenItemMessage struct {
 	BackModel tea.Model
 	BackState int
-	Item      element.Item
+	Item      list.Item
 }

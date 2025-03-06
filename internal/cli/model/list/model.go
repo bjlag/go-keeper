@@ -10,7 +10,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
-	"github.com/bjlag/go-keeper/internal/cli/element"
+	elist "github.com/bjlag/go-keeper/internal/cli/element/list"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/domain/client"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item"
@@ -44,8 +44,8 @@ func InitModel(usecaseSync *sync.Usecase, usecaseItem *item.Usecase) *Model {
 	f := &Model{
 		help:       help.New(),
 		header:     "Категории",
-		categories: element.CreateDefaultList("Категории:", defaultWidth, listHeight, element.CategoryDelegate{}),
-		items:      element.CreateDefaultList("Пароли:", defaultWidth, listHeight, element.ItemDelegate{}),
+		categories: elist.CreateDefaultList("Категории:", defaultWidth, listHeight, elist.CategoryDelegate{}),
+		items:      elist.CreateDefaultList("Пароли:", defaultWidth, listHeight, elist.ItemDelegate{}),
 
 		usecaseSync: usecaseSync,
 		usecaseItem: usecaseItem,
@@ -85,10 +85,10 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		f.state = stateCategoryList
 
 		f.categories.SetItems(nil)
-		f.categories.InsertItem(len(f.categories.Items()), element.Category{ID: client.CategoryPassword, Title: client.CategoryPassword.String()})
-		f.categories.InsertItem(len(f.categories.Items()), element.Category{ID: client.CategoryText, Title: client.CategoryText.String()})
-		f.categories.InsertItem(len(f.categories.Items()), element.Category{ID: client.CategoryBlob, Title: client.CategoryBlob.String()})
-		f.categories.InsertItem(len(f.categories.Items()), element.Category{ID: client.CategoryBankCard, Title: client.CategoryBankCard.String()})
+		f.categories.InsertItem(len(f.categories.Items()), elist.Category{ID: client.CategoryPassword, Title: client.CategoryPassword.String()})
+		f.categories.InsertItem(len(f.categories.Items()), elist.Category{ID: client.CategoryText, Title: client.CategoryText.String()})
+		f.categories.InsertItem(len(f.categories.Items()), elist.Category{ID: client.CategoryBlob, Title: client.CategoryBlob.String()})
+		f.categories.InsertItem(len(f.categories.Items()), elist.Category{ID: client.CategoryBankCard, Title: client.CategoryBankCard.String()})
 
 		return f, nil
 	case OpenItemListMessage:
@@ -100,15 +100,15 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return f, nil
 		}
 
-		if c, ok := f.categories.SelectedItem().(element.Category); ok {
+		if c, ok := f.categories.SelectedItem().(elist.Category); ok {
 			f.items.Title = c.Title + ":"
 		}
 
 		f.items.SetItems(nil)
 		for _, p := range items {
-			f.items.InsertItem(len(f.categories.Items()), element.Item{
+			f.items.InsertItem(len(f.categories.Items()), elist.Item{
 				GUID:     p.GUID,
-				Category: p.CategoryID,
+				Category: p.Category,
 				Title:    p.Title,
 				Value:    p.Value,
 				Notes:    p.Notes,
@@ -123,13 +123,13 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, common.Keys.Enter):
 			switch f.state {
 			case stateCategoryList:
-				if c, ok := f.categories.SelectedItem().(element.Category); ok {
+				if c, ok := f.categories.SelectedItem().(elist.Category); ok {
 					return f.Update(OpenItemListMessage{
 						Category: c.ID,
 					})
 				}
 			case stateItemList:
-				if i, ok := f.items.SelectedItem().(element.Item); ok {
+				if i, ok := f.items.SelectedItem().(elist.Item); ok {
 					return f.main.Update(common.OpenItemMessage{
 						BackModel: f,
 						BackState: f.state,

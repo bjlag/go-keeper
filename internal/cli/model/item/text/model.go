@@ -10,7 +10,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
-	"github.com/bjlag/go-keeper/internal/cli/element"
+	"github.com/bjlag/go-keeper/internal/cli/element/button"
 	tarea "github.com/bjlag/go-keeper/internal/cli/element/textarea"
 	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
 	"github.com/bjlag/go-keeper/internal/cli/style"
@@ -77,9 +77,9 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		f.elements = []interface{}{
 			posTitle:     tinput.CreateDefaultTextInput("Название", tinput.WithValue(msg.Item.Title), tinput.WithFocused()),
 			posNotes:     tarea.CreateDefaultTextArea("Текст", tarea.WithValue(msg.Item.Notes)),
-			posEditBtn:   element.CreateDefaultButton("Изменить"),
-			posDeleteBtn: element.CreateDefaultButton("Удалить"),
-			posBackBtn:   element.CreateDefaultButton("Назад"),
+			posEditBtn:   button.CreateDefaultButton("Изменить"),
+			posDeleteBtn: button.CreateDefaultButton("Удалить"),
+			posBackBtn:   button.CreateDefaultButton("Назад"),
 		}
 
 		//for i, e := range f.elements {
@@ -136,7 +136,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 					e.Blur()
 					f.elements[i] = e
-				case element.Button:
+				case button.Button:
 					if i == f.pos {
 						e.Focus()
 						f.elements[i] = e
@@ -199,7 +199,7 @@ func (f *Model) View() string {
 	b.WriteRune('\n')
 
 	for i := range f.elements {
-		if e, ok := f.elements[i].(element.Button); ok {
+		if e, ok := f.elements[i].(button.Button); ok {
 			b.WriteString(e.String())
 			b.WriteRune('\n')
 		}
