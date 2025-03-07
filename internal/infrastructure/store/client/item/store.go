@@ -71,7 +71,7 @@ func (s *Store) SaveItems(ctx context.Context, items []model.RawItem) error {
     			updated_at = excluded.updated_at;
 		`
 
-		_, err := tx.ExecContext(ctx, query, i.GUID, i.CategoryID, i.Title, i.Value, i.Notes, i.CreatedAt, i.UpdatedAt)
+		_, err := tx.ExecContext(ctx, query, i.GUID, i.Category, i.Title, i.Value, i.Notes, i.CreatedAt, i.UpdatedAt)
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
 		}

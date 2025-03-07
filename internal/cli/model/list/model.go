@@ -36,6 +36,8 @@ type Model struct {
 	items      list.Model
 	err        error
 
+	selectedCategory client.Category
+
 	usecaseSync *sync.Usecase
 	fetcherItem *item.Fetcher
 }
@@ -85,23 +87,23 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		f.state = stateCategoryList
 
 		f.categories.SetItems(nil)
-		f.categories.InsertItem(len(f.categories.Items()), elist.Category{ID: client.CategoryPassword, Title: client.CategoryPassword.String()})
-		f.categories.InsertItem(len(f.categories.Items()), elist.Category{ID: client.CategoryText, Title: client.CategoryText.String()})
-		f.categories.InsertItem(len(f.categories.Items()), elist.Category{ID: client.CategoryBlob, Title: client.CategoryBlob.String()})
-		f.categories.InsertItem(len(f.categories.Items()), elist.Category{ID: client.CategoryBankCard, Title: client.CategoryBankCard.String()})
+		f.categories.InsertItem(len(f.categories.Items()), elist.Category{Category: client.CategoryPassword, Title: client.CategoryPassword.String()})
+		f.categories.InsertItem(len(f.categories.Items()), elist.Category{Category: client.CategoryText, Title: client.CategoryText.String()})
+		f.categories.InsertItem(len(f.categories.Items()), elist.Category{Category: client.CategoryBlob, Title: client.CategoryBlob.String()})
+		f.categories.InsertItem(len(f.categories.Items()), elist.Category{Category: client.CategoryBankCard, Title: client.CategoryBankCard.String()})
 
 		return f, nil
 	case OpenItemListMessage:
 		f.state = stateItemList
 
-		items, err := f.fetcherItem.ItemsByCategory(context.TODO(), msg.Category)
+		if c, ok := f.categories.SelectedItem().(elist.Category); ok {
+			f.items.Title = c.Title + ":"
+		}
+
+		items, err := f.fetcherItem.ItemsByCategory(context.TODO(), f.selectedCategory)
 		if err != nil {
 			f.err = err
 			return f, nil
-		}
-
-		if c, ok := f.categories.SelectedItem().(elist.Category); ok {
-			f.items.Title = c.Title + ":"
 		}
 
 		f.items.SetItems(nil)
@@ -124,12 +126,15 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch f.state {
 			case stateCategoryList:
 				if c, ok := f.categories.SelectedItem().(elist.Category); ok {
+					f.selectedCategory = c.Category
 					return f.Update(OpenItemListMessage{
-						Category: c.ID,
+						Category: c.Category,
 					})
 				}
 			case stateItemList:
 				if i, ok := f.items.SelectedItem().(elist.Item); ok {
+					f.selectedCategory = i.Category
+
 					return f.main.Update(common.OpenItemMessage{
 						BackModel: f,
 						BackState: f.state,
@@ -170,9 +175,6 @@ func (f *Model) View() string {
 	case stateItemList:
 		b.WriteString(f.items.View())
 	}
-
-	//b.WriteRune('\n')
-	//b.WriteString(f.help.View(common.Keys))
 
 	// выводим прочие ошибки
 	if f.err != nil {

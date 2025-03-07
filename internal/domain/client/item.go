@@ -30,13 +30,13 @@ func (c Category) String() string {
 }
 
 type RawItem struct {
-	GUID       uuid.UUID
-	CategoryID Category
-	Title      string
-	Value      *[]byte
-	Notes      string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	GUID      uuid.UUID
+	Category  Category
+	Title     string
+	Value     *[]byte
+	Notes     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type Item struct {

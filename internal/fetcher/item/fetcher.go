@@ -35,15 +35,17 @@ func (u *Fetcher) ItemsByCategory(ctx context.Context, category model.Category) 
 	for i, item := range rawItems {
 		var v interface{}
 		if item.Value != nil {
-			switch item.CategoryID {
+			switch item.Category {
 			case model.CategoryPassword:
 				v = &model.Password{}
+			case model.CategoryText:
+				break
 			case model.CategoryBlob:
 				v = &model.Blob{}
 			case model.CategoryBankCard:
 				v = &model.BankCard{}
 			default:
-				return nil, fmt.Errorf("%w: %d", ErrUnknownCategory, item.CategoryID)
+				return nil, fmt.Errorf("%w: %d", ErrUnknownCategory, item.Category)
 			}
 
 			err = json.Unmarshal(*item.Value, &v)
@@ -54,7 +56,7 @@ func (u *Fetcher) ItemsByCategory(ctx context.Context, category model.Category) 
 
 		items[i] = model.Item{
 			GUID:      item.GUID,
-			Category:  item.CategoryID,
+			Category:  item.Category,
 			Title:     item.Title,
 			Value:     v,
 			Notes:     item.Notes,

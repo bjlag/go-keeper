@@ -74,7 +74,7 @@ func (a *App) Run(ctx context.Context) error {
 		master.WithRegisterForm(formRegister.InitModel(ucRegister)),
 		master.WithListFormForm(list.InitModel(ucSync, fetchItem)),
 		master.WithPasswordItemForm(password.InitModel(ucSaveItem)),
-		master.WithTextItemForm(text.InitModel()),
+		master.WithTextItemForm(text.InitModel(ucSaveItem)),
 	)
 
 	f, err := tea.LogToFile("debug.log", "debug")

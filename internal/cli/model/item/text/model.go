@@ -1,7 +1,9 @@
 package text
 
 import (
+	"context"
 	"errors"
+	"github.com/google/uuid"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -10,10 +12,13 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
+	"github.com/bjlag/go-keeper/internal/cli/element"
 	"github.com/bjlag/go-keeper/internal/cli/element/button"
 	tarea "github.com/bjlag/go-keeper/internal/cli/element/textarea"
 	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
 	"github.com/bjlag/go-keeper/internal/cli/style"
+	"github.com/bjlag/go-keeper/internal/domain/client"
+	"github.com/bjlag/go-keeper/internal/usecase/client/item/save"
 	"github.com/charmbracelet/bubbles/textarea"
 )
 
@@ -36,18 +41,18 @@ type Model struct {
 	backModel tea.Model
 	backState int
 
-	category string
+	guid     uuid.UUID
+	category client.Category
+
+	usecaseSave *save.Usecase
 }
 
-func InitModel() *Model {
-	f := &Model{
-		help:   help.New(),
-		header: "Регистрация",
-		//elements: make([]interface{}, 5),
-		//usecase: usecase,
+func InitModel(usecaseItem *save.Usecase) *Model {
+	return &Model{
+		help:        help.New(),
+		header:      "Регистрация",
+		usecaseSave: usecaseItem,
 	}
-
-	return f
 }
 
 func (f *Model) SetMainModel(m tea.Model) {
@@ -72,7 +77,8 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		f.backState = msg.BackState
 		f.backModel = msg.BackModel
 		f.header = msg.Item.Title
-		f.category = msg.Item.Category.String()
+		f.guid = msg.Item.GUID
+		f.category = msg.Item.Category
 
 		f.elements = []interface{}{
 			posTitle:     tinput.CreateDefaultTextInput("Название", tinput.WithValue(msg.Item.Title), tinput.WithFocused()),
@@ -81,22 +87,6 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			posDeleteBtn: button.CreateDefaultButton("Удалить"),
 			posBackBtn:   button.CreateDefaultButton("Назад"),
 		}
-
-		//for i, e := range f.elements {
-		//	switch input := e.(type) {
-		//	case textinput.Model:
-		//		switch i {
-		//		case posTitle:
-		//			input.SetValue(msg.Item.Title)
-		//			f.elements[i] = input
-		//		default:
-		//			continue
-		//		}
-		//	case textarea.Model:
-		//		input.SetValue(msg.Item.Notes)
-		//		f.elements[i] = input
-		//	}
-		//}
 
 		return f, nil
 	case tea.KeyMsg:
@@ -151,8 +141,11 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, common.Keys.Enter):
 			f.err = nil
 
-			switch {
-			case f.pos == posBackBtn:
+			switch f.pos {
+			case posEditBtn:
+				f.err = f.edit()
+				return f, nil
+			case posBackBtn:
 				return f.backModel.Update(common.BackMessage{
 					State: f.backState,
 				})
@@ -176,7 +169,7 @@ func (f *Model) View() string {
 	b.WriteRune('\n')
 
 	b.WriteString("Категория: ")
-	b.WriteString(f.category)
+	b.WriteString(f.category.String())
 	b.WriteRune('\n')
 
 	for i := range f.elements {
@@ -241,4 +234,15 @@ func (f *Model) updateInputs(msg tea.Msg) tea.Cmd {
 	}
 
 	return tea.Batch(cmds...)
+}
+
+func (f *Model) edit() error {
+	i := client.Item{
+		GUID:     f.guid,
+		Category: f.category,
+		Title:    element.GetValue(f.elements, posTitle),
+		Notes:    element.GetValue(f.elements, posNotes),
+	}
+
+	return f.usecaseSave.Do(context.TODO(), i)
 }

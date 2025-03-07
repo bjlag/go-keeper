@@ -86,13 +86,13 @@ func (u *Usecase) Do(ctx context.Context) error {
 			}
 
 			items = append(items, model.RawItem{
-				GUID:       item.GUID,
-				CategoryID: data.CategoryID,
-				Title:      data.Title,
-				Value:      data.Value,
-				Notes:      data.Notes,
-				CreatedAt:  item.CreatedAt,
-				UpdatedAt:  item.UpdatedAt,
+				GUID:      item.GUID,
+				Category:  data.CategoryID,
+				Title:     data.Title,
+				Value:     data.Value,
+				Notes:     data.Notes,
+				CreatedAt: item.CreatedAt,
+				UpdatedAt: item.UpdatedAt,
 			})
 		}
 

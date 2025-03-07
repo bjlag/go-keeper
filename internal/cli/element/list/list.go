@@ -27,8 +27,8 @@ func CreateDefaultList(title string, with, height int, itemDelegate list.ItemDel
 }
 
 type Category struct {
-	ID    client.Category
-	Title string
+	Category client.Category
+	Title    string
 }
 
 func (i Category) FilterValue() string { return "" }

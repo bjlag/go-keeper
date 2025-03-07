@@ -46,12 +46,12 @@ func toModels(rows []row) []model.RawItem {
 
 func (r *row) toModel() model.RawItem {
 	return model.RawItem{
-		GUID:       r.GUID,
-		CategoryID: r.CategoryID,
-		Title:      r.Title,
-		Value:      r.Value,
-		Notes:      r.Notes,
-		CreatedAt:  r.CreatedAt,
-		UpdatedAt:  r.UpdatedAt,
+		GUID:      r.GUID,
+		Category:  r.CategoryID,
+		Title:     r.Title,
+		Value:     r.Value,
+		Notes:     r.Notes,
+		CreatedAt: r.CreatedAt,
+		UpdatedAt: r.UpdatedAt,
 	}
 }

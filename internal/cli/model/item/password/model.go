@@ -51,14 +51,11 @@ type Model struct {
 }
 
 func InitModel(usecaseItem *save.Usecase) *Model {
-	f := &Model{
-		help:   help.New(),
-		header: "Регистрация",
-
+	return &Model{
+		help:        help.New(),
+		header:      "Регистрация",
 		usecaseSave: usecaseItem,
 	}
-
-	return f
 }
 
 func (f *Model) SetMainModel(m tea.Model) {
