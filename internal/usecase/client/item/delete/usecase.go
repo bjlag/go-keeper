@@ -1,10 +1,10 @@
-package save
+package delete
 
 import (
 	"context"
 	"fmt"
 
-	model "github.com/bjlag/go-keeper/internal/domain/client"
+	"github.com/google/uuid"
 )
 
 type Usecase struct {
@@ -17,10 +17,10 @@ func NewUsecase(store store) *Usecase {
 	}
 }
 
-func (u *Usecase) Do(ctx context.Context, item model.Item) error {
-	const op = "usecase.item.save.Do"
+func (u *Usecase) Do(ctx context.Context, guid uuid.UUID) error {
+	const op = "usecase.item.delete.Do"
 
-	err := u.store.SaveItem(ctx, item)
+	err := u.store.DeleteItem(ctx, guid)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}

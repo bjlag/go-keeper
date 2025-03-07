@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 
 	"github.com/jmoiron/sqlx"
 
@@ -41,6 +42,21 @@ func (s *Store) SaveItem(ctx context.Context, item model.Item) error {
 	}
 
 	_, err = s.db.NamedExecContext(ctx, query, r)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}
+
+func (s *Store) DeleteItem(ctx context.Context, guid uuid.UUID) error {
+	const op = prefixOp + "DeleteItem"
+
+	query := `
+		DELETE FROM items WHERE guid = $1
+	`
+
+	_, err := s.db.ExecContext(ctx, query, guid)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
