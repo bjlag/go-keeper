@@ -5,6 +5,7 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	pb "github.com/bjlag/go-keeper/internal/generated/rpc"
 )
@@ -14,6 +15,7 @@ const (
 	LoginMethod         = "Login"
 	RefreshTokensMethod = "RefreshTokens"
 	GetAllItemsMethod   = "GetAllItems"
+	UpdateItemMethod    = "UpdateItem"
 )
 
 func (s RPCServer) Register(ctx context.Context, in *pb.RegisterIn) (*pb.RegisterOut, error) {
@@ -65,6 +67,20 @@ func (s RPCServer) GetAllItems(ctx context.Context, in *pb.GetAllItemsIn) (*pb.G
 	}
 
 	h, ok := handler.(func(context.Context, *pb.GetAllItemsIn) (*pb.GetAllItemsOut, error))
+	if !ok {
+		return nil, status.Errorf(codes.Internal, "handler for %s method not found", GetAllItemsMethod)
+	}
+
+	return h(ctx, in)
+}
+
+func (s RPCServer) UpdateItem(ctx context.Context, in *pb.UpdateItemIn) (*emptypb.Empty, error) {
+	handler, err := s.getHandler(UpdateItemMethod)
+	if err != nil {
+		return nil, err
+	}
+
+	h, ok := handler.(func(context.Context, *pb.UpdateItemIn) (*emptypb.Empty, error))
 	if !ok {
 		return nil, status.Errorf(codes.Internal, "handler for %s method not found", GetAllItemsMethod)
 	}

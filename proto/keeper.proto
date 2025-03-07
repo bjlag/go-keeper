@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
 package keeper;
 
@@ -14,6 +15,7 @@ service Keeper {
 
   // data
   rpc GetAllItems(GetAllItemsIn) returns (GetAllItemsOut);
+  rpc UpdateItem(UpdateItemIn) returns (google.protobuf.Empty);
 }
 
 // auth
@@ -61,4 +63,9 @@ message Item {
   bytes encryptedData = 2;
   google.protobuf.Timestamp CreatedAt = 3;
   google.protobuf.Timestamp UpdatedAt = 4;
+}
+
+message UpdateItemIn {
+  string guid = 1;
+  bytes encryptedData = 2;
 }

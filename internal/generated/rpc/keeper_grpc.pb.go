@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -23,6 +24,7 @@ const (
 	Keeper_Login_FullMethodName         = "/keeper.Keeper/Login"
 	Keeper_RefreshTokens_FullMethodName = "/keeper.Keeper/RefreshTokens"
 	Keeper_GetAllItems_FullMethodName   = "/keeper.Keeper/GetAllItems"
+	Keeper_UpdateItem_FullMethodName    = "/keeper.Keeper/UpdateItem"
 )
 
 // KeeperClient is the client API for Keeper service.
@@ -35,6 +37,7 @@ type KeeperClient interface {
 	RefreshTokens(ctx context.Context, in *RefreshTokensIn, opts ...grpc.CallOption) (*RefreshTokensOut, error)
 	// data
 	GetAllItems(ctx context.Context, in *GetAllItemsIn, opts ...grpc.CallOption) (*GetAllItemsOut, error)
+	UpdateItem(ctx context.Context, in *UpdateItemIn, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type keeperClient struct {
@@ -85,6 +88,16 @@ func (c *keeperClient) GetAllItems(ctx context.Context, in *GetAllItemsIn, opts 
 	return out, nil
 }
 
+func (c *keeperClient) UpdateItem(ctx context.Context, in *UpdateItemIn, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, Keeper_UpdateItem_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // KeeperServer is the server API for Keeper service.
 // All implementations should embed UnimplementedKeeperServer
 // for forward compatibility.
@@ -95,6 +108,7 @@ type KeeperServer interface {
 	RefreshTokens(context.Context, *RefreshTokensIn) (*RefreshTokensOut, error)
 	// data
 	GetAllItems(context.Context, *GetAllItemsIn) (*GetAllItemsOut, error)
+	UpdateItem(context.Context, *UpdateItemIn) (*emptypb.Empty, error)
 }
 
 // UnimplementedKeeperServer should be embedded to have
@@ -115,6 +129,9 @@ func (UnimplementedKeeperServer) RefreshTokens(context.Context, *RefreshTokensIn
 }
 func (UnimplementedKeeperServer) GetAllItems(context.Context, *GetAllItemsIn) (*GetAllItemsOut, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllItems not implemented")
+}
+func (UnimplementedKeeperServer) UpdateItem(context.Context, *UpdateItemIn) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateItem not implemented")
 }
 func (UnimplementedKeeperServer) testEmbeddedByValue() {}
 
@@ -208,6 +225,24 @@ func _Keeper_GetAllItems_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Keeper_UpdateItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateItemIn)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeeperServer).UpdateItem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Keeper_UpdateItem_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeeperServer).UpdateItem(ctx, req.(*UpdateItemIn))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Keeper_ServiceDesc is the grpc.ServiceDesc for Keeper service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -230,6 +265,10 @@ var Keeper_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllItems",
 			Handler:    _Keeper_GetAllItems_Handler,
+		},
+		{
+			MethodName: "UpdateItem",
+			Handler:    _Keeper_UpdateItem_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -13,3 +13,8 @@ type Item struct {
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 }
+
+type UpdatedItem struct {
+	EncryptedData []byte
+	UpdatedAt     time.Time
+}

@@ -15,6 +15,7 @@ import (
 	rpcLogin "github.com/bjlag/go-keeper/internal/rpc/login"
 	rpcRefreshTokens "github.com/bjlag/go-keeper/internal/rpc/refresh_tokens"
 	rpcRegister "github.com/bjlag/go-keeper/internal/rpc/register"
+	rpcUpdateItem "github.com/bjlag/go-keeper/internal/rpc/update_item"
 	"github.com/bjlag/go-keeper/internal/usecase/server/data/get_all"
 	"github.com/bjlag/go-keeper/internal/usecase/server/user/login"
 	rt "github.com/bjlag/go-keeper/internal/usecase/server/user/refresh_tokens"
@@ -64,6 +65,7 @@ func (a *App) Run(ctx context.Context) error {
 		server.WithHandler(server.LoginMethod, rpcLogin.New(ucLogin).Handle),
 		server.WithHandler(server.RefreshTokensMethod, rpcRefreshTokens.New(ucRefreshTokens).Handle),
 		server.WithHandler(server.GetAllItemsMethod, rpcGetAllItems.New(ucGetAllData).Handle),
+		server.WithHandler(server.UpdateItemMethod, rpcUpdateItem.New(ucGetAllData).Handle),
 	)
 
 	err = s.Start(ctx)

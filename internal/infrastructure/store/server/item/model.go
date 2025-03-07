@@ -8,7 +8,7 @@ import (
 	"github.com/bjlag/go-keeper/internal/domain/data"
 )
 
-type Row struct {
+type row struct {
 	GUID          uuid.UUID `db:"guid"`
 	UserGUID      uuid.UUID `db:"user_guid"`
 	EncryptedData []byte    `db:"encrypted_data"`
@@ -16,7 +16,7 @@ type Row struct {
 	UpdatedAt     time.Time `db:"updated_at"`
 }
 
-func (r *Row) convertToModel() data.Item {
+func (r *row) convertToModel() data.Item {
 	return data.Item{
 		GUID:          r.GUID,
 		UserGUID:      r.UserGUID,
@@ -26,10 +26,17 @@ func (r *Row) convertToModel() data.Item {
 	}
 }
 
-func convertToModels(rows []Row) []data.Item {
+func convertToModels(rows []row) []data.Item {
 	result := make([]data.Item, 0, len(rows))
 	for _, row := range rows {
 		result = append(result, row.convertToModel())
 	}
 	return result
+}
+
+type updated struct {
+	GUID          uuid.UUID `db:"guid"`
+	UserGUID      uuid.UUID `db:"user_guid"`
+	EncryptedData []byte    `db:"encrypted_data"`
+	UpdatedAt     time.Time `db:"updated_at"`
 }
