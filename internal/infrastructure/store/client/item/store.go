@@ -3,10 +3,11 @@ package item
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 
 	model "github.com/bjlag/go-keeper/internal/domain/client"
@@ -42,6 +43,44 @@ func (s *Store) SaveItem(ctx context.Context, item model.Item) error {
 	}
 
 	_, err = s.db.NamedExecContext(ctx, query, r)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}
+
+func (s *Store) CreateItem(ctx context.Context, item model.Item) error {
+	const op = prefixOp + "CreateItem"
+
+	query := `
+		INSERT INTO items(guid, category_id, title, value, notes, updated_at, created_at)
+		VALUES (:guid, :category_id, :title, :value, :notes, :updated_at, :created_at)
+	`
+
+	var (
+		value *[]byte
+	)
+
+	if item.Value != nil {
+		v, err := json.Marshal(item.Value)
+		if err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
+		value = &v
+	}
+
+	args := row{
+		GUID:      item.GUID,
+		Category:  item.Category,
+		Title:     item.Title,
+		Value:     value,
+		Notes:     item.Notes,
+		CreatedAt: item.CreatedAt,
+		UpdatedAt: item.UpdatedAt,
+	}
+
+	_, err := s.db.NamedExecContext(ctx, query, args)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}

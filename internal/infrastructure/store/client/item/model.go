@@ -10,13 +10,13 @@ import (
 )
 
 type row struct {
-	GUID       uuid.UUID      `db:"guid"`
-	CategoryID model.Category `db:"category_id"`
-	Title      string         `db:"title"`
-	Value      *[]byte        `db:"value"`
-	Notes      string         `db:"notes"`
-	CreatedAt  time.Time      `db:"created_at"`
-	UpdatedAt  time.Time      `db:"updated_at"`
+	GUID      uuid.UUID      `db:"guid"`
+	Category  model.Category `db:"category_id"`
+	Title     string         `db:"title"`
+	Value     *[]byte        `db:"value"`
+	Notes     string         `db:"notes"`
+	CreatedAt time.Time      `db:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at"`
 }
 
 func toRow(model model.Item) (row, error) {
@@ -26,13 +26,13 @@ func toRow(model model.Item) (row, error) {
 	}
 
 	return row{
-		GUID:       model.GUID,
-		CategoryID: model.Category,
-		Title:      model.Title,
-		Value:      &value,
-		Notes:      model.Notes,
-		CreatedAt:  model.CreatedAt,
-		UpdatedAt:  model.UpdatedAt,
+		GUID:      model.GUID,
+		Category:  model.Category,
+		Title:     model.Title,
+		Value:     &value,
+		Notes:     model.Notes,
+		CreatedAt: model.CreatedAt,
+		UpdatedAt: model.UpdatedAt,
 	}, nil
 }
 
@@ -47,7 +47,7 @@ func toModels(rows []row) []model.RawItem {
 func (r *row) toModel() model.RawItem {
 	return model.RawItem{
 		GUID:      r.GUID,
-		Category:  r.CategoryID,
+		Category:  r.Category,
 		Title:     r.Title,
 		Value:     r.Value,
 		Notes:     r.Notes,
