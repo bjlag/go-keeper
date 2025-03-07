@@ -11,12 +11,14 @@ import (
 	"github.com/bjlag/go-keeper/internal/infrastructure/rpc/server"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/server/item"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/server/user"
+	rpcCreateItem "github.com/bjlag/go-keeper/internal/rpc/create_item"
 	rpcDeleteItem "github.com/bjlag/go-keeper/internal/rpc/delete_item"
 	rpcGetAllItems "github.com/bjlag/go-keeper/internal/rpc/get_all_items"
 	rpcLogin "github.com/bjlag/go-keeper/internal/rpc/login"
 	rpcRefreshTokens "github.com/bjlag/go-keeper/internal/rpc/refresh_tokens"
 	rpcRegister "github.com/bjlag/go-keeper/internal/rpc/register"
 	rpcUpdateItem "github.com/bjlag/go-keeper/internal/rpc/update_item"
+	"github.com/bjlag/go-keeper/internal/usecase/server/data/create"
 	"github.com/bjlag/go-keeper/internal/usecase/server/data/delete"
 	"github.com/bjlag/go-keeper/internal/usecase/server/data/get_all"
 	"github.com/bjlag/go-keeper/internal/usecase/server/data/update"
@@ -58,6 +60,7 @@ func (a *App) Run(ctx context.Context) error {
 	ucLogin := login.NewUsecase(userStore, jwt)
 	ucRefreshTokens := rt.NewUsecase(userStore, jwt)
 	ucGetAllData := get_all.NewUsecase(dataStore)
+	ucCreateItem := create.NewUsecase(dataStore)
 	ucUpdateItem := update.NewUsecase(dataStore)
 	ucDeleteItem := delete.NewUsecase(dataStore)
 
@@ -70,6 +73,7 @@ func (a *App) Run(ctx context.Context) error {
 		server.WithHandler(server.LoginMethod, rpcLogin.New(ucLogin).Handle),
 		server.WithHandler(server.RefreshTokensMethod, rpcRefreshTokens.New(ucRefreshTokens).Handle),
 		server.WithHandler(server.GetAllItemsMethod, rpcGetAllItems.New(ucGetAllData).Handle),
+		server.WithHandler(server.CreateItemMethod, rpcCreateItem.New(ucCreateItem).Handle),
 		server.WithHandler(server.UpdateItemMethod, rpcUpdateItem.New(ucUpdateItem).Handle),
 		server.WithHandler(server.DeleteItemMethod, rpcDeleteItem.New(ucDeleteItem).Handle),
 	)

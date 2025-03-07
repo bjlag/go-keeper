@@ -15,6 +15,7 @@ const (
 	LoginMethod         = "Login"
 	RefreshTokensMethod = "RefreshTokens"
 	GetAllItemsMethod   = "GetAllItems"
+	CreateItemMethod    = "CreateItem"
 	UpdateItemMethod    = "UpdateItem"
 	DeleteItemMethod    = "DeleteItem"
 )
@@ -70,6 +71,20 @@ func (s RPCServer) GetAllItems(ctx context.Context, in *pb.GetAllItemsIn) (*pb.G
 	h, ok := handler.(func(context.Context, *pb.GetAllItemsIn) (*pb.GetAllItemsOut, error))
 	if !ok {
 		return nil, status.Errorf(codes.Internal, "handler for %s method not found", GetAllItemsMethod)
+	}
+
+	return h(ctx, in)
+}
+
+func (s RPCServer) CreateItem(ctx context.Context, in *pb.CreateItemIn) (*pb.CreateItemOut, error) {
+	handler, err := s.getHandler(CreateItemMethod)
+	if err != nil {
+		return nil, err
+	}
+
+	h, ok := handler.(func(context.Context, *pb.CreateItemIn) (*pb.CreateItemOut, error))
+	if !ok {
+		return nil, status.Errorf(codes.Internal, "handler for %s method not found", CreateItemMethod)
 	}
 
 	return h(ctx, in)

@@ -23,6 +23,7 @@ const (
 	Keeper_Register_FullMethodName      = "/keeper.Keeper/Register"
 	Keeper_Login_FullMethodName         = "/keeper.Keeper/Login"
 	Keeper_RefreshTokens_FullMethodName = "/keeper.Keeper/RefreshTokens"
+	Keeper_CreateItem_FullMethodName    = "/keeper.Keeper/CreateItem"
 	Keeper_GetAllItems_FullMethodName   = "/keeper.Keeper/GetAllItems"
 	Keeper_UpdateItem_FullMethodName    = "/keeper.Keeper/UpdateItem"
 	Keeper_DeleteItem_FullMethodName    = "/keeper.Keeper/DeleteItem"
@@ -37,6 +38,7 @@ type KeeperClient interface {
 	Login(ctx context.Context, in *LoginIn, opts ...grpc.CallOption) (*LoginOut, error)
 	RefreshTokens(ctx context.Context, in *RefreshTokensIn, opts ...grpc.CallOption) (*RefreshTokensOut, error)
 	// data
+	CreateItem(ctx context.Context, in *CreateItemIn, opts ...grpc.CallOption) (*CreateItemOut, error)
 	GetAllItems(ctx context.Context, in *GetAllItemsIn, opts ...grpc.CallOption) (*GetAllItemsOut, error)
 	UpdateItem(ctx context.Context, in *UpdateItemIn, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	DeleteItem(ctx context.Context, in *DeleteItemIn, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -74,6 +76,16 @@ func (c *keeperClient) RefreshTokens(ctx context.Context, in *RefreshTokensIn, o
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RefreshTokensOut)
 	err := c.cc.Invoke(ctx, Keeper_RefreshTokens_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *keeperClient) CreateItem(ctx context.Context, in *CreateItemIn, opts ...grpc.CallOption) (*CreateItemOut, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateItemOut)
+	err := c.cc.Invoke(ctx, Keeper_CreateItem_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -119,6 +131,7 @@ type KeeperServer interface {
 	Login(context.Context, *LoginIn) (*LoginOut, error)
 	RefreshTokens(context.Context, *RefreshTokensIn) (*RefreshTokensOut, error)
 	// data
+	CreateItem(context.Context, *CreateItemIn) (*CreateItemOut, error)
 	GetAllItems(context.Context, *GetAllItemsIn) (*GetAllItemsOut, error)
 	UpdateItem(context.Context, *UpdateItemIn) (*emptypb.Empty, error)
 	DeleteItem(context.Context, *DeleteItemIn) (*emptypb.Empty, error)
@@ -139,6 +152,9 @@ func (UnimplementedKeeperServer) Login(context.Context, *LoginIn) (*LoginOut, er
 }
 func (UnimplementedKeeperServer) RefreshTokens(context.Context, *RefreshTokensIn) (*RefreshTokensOut, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RefreshTokens not implemented")
+}
+func (UnimplementedKeeperServer) CreateItem(context.Context, *CreateItemIn) (*CreateItemOut, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateItem not implemented")
 }
 func (UnimplementedKeeperServer) GetAllItems(context.Context, *GetAllItemsIn) (*GetAllItemsOut, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllItems not implemented")
@@ -223,6 +239,24 @@ func _Keeper_RefreshTokens_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Keeper_CreateItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateItemIn)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeeperServer).CreateItem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Keeper_CreateItem_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeeperServer).CreateItem(ctx, req.(*CreateItemIn))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Keeper_GetAllItems_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetAllItemsIn)
 	if err := dec(in); err != nil {
@@ -295,6 +329,10 @@ var Keeper_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RefreshTokens",
 			Handler:    _Keeper_RefreshTokens_Handler,
+		},
+		{
+			MethodName: "CreateItem",
+			Handler:    _Keeper_CreateItem_Handler,
 		},
 		{
 			MethodName: "GetAllItems",

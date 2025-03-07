@@ -43,6 +43,30 @@ func (s *Store) GetAllByUser(ctx context.Context, userGUID uuid.UUID, limit, off
 	return convertToModels(rows), nil
 }
 
+func (s *Store) Create(ctx context.Context, item model.Item) error {
+	const op = "store.item.Create"
+
+	query := `
+		INSERT INTO items(guid, user_guid, encrypted_data, created_at, updated_at)
+		VALUES(:quid, :user_guid, :encrypted_data, :created_at, :updated_at)
+	`
+
+	arg := row{
+		GUID:          item.GUID,
+		UserGUID:      item.UserGUID,
+		EncryptedData: item.EncryptedData,
+		CreatedAt:     item.CreatedAt,
+		UpdatedAt:     item.UpdatedAt,
+	}
+
+	_, err := s.db.NamedExecContext(ctx, query, arg)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}
+
 func (s *Store) Update(ctx context.Context, guid uuid.UUID, userGUID uuid.UUID, data model.UpdatedItem) error {
 	const op = "store.item.Update"
 
