@@ -13,17 +13,17 @@ const prefixOp = "usecase.item"
 
 var ErrUnknownCategory = errors.New("unknown category")
 
-type Usecase struct {
+type Fetcher struct {
 	itemStore itemStore
 }
 
-func NewUsecase(itemStore itemStore) *Usecase {
-	return &Usecase{
+func NewFetcher(itemStore itemStore) *Fetcher {
+	return &Fetcher{
 		itemStore: itemStore,
 	}
 }
 
-func (u *Usecase) ItemsByCategory(ctx context.Context, category model.Category) ([]model.Item, error) {
+func (u *Fetcher) ItemsByCategory(ctx context.Context, category model.Category) ([]model.Item, error) {
 	const op = prefixOp + ".ItemsByCategory"
 
 	rawItems, err := u.itemStore.ItemsByCategory(ctx, category)

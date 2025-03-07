@@ -13,7 +13,7 @@ import (
 	elist "github.com/bjlag/go-keeper/internal/cli/element/list"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/domain/client"
-	"github.com/bjlag/go-keeper/internal/usecase/client/item"
+	"github.com/bjlag/go-keeper/internal/fetcher/item"
 	"github.com/bjlag/go-keeper/internal/usecase/client/sync"
 )
 
@@ -37,10 +37,10 @@ type Model struct {
 	err        error
 
 	usecaseSync *sync.Usecase
-	usecaseItem *item.Usecase
+	fetcherItem *item.Fetcher
 }
 
-func InitModel(usecaseSync *sync.Usecase, usecaseItem *item.Usecase) *Model {
+func InitModel(usecaseSync *sync.Usecase, fetcherItem *item.Fetcher) *Model {
 	f := &Model{
 		help:       help.New(),
 		header:     "Категории",
@@ -48,7 +48,7 @@ func InitModel(usecaseSync *sync.Usecase, usecaseItem *item.Usecase) *Model {
 		items:      elist.CreateDefaultList("Пароли:", defaultWidth, listHeight, elist.ItemDelegate{}),
 
 		usecaseSync: usecaseSync,
-		usecaseItem: usecaseItem,
+		fetcherItem: fetcherItem,
 	}
 
 	return f
@@ -94,7 +94,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case OpenItemListMessage:
 		f.state = stateItemList
 
-		items, err := f.usecaseItem.ItemsByCategory(context.TODO(), msg.Category)
+		items, err := f.fetcherItem.ItemsByCategory(context.TODO(), msg.Category)
 		if err != nil {
 			f.err = err
 			return f, nil
