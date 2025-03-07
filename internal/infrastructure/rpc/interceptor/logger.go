@@ -20,7 +20,6 @@ func LoggerServerInterceptor(log *zap.Logger) grpc.UnaryServerInterceptor {
 		resp, err := handler(logger.WithCtx(ctx, hLog), req)
 
 		hLog.Info("Got RPC request",
-			zap.Any("response", resp),
 			zap.Error(err),
 			zap.String("code", status.Code(err).String()),
 		)
