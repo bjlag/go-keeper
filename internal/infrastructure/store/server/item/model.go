@@ -40,3 +40,8 @@ type updated struct {
 	EncryptedData []byte    `db:"encrypted_data"`
 	UpdatedAt     time.Time `db:"updated_at"`
 }
+
+type deleted struct {
+	GUID     uuid.UUID `db:"guid"`
+	UserGUID uuid.UUID `db:"user_guid"`
+}

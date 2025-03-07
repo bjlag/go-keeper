@@ -74,3 +74,32 @@ func (s *Store) Update(ctx context.Context, guid uuid.UUID, userGUID uuid.UUID, 
 
 	return nil
 }
+
+func (s *Store) Delete(ctx context.Context, guid uuid.UUID, userGUID uuid.UUID) error {
+	const op = "store.item.Delete"
+
+	query := `
+		DELETE FROM items
+		WHERE guid = :guid AND user_guid = :user_guid
+	`
+
+	arg := deleted{
+		GUID:     guid,
+		UserGUID: userGUID,
+	}
+
+	result, err := s.db.NamedExecContext(ctx, query, arg)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	if rows == 0 {
+		return ErrNotAffectedRows
+	}
+
+	return nil
+}

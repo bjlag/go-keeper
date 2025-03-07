@@ -16,6 +16,7 @@ const (
 	RefreshTokensMethod = "RefreshTokens"
 	GetAllItemsMethod   = "GetAllItems"
 	UpdateItemMethod    = "UpdateItem"
+	DeleteItemMethod    = "DeleteItem"
 )
 
 func (s RPCServer) Register(ctx context.Context, in *pb.RegisterIn) (*pb.RegisterOut, error) {
@@ -82,7 +83,21 @@ func (s RPCServer) UpdateItem(ctx context.Context, in *pb.UpdateItemIn) (*emptyp
 
 	h, ok := handler.(func(context.Context, *pb.UpdateItemIn) (*emptypb.Empty, error))
 	if !ok {
-		return nil, status.Errorf(codes.Internal, "handler for %s method not found", GetAllItemsMethod)
+		return nil, status.Errorf(codes.Internal, "handler for %s method not found", UpdateItemMethod)
+	}
+
+	return h(ctx, in)
+}
+
+func (s RPCServer) DeleteItem(ctx context.Context, in *pb.DeleteItemIn) (*emptypb.Empty, error) {
+	handler, err := s.getHandler(DeleteItemMethod)
+	if err != nil {
+		return nil, err
+	}
+
+	h, ok := handler.(func(context.Context, *pb.DeleteItemIn) (*emptypb.Empty, error))
+	if !ok {
+		return nil, status.Errorf(codes.Internal, "handler for %s method not found", DeleteItemMethod)
 	}
 
 	return h(ctx, in)

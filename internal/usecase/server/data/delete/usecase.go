@@ -1,16 +1,13 @@
-package update
+package delete
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
-
-	model "github.com/bjlag/go-keeper/internal/domain/data"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/server/item"
 )
 
-var ErrNotFoundUpdatedData = errors.New("updated data is not found")
+var ErrNotFoundUpdatedData = errors.New("deleted data is not found ")
 
 type Usecase struct {
 	store store
@@ -23,14 +20,9 @@ func NewUsecase(store store) *Usecase {
 }
 
 func (u Usecase) Do(ctx context.Context, in In) error {
-	const op = "usecase.item.update.Do"
+	const op = "usecase.item.delete.Do"
 
-	data := model.UpdatedItem{
-		EncryptedData: in.EncryptedData,
-		UpdatedAt:     time.Now(),
-	}
-
-	err := u.store.Update(ctx, in.ItemGUID, in.UserGUID, data)
+	err := u.store.Delete(ctx, in.ItemGUID, in.UserGUID)
 	if err != nil {
 		if errors.Is(err, item.ErrNotAffectedRows) {
 			return ErrNotFoundUpdatedData

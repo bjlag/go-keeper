@@ -16,6 +16,7 @@ service Keeper {
   // data
   rpc GetAllItems(GetAllItemsIn) returns (GetAllItemsOut);
   rpc UpdateItem(UpdateItemIn) returns (google.protobuf.Empty);
+  rpc DeleteItem(DeleteItemIn) returns (google.protobuf.Empty);
 }
 
 // auth
@@ -68,4 +69,8 @@ message Item {
 message UpdateItemIn {
   string guid = 1;
   bytes encryptedData = 2;
+}
+
+message DeleteItemIn {
+  string guid = 1;
 }
