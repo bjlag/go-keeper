@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 
-	model "github.com/bjlag/go-keeper/internal/domain/data"
+	model "github.com/bjlag/go-keeper/internal/domain/server/data"
 )
 
 var ErrNotAffectedRows = errors.New("not affected")

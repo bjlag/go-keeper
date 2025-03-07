@@ -13,7 +13,7 @@ import (
 	pb "github.com/bjlag/go-keeper/internal/generated/rpc"
 	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
 	"github.com/bjlag/go-keeper/internal/infrastructure/logger"
-	"github.com/bjlag/go-keeper/internal/usecase/server/data/get_all"
+	"github.com/bjlag/go-keeper/internal/usecase/server/item/get_all"
 )
 
 const (

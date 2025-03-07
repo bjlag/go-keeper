@@ -3,7 +3,7 @@ package login
 import (
 	"context"
 
-	model "github.com/bjlag/go-keeper/internal/domain/user"
+	model "github.com/bjlag/go-keeper/internal/domain/server/user"
 )
 
 type userStore interface {

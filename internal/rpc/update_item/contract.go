@@ -3,7 +3,7 @@ package update_item
 import (
 	"context"
 
-	"github.com/bjlag/go-keeper/internal/usecase/server/data/update"
+	"github.com/bjlag/go-keeper/internal/usecase/server/item/update"
 )
 
 type usecase interface {

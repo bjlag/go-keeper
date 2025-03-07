@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 
-	model "github.com/bjlag/go-keeper/internal/domain/user"
+	model "github.com/bjlag/go-keeper/internal/domain/server/user"
 	storeUser "github.com/bjlag/go-keeper/internal/infrastructure/store/server/user"
 )
 

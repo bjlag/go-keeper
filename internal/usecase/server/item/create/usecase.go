@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	model "github.com/bjlag/go-keeper/internal/domain/data"
+	model "github.com/bjlag/go-keeper/internal/domain/server/data"
 )
 
 type Usecase struct {

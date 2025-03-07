@@ -3,7 +3,7 @@ package create_item
 import (
 	"context"
 
-	"github.com/bjlag/go-keeper/internal/usecase/server/data/create"
+	"github.com/bjlag/go-keeper/internal/usecase/server/item/create"
 )
 
 type usecase interface {

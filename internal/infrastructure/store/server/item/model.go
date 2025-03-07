@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/bjlag/go-keeper/internal/domain/data"
+	"github.com/bjlag/go-keeper/internal/domain/server/data"
 )
 
 type row struct {

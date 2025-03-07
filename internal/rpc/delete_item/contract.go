@@ -3,7 +3,7 @@ package delete_item
 import (
 	"context"
 
-	"github.com/bjlag/go-keeper/internal/usecase/server/data/delete"
+	"github.com/bjlag/go-keeper/internal/usecase/server/item/delete"
 )
 
 type usecase interface {

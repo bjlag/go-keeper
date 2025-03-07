@@ -5,11 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 
-	model "github.com/bjlag/go-keeper/internal/domain/user"
+	model "github.com/bjlag/go-keeper/internal/domain/server/user"
 )
 
 var ErrNotFound = errors.New("user not found")

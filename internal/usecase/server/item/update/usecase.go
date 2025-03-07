@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	model "github.com/bjlag/go-keeper/internal/domain/data"
+	model "github.com/bjlag/go-keeper/internal/domain/server/data"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/server/item"
 )
 

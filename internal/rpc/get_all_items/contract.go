@@ -3,7 +3,7 @@ package get_all_items
 import (
 	"context"
 
-	"github.com/bjlag/go-keeper/internal/usecase/server/data/get_all"
+	"github.com/bjlag/go-keeper/internal/usecase/server/item/get_all"
 )
 
 type usecase interface {
