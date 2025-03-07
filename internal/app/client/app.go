@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"go.uber.org/zap"
 
@@ -17,6 +18,7 @@ import (
 	rpc "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
 	sItem "github.com/bjlag/go-keeper/internal/infrastructure/store/client/item"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/token"
+	"github.com/bjlag/go-keeper/internal/usecase/client/item/save"
 	"github.com/bjlag/go-keeper/internal/usecase/client/login"
 	"github.com/bjlag/go-keeper/internal/usecase/client/register"
 	"github.com/bjlag/go-keeper/internal/usecase/client/sync"
@@ -61,16 +63,17 @@ func (a *App) Run(ctx context.Context) error {
 	ucLogin := login.NewUsecase(rpcClient)
 	ucRegister := register.NewUsecase(rpcClient)
 	ucSync := sync.NewUsecase(rpcClient, storeItem)
+	ucSaveItem := save.NewUsecase(storeItem)
 
-	fItem := item.NewFetcher(storeItem)
+	fetchItem := item.NewFetcher(storeItem)
 
 	m := master.InitModel(
 		master.WithStoreTokens(storeTokens),
 
 		master.WithLoginForm(formLogin.InitModel(ucLogin)),
 		master.WithRegisterForm(formRegister.InitModel(ucRegister)),
-		master.WithListFormForm(list.InitModel(ucSync, fItem)),
-		master.WithPasswordItemForm(password.InitModel(storeItem)),
+		master.WithListFormForm(list.InitModel(ucSync, fetchItem)),
+		master.WithPasswordItemForm(password.InitModel(ucSaveItem)),
 		master.WithTextItemForm(text.InitModel()),
 	)
 

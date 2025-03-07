@@ -20,7 +20,7 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/element/button"
 	tarea "github.com/bjlag/go-keeper/internal/cli/element/textarea"
 	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
-	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/item"
+	"github.com/bjlag/go-keeper/internal/usecase/client/item/save"
 )
 
 const (
@@ -47,15 +47,15 @@ type Model struct {
 	guid     uuid.UUID
 	category client.Category
 
-	storeItem *item.Store
+	usecaseSave *save.Usecase
 }
 
-func InitModel(storeItem *item.Store) *Model {
+func InitModel(usecaseItem *save.Usecase) *Model {
 	f := &Model{
 		help:   help.New(),
 		header: "Регистрация",
 
-		storeItem: storeItem,
+		usecaseSave: usecaseItem,
 	}
 
 	return f
@@ -266,5 +266,5 @@ func (f *Model) edit() error {
 		Notes: element.GetValue(f.elements, posNotes),
 	}
 
-	return f.storeItem.SaveItem(context.TODO(), i)
+	return f.usecaseSave.Do(context.TODO(), i)
 }
