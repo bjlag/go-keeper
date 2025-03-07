@@ -146,6 +146,8 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return f, nil
 		case key.Matches(msg, common.Keys.Back):
 			switch f.state {
+			case stateCategoryList:
+				return f.main.Update(common.BackMessage{})
 			case stateItemList:
 				return f.Update(OpenCategoryListMessage{})
 			}

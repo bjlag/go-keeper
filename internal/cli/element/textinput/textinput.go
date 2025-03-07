@@ -6,21 +6,21 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/style"
 )
 
-type TextInputOption func(m *textinput.Model)
+type Option func(m *textinput.Model)
 
-func WithFocused() TextInputOption {
+func WithFocused() Option {
 	return func(m *textinput.Model) {
 		m.Focus()
 	}
 }
 
-func WithValue(value string) TextInputOption {
+func WithValue(value string) Option {
 	return func(m *textinput.Model) {
 		m.SetValue(value)
 	}
 }
 
-func CreateDefaultTextInput(placeholder string, opts ...TextInputOption) textinput.Model {
+func CreateDefaultTextInput(placeholder string, opts ...Option) textinput.Model {
 	m := textinput.New()
 
 	m.Cursor.Style = style.CursorStyle

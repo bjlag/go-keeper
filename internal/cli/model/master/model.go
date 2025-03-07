@@ -1,7 +1,6 @@
 package master
 
 import (
-	"github.com/bjlag/go-keeper/internal/domain/client"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -9,18 +8,28 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
+	"github.com/bjlag/go-keeper/internal/cli/element/button"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/password"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/text"
 	listf "github.com/bjlag/go-keeper/internal/cli/model/list"
 	"github.com/bjlag/go-keeper/internal/cli/model/login"
 	"github.com/bjlag/go-keeper/internal/cli/model/register"
 	"github.com/bjlag/go-keeper/internal/cli/style"
+	"github.com/bjlag/go-keeper/internal/domain/client"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/token"
 )
 
+const (
+	posViewBtn int = iota
+	posCreateBtn
+	posCloseBtn
+)
+
 type Model struct {
-	help   help.Model
-	header string
+	help     help.Model
+	header   string
+	elements []interface{}
+	pos      int
 
 	formLogin    *login.Model
 	formRegister *register.Model
@@ -35,6 +44,11 @@ func InitModel(opts ...Option) *Model {
 	m := &Model{
 		help:   help.New(),
 		header: "Go Keeper",
+		elements: []interface{}{
+			posViewBtn:   button.CreateDefaultButton("Просмотр", button.WithFocused()),
+			posCreateBtn: button.CreateDefaultButton("Создать"),
+			posCloseBtn:  button.CreateDefaultButton("Выйти"),
+		},
 	}
 
 	for _, opt := range opts {
@@ -47,7 +61,6 @@ func InitModel(opts ...Option) *Model {
 func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
 		func() tea.Msg {
-			//return message.SuccessLoginMessage{}
 			return login.OpenMessage{}
 		},
 	)
@@ -59,7 +72,50 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, common.Keys.Quit):
 			return m, tea.Quit
+		case key.Matches(msg, common.Keys.Enter):
+			switch m.pos {
+			case posViewBtn:
+				return m.formList.Update(listf.GetAllDataMessage{})
+			case posCreateBtn:
+				//m.formList.Update(listf.GetAllDataMessage{})
+			case posCloseBtn:
+				return m, tea.Quit
+			}
+		case key.Matches(msg, common.Keys.Navigation):
+			if key.Matches(msg, common.Keys.Down, common.Keys.Tab) {
+				m.pos++
+			} else {
+				m.pos--
+			}
+
+			if m.pos > len(m.elements)-1 {
+				m.pos = 0
+			} else if m.pos < 0 {
+				m.pos = len(m.elements) - 1
+			}
+
+			for i := range m.elements {
+				switch e := m.elements[i].(type) {
+				case button.Button:
+					if i == m.pos {
+						e.Focus()
+						m.elements[i] = e
+						continue
+					}
+					e.Blur()
+					m.elements[i] = e
+				}
+			}
+
+			return m, nil
+		case key.Matches(msg, common.Keys.Quit):
+			return m, tea.Quit
 		}
+
+	case Open:
+		return m, nil
+	case common.BackMessage:
+		return m.Update(Open{})
 
 	// Forms
 	case login.OpenMessage:
@@ -89,13 +145,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Success
 	case login.SuccessMessage:
 		m.storeTokens.SaveTokens(msg.AccessToken, msg.RefreshToken)
-		return m.formList.Update(listf.GetAllDataMessage{})
 	case register.SuccessMessage:
 		m.storeTokens.SaveTokens(msg.AccessToken, msg.RefreshToken)
-		return m.formList.Update(listf.GetAllDataMessage{})
 	}
 
-	return m, nil
+	return m.Update(Open{})
 }
 
 func (m *Model) View() string {
@@ -103,6 +157,13 @@ func (m *Model) View() string {
 
 	b.WriteString(style.TitleStyle.Render(m.header))
 	b.WriteRune('\n')
+
+	for i := range m.elements {
+		if e, ok := m.elements[i].(button.Button); ok {
+			b.WriteString(e.String())
+			b.WriteRune('\n')
+		}
+	}
 
 	return b.String()
 }

@@ -23,10 +23,22 @@ func NewButton(text string) Button {
 	}
 }
 
-func CreateDefaultButton(text string) Button {
+type Option func(m *Button)
+
+func WithFocused() Option {
+	return func(m *Button) {
+		m.Focus()
+	}
+}
+
+func CreateDefaultButton(text string, opts ...Option) Button {
 	b := NewButton(text)
 	b.FocusedStyle = style.FocusedStyle
 	b.BlurredStyle = style.BlurredStyle
+
+	for _, opt := range opts {
+		opt(&b)
+	}
 
 	return b
 }
