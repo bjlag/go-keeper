@@ -12,7 +12,7 @@ import (
 const (
 	prefixOp = "usecase.sync."
 
-	limit = 1
+	limit = 40
 )
 
 type Data struct {
