@@ -18,6 +18,8 @@ import (
 	rpc "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
 	sItem "github.com/bjlag/go-keeper/internal/infrastructure/store/client/item"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/token"
+	"github.com/bjlag/go-keeper/internal/usecase/client/item/create"
+	"github.com/bjlag/go-keeper/internal/usecase/client/item/delete"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/save"
 	"github.com/bjlag/go-keeper/internal/usecase/client/login"
 	"github.com/bjlag/go-keeper/internal/usecase/client/register"
@@ -63,7 +65,9 @@ func (a *App) Run(ctx context.Context) error {
 	ucLogin := login.NewUsecase(rpcClient)
 	ucRegister := register.NewUsecase(rpcClient)
 	ucSync := sync.NewUsecase(rpcClient, storeItem)
+	ucCreateItem := create.NewUsecase(storeItem)
 	ucSaveItem := save.NewUsecase(storeItem)
+	ucDeleteItem := delete.NewUsecase(storeItem)
 
 	fetchItem := item.NewFetcher(storeItem)
 
@@ -73,8 +77,8 @@ func (a *App) Run(ctx context.Context) error {
 		master.WithLoginForm(formLogin.InitModel(ucLogin)),
 		master.WithRegisterForm(formRegister.InitModel(ucRegister)),
 		master.WithListFormForm(list.InitModel(ucSync, fetchItem)),
-		master.WithPasswordItemForm(password.InitModel(ucSaveItem)),
-		master.WithTextItemForm(text.InitModel(ucSaveItem)),
+		master.WithPasswordItemForm(password.InitModel(ucCreateItem, ucSaveItem, ucDeleteItem)),
+		master.WithTextItemForm(text.InitModel(ucCreateItem, ucSaveItem, ucDeleteItem)),
 	)
 
 	f, err := tea.LogToFile("debug.log", "debug")

@@ -20,6 +20,8 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/element/button"
 	tarea "github.com/bjlag/go-keeper/internal/cli/element/textarea"
 	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
+	"github.com/bjlag/go-keeper/internal/usecase/client/item/create"
+	"github.com/bjlag/go-keeper/internal/usecase/client/item/delete"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/save"
 )
 
@@ -47,14 +49,18 @@ type Model struct {
 	guid     uuid.UUID
 	category client.Category
 
-	usecaseSave *save.Usecase
+	usecaseCreate *create.Usecase
+	usecaseSave   *save.Usecase
+	usecaseDelete *delete.Usecase
 }
 
-func InitModel(usecaseItem *save.Usecase) *Model {
+func InitModel(usecaseCreate *create.Usecase, usecaseSave *save.Usecase, usecaseDelete *delete.Usecase) *Model {
 	return &Model{
-		help:        help.New(),
-		header:      "Регистрация",
-		usecaseSave: usecaseItem,
+		help:          help.New(),
+		header:        "Регистрация",
+		usecaseCreate: usecaseCreate,
+		usecaseSave:   usecaseSave,
+		usecaseDelete: usecaseDelete,
 	}
 }
 
@@ -154,11 +160,10 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			switch f.pos {
 			case posEditBtn:
-				err := f.edit()
-				if err != nil {
-					f.err = err
-					return f, nil
-				}
+				f.err = f.edit()
+				return f, nil
+			case posDeleteBtn:
+				f.err = f.delete()
 				return f, nil
 			case posBackBtn:
 				return f.backModel.Update(common.BackMessage{
@@ -264,4 +269,8 @@ func (f *Model) edit() error {
 	}
 
 	return f.usecaseSave.Do(context.TODO(), i)
+}
+
+func (f *Model) delete() error {
+	return f.usecaseDelete.Do(context.TODO(), f.guid)
 }

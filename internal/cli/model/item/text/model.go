@@ -3,13 +3,13 @@ package text
 import (
 	"context"
 	"errors"
-	"github.com/google/uuid"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/google/uuid"
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element"
@@ -18,6 +18,8 @@ import (
 	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/domain/client"
+	"github.com/bjlag/go-keeper/internal/usecase/client/item/create"
+	"github.com/bjlag/go-keeper/internal/usecase/client/item/delete"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/save"
 	"github.com/charmbracelet/bubbles/textarea"
 )
@@ -44,14 +46,18 @@ type Model struct {
 	guid     uuid.UUID
 	category client.Category
 
-	usecaseSave *save.Usecase
+	usecaseCreate *create.Usecase
+	usecaseSave   *save.Usecase
+	usecaseDelete *delete.Usecase
 }
 
-func InitModel(usecaseItem *save.Usecase) *Model {
+func InitModel(usecaseCreate *create.Usecase, usecaseSave *save.Usecase, usecaseDelete *delete.Usecase) *Model {
 	return &Model{
-		help:        help.New(),
-		header:      "Регистрация",
-		usecaseSave: usecaseItem,
+		help:          help.New(),
+		header:        "Регистрация",
+		usecaseCreate: usecaseCreate,
+		usecaseSave:   usecaseSave,
+		usecaseDelete: usecaseDelete,
 	}
 }
 
@@ -144,6 +150,9 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch f.pos {
 			case posEditBtn:
 				f.err = f.edit()
+				return f, nil
+			case posDeleteBtn:
+				f.err = f.delete()
 				return f, nil
 			case posBackBtn:
 				return f.backModel.Update(common.BackMessage{
@@ -245,4 +254,8 @@ func (f *Model) edit() error {
 	}
 
 	return f.usecaseSave.Do(context.TODO(), i)
+}
+
+func (f *Model) delete() error {
+	return f.usecaseDelete.Do(context.TODO(), f.guid)
 }
