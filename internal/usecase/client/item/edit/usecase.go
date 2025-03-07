@@ -1,8 +1,9 @@
-package save
+package edit
 
 import (
 	"context"
 	"fmt"
+	"time"
 
 	model "github.com/bjlag/go-keeper/internal/domain/client"
 )
@@ -18,7 +19,9 @@ func NewUsecase(store store) *Usecase {
 }
 
 func (u *Usecase) Do(ctx context.Context, item model.Item) error {
-	const op = "usecase.item.save.Do"
+	const op = "usecase.item.edit.Do"
+
+	item.UpdatedAt = time.Now()
 
 	err := u.store.SaveItem(ctx, item)
 	if err != nil {

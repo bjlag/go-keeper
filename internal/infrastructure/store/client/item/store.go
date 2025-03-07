@@ -33,7 +33,7 @@ func (s *Store) SaveItem(ctx context.Context, item model.Item) error {
 		SET title = :title,
 			value = :value,
 			notes = :notes,
-			updated_at = datetime()
+			updated_at = :updated_at
 		WHERE guid = :guid 	
 	`
 
@@ -58,9 +58,7 @@ func (s *Store) CreateItem(ctx context.Context, item model.Item) error {
 		VALUES (:guid, :category_id, :title, :value, :notes, :updated_at, :created_at)
 	`
 
-	var (
-		value *[]byte
-	)
+	var value *[]byte
 
 	if item.Value != nil {
 		v, err := json.Marshal(item.Value)

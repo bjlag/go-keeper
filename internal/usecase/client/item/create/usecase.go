@@ -3,6 +3,7 @@ package create
 import (
 	"context"
 	"fmt"
+	"time"
 
 	model "github.com/bjlag/go-keeper/internal/domain/client"
 )
@@ -19,6 +20,9 @@ func NewUsecase(store store) *Usecase {
 
 func (u *Usecase) Do(ctx context.Context, item model.Item) error {
 	const op = "usecase.item.create.Do"
+
+	item.CreatedAt = time.Now()
+	item.UpdatedAt = time.Now()
 
 	err := u.store.CreateItem(ctx, item)
 	if err != nil {

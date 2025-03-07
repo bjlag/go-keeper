@@ -1,6 +1,7 @@
 package master
 
 import (
+	"github.com/bjlag/go-keeper/internal/cli/model/item/create"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/password"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/text"
 	"github.com/bjlag/go-keeper/internal/cli/model/list"
@@ -31,7 +32,14 @@ func WithRegisterForm(form *register.Model) Option {
 	}
 }
 
-func WithListFormForm(form *list.Model) Option {
+func WithCreatForm(form *create.Model) Option {
+	return func(m *Model) {
+		form.SetMainModel(m)
+		m.formCreate = form
+	}
+}
+
+func WithListForm(form *list.Model) Option {
 	return func(m *Model) {
 		form.SetMainModel(m)
 		m.formList = form

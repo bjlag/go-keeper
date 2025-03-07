@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"go.uber.org/zap"
 
+	formCreate "github.com/bjlag/go-keeper/internal/cli/model/item/create"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/password"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/text"
 	"github.com/bjlag/go-keeper/internal/cli/model/list"
@@ -20,7 +21,7 @@ import (
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/token"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/create"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/delete"
-	"github.com/bjlag/go-keeper/internal/usecase/client/item/save"
+	"github.com/bjlag/go-keeper/internal/usecase/client/item/edit"
 	"github.com/bjlag/go-keeper/internal/usecase/client/login"
 	"github.com/bjlag/go-keeper/internal/usecase/client/register"
 	"github.com/bjlag/go-keeper/internal/usecase/client/sync"
@@ -66,7 +67,7 @@ func (a *App) Run(ctx context.Context) error {
 	ucRegister := register.NewUsecase(rpcClient)
 	ucSync := sync.NewUsecase(rpcClient, storeItem)
 	ucCreateItem := create.NewUsecase(storeItem)
-	ucSaveItem := save.NewUsecase(storeItem)
+	ucSaveItem := edit.NewUsecase(storeItem)
 	ucDeleteItem := delete.NewUsecase(storeItem)
 
 	fetchItem := item.NewFetcher(storeItem)
@@ -76,7 +77,8 @@ func (a *App) Run(ctx context.Context) error {
 
 		master.WithLoginForm(formLogin.InitModel(ucLogin)),
 		master.WithRegisterForm(formRegister.InitModel(ucRegister)),
-		master.WithListFormForm(list.InitModel(ucSync, fetchItem)),
+		master.WithCreatForm(formCreate.InitModel()),
+		master.WithListForm(list.InitModel(ucSync, fetchItem)),
 		master.WithPasswordItemForm(password.InitModel(ucCreateItem, ucSaveItem, ucDeleteItem)),
 		master.WithTextItemForm(text.InitModel(ucCreateItem, ucSaveItem, ucDeleteItem)),
 	)

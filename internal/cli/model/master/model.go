@@ -1,6 +1,7 @@
 package master
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element/button"
+	"github.com/bjlag/go-keeper/internal/cli/model/item/create"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/password"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/text"
 	listf "github.com/bjlag/go-keeper/internal/cli/model/list"
@@ -18,6 +20,8 @@ import (
 	"github.com/bjlag/go-keeper/internal/domain/client"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/token"
 )
+
+var errUnsupportedCategory = errors.New("unsupported category")
 
 const (
 	posViewBtn int = iota
@@ -30,9 +34,11 @@ type Model struct {
 	header   string
 	elements []interface{}
 	pos      int
+	err      error
 
 	formLogin    *login.Model
 	formRegister *register.Model
+	formCreate   *create.Model
 	formList     *listf.Model
 	formPassword *password.Model
 	formText     *text.Model
@@ -77,7 +83,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case posViewBtn:
 				return m.formList.Update(listf.GetAllDataMessage{})
 			case posCreateBtn:
-				//m.formList.Update(listf.GetAllDataMessage{})
+				return m.formCreate.Update(create.Open{})
 			case posCloseBtn:
 				return m, tea.Quit
 			}
@@ -127,19 +133,21 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case listf.OpenItemListMessage:
 		return m.formList.Update(msg)
 	case common.OpenItemMessage:
-		switch msg.Item.Category {
+		switch msg.Category {
 		case client.CategoryPassword:
-			return m.formPassword.Update(password.OpenMessage{
+			return m.formPassword.Update(password.OpenMsg{
 				BackModel: msg.BackModel,
 				BackState: msg.BackState,
 				Item:      msg.Item,
 			})
 		case client.CategoryText:
-			return m.formText.Update(text.OpenMessage{
+			return m.formText.Update(text.OpenMsg{
 				BackModel: msg.BackModel,
 				BackState: msg.BackState,
 				Item:      msg.Item,
 			})
+		default:
+			m.err = errUnsupportedCategory
 		}
 
 	// Success
@@ -163,6 +171,12 @@ func (m *Model) View() string {
 			b.WriteString(e.String())
 			b.WriteRune('\n')
 		}
+	}
+
+	// выводим прочие ошибки
+	if m.err != nil {
+		b.WriteRune('\n')
+		b.WriteString(style.ErrorBlockStyle.Render(m.err.Error()))
 	}
 
 	return b.String()

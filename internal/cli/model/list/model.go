@@ -138,7 +138,8 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return f.main.Update(common.OpenItemMessage{
 						BackModel: f,
 						BackState: f.state,
-						Item:      i,
+						Category:  i.Category,
+						Item:      &i,
 					})
 				}
 			}

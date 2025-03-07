@@ -1,7 +1,6 @@
 package text
 
 import (
-	"context"
 	"errors"
 	"strings"
 
@@ -12,7 +11,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
-	"github.com/bjlag/go-keeper/internal/cli/element"
 	"github.com/bjlag/go-keeper/internal/cli/element/button"
 	tarea "github.com/bjlag/go-keeper/internal/cli/element/textarea"
 	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
@@ -20,22 +18,39 @@ import (
 	"github.com/bjlag/go-keeper/internal/domain/client"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/create"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/delete"
-	"github.com/bjlag/go-keeper/internal/usecase/client/item/save"
+	"github.com/bjlag/go-keeper/internal/usecase/client/item/edit"
 	"github.com/charmbracelet/bubbles/textarea"
 )
 
 const (
-	posTitle int = iota
-	posNotes
-	posEditBtn
-	posDeleteBtn
-	posBackBtn
+	posEditTitle int = iota
+	posEditNotes
+	posEditEditBtn
+	posEditDeleteBtn
+	posEditBackBtn
 )
+
+const (
+	posCreateTitle int = iota
+	posCreateNotes
+	posCreateSaveBtn
+	posCreateBackBtn
+)
+
+type state int
+
+const (
+	stateCreate state = iota
+	stateEdit
+)
+
+var errUnsupportedCommand = errors.New("unsupported command")
 
 type Model struct {
 	main     tea.Model
 	help     help.Model
 	header   string
+	state    state
 	elements []interface{}
 	pos      int
 	err      error
@@ -47,142 +62,175 @@ type Model struct {
 	category client.Category
 
 	usecaseCreate *create.Usecase
-	usecaseSave   *save.Usecase
+	usecaseEdit   *edit.Usecase
 	usecaseDelete *delete.Usecase
 }
 
-func InitModel(usecaseCreate *create.Usecase, usecaseSave *save.Usecase, usecaseDelete *delete.Usecase) *Model {
+func InitModel(usecaseCreate *create.Usecase, usecaseSave *edit.Usecase, usecaseDelete *delete.Usecase) *Model {
 	return &Model{
-		help:          help.New(),
-		header:        "Регистрация",
+		help:   help.New(),
+		header: "Регистрация",
+		state:  stateCreate,
+
 		usecaseCreate: usecaseCreate,
-		usecaseSave:   usecaseSave,
+		usecaseEdit:   usecaseSave,
 		usecaseDelete: usecaseDelete,
 	}
 }
 
-func (f *Model) SetMainModel(m tea.Model) {
-	f.main = m
+func (m *Model) SetMainModel(model tea.Model) {
+	m.main = model
 }
 
-func (f *Model) Init() tea.Cmd {
+func (m *Model) Init() tea.Cmd {
 	return nil
 }
 
-func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		for i := range f.elements {
-			switch e := f.elements[i].(type) {
+		for i := range m.elements {
+			switch e := m.elements[i].(type) {
 			case textinput.Model:
 				e.Width = msg.Width
 			}
 		}
-		return f, nil
-	case OpenMessage:
-		f.backState = msg.BackState
-		f.backModel = msg.BackModel
-		f.header = msg.Item.Title
-		f.guid = msg.Item.GUID
-		f.category = msg.Item.Category
+		return m, nil
+	case OpenMsg:
+		m.backState = msg.BackState
+		m.backModel = msg.BackModel
 
-		f.elements = []interface{}{
-			posTitle:     tinput.CreateDefaultTextInput("Название", tinput.WithValue(msg.Item.Title), tinput.WithFocused()),
-			posNotes:     tarea.CreateDefaultTextArea("Текст", tarea.WithValue(msg.Item.Notes)),
-			posEditBtn:   button.CreateDefaultButton("Изменить"),
-			posDeleteBtn: button.CreateDefaultButton("Удалить"),
-			posBackBtn:   button.CreateDefaultButton("Назад"),
+		if msg.Item != nil {
+			m.state = stateEdit
+			m.header = msg.Item.Title
+			m.guid = msg.Item.GUID
+			m.category = msg.Item.Category
+
+			m.elements = []interface{}{
+				posEditTitle:     tinput.CreateDefaultTextInput("Название", tinput.WithValue(msg.Item.Title), tinput.WithFocused()),
+				posEditNotes:     tarea.CreateDefaultTextArea("Текст", tarea.WithValue(msg.Item.Notes)),
+				posEditEditBtn:   button.CreateDefaultButton("Изменить"),
+				posEditDeleteBtn: button.CreateDefaultButton("Удалить"),
+				posEditBackBtn:   button.CreateDefaultButton("Назад"),
+			}
+
+			return m, nil
 		}
 
-		return f, nil
+		m.state = stateCreate
+		m.header = "Новый текст"
+		m.elements = []interface{}{
+			posCreateTitle:   tinput.CreateDefaultTextInput("Название", tinput.WithFocused()),
+			posCreateNotes:   tarea.CreateDefaultTextArea("Текст"),
+			posCreateSaveBtn: button.CreateDefaultButton("Сохранить"),
+			posCreateBackBtn: button.CreateDefaultButton("Назад"),
+		}
+
+		return m, nil
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, common.Keys.Quit):
-			return f, tea.Quit
+			return m, tea.Quit
 		case key.Matches(msg, common.Keys.Navigation):
 			if key.Matches(msg, common.Keys.Down, common.Keys.Tab) {
-				f.pos++
+				m.pos++
 			} else {
-				f.pos--
+				m.pos--
 			}
 
-			if f.pos > len(f.elements)-1 {
-				f.pos = 0
-			} else if f.pos < 0 {
-				f.pos = len(f.elements) - 1
+			if m.pos > len(m.elements)-1 {
+				m.pos = 0
+			} else if m.pos < 0 {
+				m.pos = len(m.elements) - 1
 			}
 
-			for i := range f.elements {
-				switch e := f.elements[i].(type) {
+			for i := range m.elements {
+				switch e := m.elements[i].(type) {
 				case textinput.Model:
-					if i == f.pos {
+					if i == m.pos {
 						e.Focus()
-						f.elements[i] = style.SetFocusStyle(e)
+						m.elements[i] = style.SetFocusStyle(e)
 						continue
 					}
 
 					e.Blur()
-					f.elements[i] = style.SetNoStyle(e)
+					m.elements[i] = style.SetNoStyle(e)
 				case textarea.Model:
-					if i == f.pos {
+					if i == m.pos {
 						e.Focus()
-						f.elements[i] = e
+						m.elements[i] = e
 						continue
 					}
 
 					e.Blur()
-					f.elements[i] = e
+					m.elements[i] = e
 				case button.Button:
-					if i == f.pos {
+					if i == m.pos {
 						e.Focus()
-						f.elements[i] = e
+						m.elements[i] = e
 						continue
 					}
 					e.Blur()
-					f.elements[i] = e
+					m.elements[i] = e
 				}
 			}
 
-			return f, nil
+			return m, nil
 		case key.Matches(msg, common.Keys.Enter):
-			f.err = nil
+			m.err = nil
 
-			switch f.pos {
-			case posEditBtn:
-				f.err = f.edit()
-				return f, nil
-			case posDeleteBtn:
-				f.err = f.delete()
-				return f, nil
-			case posBackBtn:
-				return f.backModel.Update(common.BackMessage{
-					State: f.backState,
-				})
+			if m.state == stateCreate {
+				switch m.pos {
+				case posCreateSaveBtn:
+					m.err = m.saveAction()
+					return m, nil
+				case posCreateBackBtn:
+					return m.backModel.Update(common.BackMessage{
+						State: m.backState,
+					})
+				default:
+					m.err = errUnsupportedCommand
+				}
 			}
 
-			return f, nil
+			switch m.pos {
+			case posEditEditBtn:
+				m.err = m.editAction()
+				return m, nil
+			case posEditDeleteBtn:
+				m.err = m.deleteAction()
+				return m, nil
+			case posEditBackBtn:
+				return m.backModel.Update(common.BackMessage{
+					State: m.backState,
+				})
+			default:
+				m.err = errUnsupportedCommand
+			}
+
+			return m, nil
 		case key.Matches(msg, common.Keys.Back):
-			return f.backModel.Update(common.BackMessage{
-				State: f.backState,
+			return m.backModel.Update(common.BackMessage{
+				State: m.backState,
 			})
 		}
 	}
 
-	return f, f.updateInputs(msg)
+	return m, m.updateInputs(msg)
 }
 
-func (f *Model) View() string {
+func (m *Model) View() string {
 	var b strings.Builder
 
-	b.WriteString(style.TitleStyle.Render(f.header))
+	b.WriteString(style.TitleStyle.Render(m.header))
 	b.WriteRune('\n')
 
 	b.WriteString("Категория: ")
-	b.WriteString(f.category.String())
+	b.WriteString(m.category.String())
 	b.WriteRune('\n')
 
-	for i := range f.elements {
-		switch e := f.elements[i].(type) {
+	for i := range m.elements {
+		switch e := m.elements[i].(type) {
 		case textinput.Model:
 			b.WriteString(e.Placeholder)
 			b.WriteRune('\n')
@@ -200,8 +248,8 @@ func (f *Model) View() string {
 
 	b.WriteRune('\n')
 
-	for i := range f.elements {
-		if e, ok := f.elements[i].(button.Button); ok {
+	for i := range m.elements {
+		if e, ok := m.elements[i].(button.Button); ok {
 			b.WriteString(e.String())
 			b.WriteRune('\n')
 		}
@@ -213,49 +261,34 @@ func (f *Model) View() string {
 	)
 
 	// выводим ошибки валидации
-	if f.err != nil && (errors.As(f.err, &errValidate) || errors.As(f.err, &errForm)) {
-		b.WriteString(style.ErrorBlockStyle.Render(f.err.Error()))
+	if m.err != nil && (errors.As(m.err, &errValidate) || errors.As(m.err, &errForm)) {
+		b.WriteString(style.ErrorBlockStyle.Render(m.err.Error()))
 		b.WriteRune('\n')
 	}
 
 	b.WriteRune('\n')
-	b.WriteString(f.help.View(common.Keys))
+	b.WriteString(m.help.View(common.Keys))
 
 	// выводим прочие ошибки
-	if f.err != nil && !(errors.As(f.err, &errValidate) || errors.As(f.err, &errForm)) {
+	if m.err != nil && !(errors.As(m.err, &errValidate) || errors.As(m.err, &errForm)) {
 		b.WriteRune('\n')
-		b.WriteString(style.ErrorBlockStyle.Render(f.err.Error()))
+		b.WriteString(style.ErrorBlockStyle.Render(m.err.Error()))
 	}
 
 	return b.String()
 }
 
-func (f *Model) updateInputs(msg tea.Msg) tea.Cmd {
-	cmds := make([]tea.Cmd, len(f.elements))
+func (m *Model) updateInputs(msg tea.Msg) tea.Cmd {
+	cmds := make([]tea.Cmd, len(m.elements))
 
-	for i := range f.elements {
-		switch m := f.elements[i].(type) {
+	for i := range m.elements {
+		switch e := m.elements[i].(type) {
 		case textinput.Model:
-			f.elements[i], cmds[i] = m.Update(msg)
+			m.elements[i], cmds[i] = e.Update(msg)
 		case textarea.Model:
-			f.elements[i], cmds[i] = m.Update(msg)
+			m.elements[i], cmds[i] = e.Update(msg)
 		}
 	}
 
 	return tea.Batch(cmds...)
-}
-
-func (f *Model) edit() error {
-	i := client.Item{
-		GUID:     f.guid,
-		Category: f.category,
-		Title:    element.GetValue(f.elements, posTitle),
-		Notes:    element.GetValue(f.elements, posNotes),
-	}
-
-	return f.usecaseSave.Do(context.TODO(), i)
-}
-
-func (f *Model) delete() error {
-	return f.usecaseDelete.Do(context.TODO(), f.guid)
 }
