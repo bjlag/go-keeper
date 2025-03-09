@@ -68,7 +68,7 @@ func (a *App) Run(ctx context.Context) error {
 	ucSync := sync.NewUsecase(rpcClient, storeItem)
 	ucCreateItem := create.NewUsecase(rpcClient, storeItem)
 	ucSaveItem := edit.NewUsecase(storeItem)
-	ucDeleteItem := delete.NewUsecase(storeItem)
+	ucDeleteItem := delete.NewUsecase(rpcClient, storeItem)
 
 	fetchItem := item.NewFetcher(storeItem)
 
