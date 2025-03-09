@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	pb "github.com/bjlag/go-keeper/internal/generated/rpc"
 	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
@@ -24,7 +25,7 @@ func New(usecase usecase) *Handler {
 	}
 }
 
-func (h *Handler) Handle(ctx context.Context, in *pb.CreateItemIn) (*pb.CreateItemOut, error) {
+func (h *Handler) Handle(ctx context.Context, in *pb.CreateItemIn) (*emptypb.Empty, error) {
 	log := logger.FromCtx(ctx)
 
 	userGUID := auth.UserGUIDFromCtx(ctx)
@@ -36,19 +37,21 @@ func (h *Handler) Handle(ctx context.Context, in *pb.CreateItemIn) (*pb.CreateIt
 		return nil, status.Error(codes.InvalidArgument, "encrypted data is empty")
 	}
 
-	itemGUID := uuid.New()
+	itemGUID, err := uuid.Parse(in.GetGuid())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid item guid")
+	}
 
-	err := h.usecase.Do(ctx, create.In{
+	err = h.usecase.Do(ctx, create.In{
 		ItemGUID:      itemGUID,
 		UserGUID:      userGUID,
 		EncryptedData: in.GetEncryptedData(),
+		CreatedAt:     in.GetCreatedAt().AsTime(),
 	})
 	if err != nil {
 		log.Error("Failed to update item", zap.Error(err))
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
-	return &pb.CreateItemOut{
-		Guid: itemGUID.String(),
-	}, nil
+	return &emptypb.Empty{}, nil
 }

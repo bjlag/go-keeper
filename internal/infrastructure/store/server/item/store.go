@@ -48,7 +48,7 @@ func (s *Store) Create(ctx context.Context, item model.Item) error {
 
 	query := `
 		INSERT INTO items(guid, user_guid, encrypted_data, created_at, updated_at)
-		VALUES(:quid, :user_guid, :encrypted_data, :created_at, :updated_at)
+		VALUES(:guid, :user_guid, :encrypted_data, :created_at, :updated_at)
 	`
 
 	arg := row{

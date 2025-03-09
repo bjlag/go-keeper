@@ -66,7 +66,7 @@ func (a *App) Run(ctx context.Context) error {
 	ucLogin := login.NewUsecase(rpcClient)
 	ucRegister := register.NewUsecase(rpcClient)
 	ucSync := sync.NewUsecase(rpcClient, storeItem)
-	ucCreateItem := create.NewUsecase(storeItem)
+	ucCreateItem := create.NewUsecase(rpcClient, storeItem)
 	ucSaveItem := edit.NewUsecase(storeItem)
 	ucDeleteItem := delete.NewUsecase(storeItem)
 

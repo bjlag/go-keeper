@@ -14,7 +14,7 @@ service Keeper {
   rpc RefreshTokens(RefreshTokensIn) returns (RefreshTokensOut);
 
   // data
-  rpc CreateItem(CreateItemIn) returns (CreateItemOut);
+  rpc CreateItem(CreateItemIn) returns (google.protobuf.Empty);
   rpc GetAllItems(GetAllItemsIn) returns (GetAllItemsOut);
   rpc UpdateItem(UpdateItemIn) returns (google.protobuf.Empty);
   rpc DeleteItem(DeleteItemIn) returns (google.protobuf.Empty);
@@ -52,7 +52,9 @@ message RefreshTokensOut {
 
 // data
 message CreateItemIn {
-  bytes encryptedData = 1;
+  string guid = 1;
+  bytes encryptedData = 2;
+  google.protobuf.Timestamp CreatedAt = 3;
 }
 
 message CreateItemOut {

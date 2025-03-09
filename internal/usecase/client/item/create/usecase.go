@@ -2,29 +2,60 @@ package create
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"time"
 
 	model "github.com/bjlag/go-keeper/internal/domain/client"
+	rpc "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
 )
 
 type Usecase struct {
-	store store
+	server server
+	store  store
 }
 
-func NewUsecase(store store) *Usecase {
+func NewUsecase(server server, store store) *Usecase {
 	return &Usecase{
-		store: store,
+		server: server,
+		store:  store,
 	}
 }
 
 func (u *Usecase) Do(ctx context.Context, item model.Item) error {
 	const op = "usecase.item.create.Do"
 
-	item.CreatedAt = time.Now()
-	item.UpdatedAt = time.Now()
+	var value *[]byte
+	if item.Value != nil {
+		v, err := json.Marshal(item.Value)
+		if err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
 
-	err := u.store.CreateItem(ctx, item)
+		value = &v
+	}
+
+	data := model.EncryptedData{
+		Title:    item.Title,
+		Category: item.Category,
+		Value:    value,
+		Notes:    item.Notes,
+	}
+
+	encrypted, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	err = u.server.CreateItem(ctx, &rpc.CreateItemIn{
+		GUID:          item.GUID,
+		EncryptedData: encrypted,
+		CreatedAt:     item.CreatedAt,
+	})
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	err = u.store.CreateItem(ctx, item)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}

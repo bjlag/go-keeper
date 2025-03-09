@@ -182,7 +182,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.state == stateCreate {
 				switch m.pos {
 				case posCreateSaveBtn:
-					m.err = m.saveAction()
+					m.err = m.createAction()
 					return m, nil
 				case posCreateBackBtn:
 					return m.backModel.Update(common.BackMessage{

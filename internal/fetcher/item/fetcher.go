@@ -9,7 +9,7 @@ import (
 	model "github.com/bjlag/go-keeper/internal/domain/client"
 )
 
-const prefixOp = "usecase.item"
+const prefixOp = "fetcher.item"
 
 var ErrUnknownCategory = errors.New("unknown category")
 

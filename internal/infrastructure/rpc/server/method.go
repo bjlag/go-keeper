@@ -76,13 +76,13 @@ func (s RPCServer) GetAllItems(ctx context.Context, in *pb.GetAllItemsIn) (*pb.G
 	return h(ctx, in)
 }
 
-func (s RPCServer) CreateItem(ctx context.Context, in *pb.CreateItemIn) (*pb.CreateItemOut, error) {
+func (s RPCServer) CreateItem(ctx context.Context, in *pb.CreateItemIn) (*emptypb.Empty, error) {
 	handler, err := s.getHandler(CreateItemMethod)
 	if err != nil {
 		return nil, err
 	}
 
-	h, ok := handler.(func(context.Context, *pb.CreateItemIn) (*pb.CreateItemOut, error))
+	h, ok := handler.(func(context.Context, *pb.CreateItemIn) (*emptypb.Empty, error))
 	if !ok {
 		return nil, status.Errorf(codes.Internal, "handler for %s method not found", CreateItemMethod)
 	}

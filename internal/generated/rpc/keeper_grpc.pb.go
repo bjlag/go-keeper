@@ -38,7 +38,7 @@ type KeeperClient interface {
 	Login(ctx context.Context, in *LoginIn, opts ...grpc.CallOption) (*LoginOut, error)
 	RefreshTokens(ctx context.Context, in *RefreshTokensIn, opts ...grpc.CallOption) (*RefreshTokensOut, error)
 	// data
-	CreateItem(ctx context.Context, in *CreateItemIn, opts ...grpc.CallOption) (*CreateItemOut, error)
+	CreateItem(ctx context.Context, in *CreateItemIn, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GetAllItems(ctx context.Context, in *GetAllItemsIn, opts ...grpc.CallOption) (*GetAllItemsOut, error)
 	UpdateItem(ctx context.Context, in *UpdateItemIn, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	DeleteItem(ctx context.Context, in *DeleteItemIn, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -82,9 +82,9 @@ func (c *keeperClient) RefreshTokens(ctx context.Context, in *RefreshTokensIn, o
 	return out, nil
 }
 
-func (c *keeperClient) CreateItem(ctx context.Context, in *CreateItemIn, opts ...grpc.CallOption) (*CreateItemOut, error) {
+func (c *keeperClient) CreateItem(ctx context.Context, in *CreateItemIn, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateItemOut)
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, Keeper_CreateItem_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -131,7 +131,7 @@ type KeeperServer interface {
 	Login(context.Context, *LoginIn) (*LoginOut, error)
 	RefreshTokens(context.Context, *RefreshTokensIn) (*RefreshTokensOut, error)
 	// data
-	CreateItem(context.Context, *CreateItemIn) (*CreateItemOut, error)
+	CreateItem(context.Context, *CreateItemIn) (*emptypb.Empty, error)
 	GetAllItems(context.Context, *GetAllItemsIn) (*GetAllItemsOut, error)
 	UpdateItem(context.Context, *UpdateItemIn) (*emptypb.Empty, error)
 	DeleteItem(context.Context, *DeleteItemIn) (*emptypb.Empty, error)
@@ -153,7 +153,7 @@ func (UnimplementedKeeperServer) Login(context.Context, *LoginIn) (*LoginOut, er
 func (UnimplementedKeeperServer) RefreshTokens(context.Context, *RefreshTokensIn) (*RefreshTokensOut, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RefreshTokens not implemented")
 }
-func (UnimplementedKeeperServer) CreateItem(context.Context, *CreateItemIn) (*CreateItemOut, error) {
+func (UnimplementedKeeperServer) CreateItem(context.Context, *CreateItemIn) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateItem not implemented")
 }
 func (UnimplementedKeeperServer) GetAllItems(context.Context, *GetAllItemsIn) (*GetAllItemsOut, error) {

@@ -38,3 +38,4 @@ config/client.yaml
 
 # client
 client.db
+__debug_bin*

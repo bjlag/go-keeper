@@ -49,6 +49,40 @@ type Item struct {
 	UpdatedAt time.Time
 }
 
+func NewItem(category Category, title string, value interface{}, note string) Item {
+	now := time.Now()
+	return Item{
+		GUID:      uuid.New(),
+		Category:  category,
+		Title:     title,
+		Value:     value,
+		Notes:     note,
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+}
+
+func NewPasswordItem(title, login, password, note string) Item {
+	return NewItem(
+		CategoryPassword,
+		title,
+		&Password{
+			Login:    login,
+			Password: password,
+		},
+		note,
+	)
+}
+
+func NewTextItem(title, note string) Item {
+	return NewItem(
+		CategoryText,
+		title,
+		nil,
+		note,
+	)
+}
+
 type Password struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
