@@ -17,6 +17,7 @@ import (
 	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/infrastructure/validator"
+	"github.com/bjlag/go-keeper/internal/usecase/client/master_key"
 	"github.com/bjlag/go-keeper/internal/usecase/client/register"
 )
 
@@ -38,10 +39,12 @@ type Model struct {
 	err      error
 
 	backModel tea.Model
-	usecase   *register.Usecase
+
+	usecaseRegister  *register.Usecase
+	usecaseMasterKey *master_key.Usecase
 }
 
-func InitModel(usecase *register.Usecase) *Model {
+func InitModel(usecaseRegister *register.Usecase, usecaseMasterKey *master_key.Usecase) *Model {
 	f := &Model{
 		help:   help.New(),
 		header: "Регистрация",
@@ -51,7 +54,9 @@ func InitModel(usecase *register.Usecase) *Model {
 			posSubmitBtn: button.CreateDefaultButton("Регистрация"),
 			posBackBtn:   button.CreateDefaultButton("Назад"),
 		},
-		usecase: usecase,
+
+		usecaseRegister:  usecaseRegister,
+		usecaseMasterKey: usecaseMasterKey,
 	}
 
 	for i := range f.elements {
@@ -226,7 +231,7 @@ func (f *Model) submit() (tea.Model, tea.Cmd) {
 		return f, nil
 	}
 
-	result, err := f.usecase.Do(context.TODO(), register.Data{
+	err := f.usecaseRegister.Do(context.TODO(), register.Data{
 		Email:    email.Value(),
 		Password: password.Value(),
 	})
@@ -244,10 +249,15 @@ func (f *Model) submit() (tea.Model, tea.Cmd) {
 		return f, nil
 	}
 
-	return f.main.Update(SuccessMessage{
-		AccessToken:  result.AccessToken,
-		RefreshToken: result.RefreshToken,
+	err = f.usecaseMasterKey.Do(context.TODO(), master_key.Data{
+		Password: password.Value(),
 	})
+	if err != nil {
+		f.err = err
+		return f, nil
+	}
+
+	return f.main.Update(SuccessMsg{})
 }
 
 func (f *Model) updateInputs(msg tea.Msg) tea.Cmd {

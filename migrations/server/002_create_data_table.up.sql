@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS items (
     guid           uuid PRIMARY KEY NOT NULL,
     user_guid      uuid NOT NULL REFERENCES users (guid) ON DELETE RESTRICT,
-    encrypted_data text NOT NULL,
+    encrypted_data bytea NOT NULL,
     created_at     timestamptz NOT NULL DEFAULT NOW(),
     updated_at     timestamptz NOT NULL DEFAULT NOW()
 );

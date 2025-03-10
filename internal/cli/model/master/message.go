@@ -1,3 +1,3 @@
 package master
 
-type Open struct{}
+type OpenMsg struct{}

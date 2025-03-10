@@ -19,6 +19,7 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/infrastructure/validator"
 	"github.com/bjlag/go-keeper/internal/usecase/client/login"
+	"github.com/bjlag/go-keeper/internal/usecase/client/master_key"
 )
 
 const (
@@ -39,10 +40,11 @@ type Model struct {
 	pos      int
 	err      error
 
-	usecase *login.Usecase
+	usecaseLogin     *login.Usecase
+	usecaseMasterKey *master_key.Usecase
 }
 
-func InitModel(usecase *login.Usecase) *Model {
+func InitModel(usecaseLogin *login.Usecase, usecaseMasterKey *master_key.Usecase) *Model {
 	f := &Model{
 		help:   help.New(),
 		header: "Авторизация",
@@ -54,7 +56,8 @@ func InitModel(usecase *login.Usecase) *Model {
 			posCloseBtn:    button.CreateDefaultButton("Закрыть"),
 		},
 
-		usecase: usecase,
+		usecaseLogin:     usecaseLogin,
+		usecaseMasterKey: usecaseMasterKey,
 	}
 
 	for i := range f.elements {
@@ -90,7 +93,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		return f, nil
-	case OpenMessage:
+	case OpenMsg:
 		for i := range f.elements {
 			switch e := f.elements[i].(type) {
 			case textinput.Model:
@@ -233,7 +236,7 @@ func (f *Model) submit() (tea.Model, tea.Cmd) {
 		return f, nil
 	}
 
-	result, err := f.usecase.Do(context.TODO(), login.Data{
+	err := f.usecaseLogin.Do(context.TODO(), login.Data{
 		Email:    email.Value(),
 		Password: password.Value(),
 	})
@@ -251,10 +254,15 @@ func (f *Model) submit() (tea.Model, tea.Cmd) {
 		return f, nil
 	}
 
-	return f.main.Update(SuccessMessage{
-		AccessToken:  result.AccessToken,
-		RefreshToken: result.RefreshToken,
+	err = f.usecaseMasterKey.Do(context.TODO(), master_key.Data{
+		Password: password.Value(),
 	})
+	if err != nil {
+		f.err = err
+		return f, nil
+	}
+
+	return f.main.Update(SuccessMsg{})
 }
 
 func (f *Model) updateInputs(msg tea.Msg) tea.Cmd {

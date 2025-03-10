@@ -6,18 +6,22 @@ import (
 	"fmt"
 
 	model "github.com/bjlag/go-keeper/internal/domain/client"
-	rpc "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
+	dto "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
 )
 
 type Usecase struct {
-	server server
-	store  store
+	rpc       rpc
+	itemStore itemStore
+	keyStore  keyStore
+	cipher    cipher
 }
 
-func NewUsecase(server server, store store) *Usecase {
+func NewUsecase(rpc rpc, itemStore itemStore, keyStore keyStore, cipher cipher) *Usecase {
 	return &Usecase{
-		server: server,
-		store:  store,
+		rpc:       rpc,
+		itemStore: itemStore,
+		keyStore:  keyStore,
+		cipher:    cipher,
 	}
 }
 
@@ -41,21 +45,26 @@ func (u *Usecase) Do(ctx context.Context, item model.Item) error {
 		Notes:    item.Notes,
 	}
 
-	encrypted, err := json.Marshal(data)
+	plainText, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	err = u.server.CreateItem(ctx, &rpc.CreateItemIn{
+	encryptedData, err := u.cipher.Encrypt(plainText, u.keyStore.MasterKey())
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	err = u.rpc.CreateItem(ctx, &dto.CreateItemIn{
 		GUID:          item.GUID,
-		EncryptedData: encrypted,
+		EncryptedData: encryptedData,
 		CreatedAt:     item.CreatedAt,
 	})
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	err = u.store.CreateItem(ctx, item)
+	err = u.itemStore.CreateItem(ctx, item)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}

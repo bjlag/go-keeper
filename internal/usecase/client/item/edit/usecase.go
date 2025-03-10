@@ -2,28 +2,65 @@ package edit
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"time"
 
 	model "github.com/bjlag/go-keeper/internal/domain/client"
+	dto "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
 )
 
 type Usecase struct {
-	store store
+	rpc       rpc
+	itemStore itemStore
+	keyStore  keyStore
+	cipher    cipher
 }
 
-func NewUsecase(store store) *Usecase {
+func NewUsecase(rpc rpc, itemStore itemStore, keyStore keyStore, cipher cipher) *Usecase {
 	return &Usecase{
-		store: store,
+		rpc:       rpc,
+		itemStore: itemStore,
+		keyStore:  keyStore,
+		cipher:    cipher,
 	}
 }
 
 func (u *Usecase) Do(ctx context.Context, item model.Item) error {
 	const op = "usecase.item.edit.Do"
 
-	item.UpdatedAt = time.Now()
+	var value *[]byte
+	if item.Value != nil {
+		v, err := json.Marshal(item.Value)
+		if err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
 
-	err := u.store.SaveItem(ctx, item)
+		value = &v
+	}
+
+	data := model.EncryptedData{
+		Title:    item.Title,
+		Category: item.Category,
+		Value:    value,
+		Notes:    item.Notes,
+	}
+
+	plainText, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	encryptedData, err := u.cipher.Encrypt(plainText, u.keyStore.MasterKey())
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	err = u.rpc.UpdateItem(ctx, &dto.UpdateItemIn{
+		GUID:          item.GUID,
+		EncryptedData: encryptedData,
+	})
+
+	err = u.itemStore.SaveItem(ctx, item)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}

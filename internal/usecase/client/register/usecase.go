@@ -9,15 +9,17 @@ import (
 
 type Usecase struct {
 	client client
+	tokens tokens
 }
 
-func NewUsecase(client client) *Usecase {
+func NewUsecase(client client, tokens tokens) *Usecase {
 	return &Usecase{
 		client: client,
+		tokens: tokens,
 	}
 }
 
-func (u *Usecase) Do(ctx context.Context, data Data) (*Result, error) {
+func (u *Usecase) Do(ctx context.Context, data Data) error {
 	const op = "usecase.register.Do"
 
 	out, err := u.client.Register(ctx, rpc.RegisterIn{
@@ -25,11 +27,10 @@ func (u *Usecase) Do(ctx context.Context, data Data) (*Result, error) {
 		Password: data.Password,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	return &Result{
-		AccessToken:  out.AccessToken,
-		RefreshToken: out.RefreshToken,
-	}, nil
+	u.tokens.SaveTokens(out.AccessToken, out.RefreshToken)
+
+	return nil
 }

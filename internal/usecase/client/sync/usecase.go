@@ -16,14 +16,18 @@ const (
 )
 
 type Usecase struct {
-	client client
-	store  store
+	client    client
+	itemStore itemStore
+	keyStore  keyStore
+	cipher    cipher
 }
 
-func NewUsecase(client client, store store) *Usecase {
+func NewUsecase(client client, itemStore itemStore, keyStore keyStore, cipher cipher) *Usecase {
 	return &Usecase{
-		client: client,
-		store:  store,
+		client:    client,
+		itemStore: itemStore,
+		keyStore:  keyStore,
+		cipher:    cipher,
 	}
 }
 
@@ -31,6 +35,8 @@ func (u *Usecase) Do(ctx context.Context) error {
 	const op = prefixOp + "Do"
 
 	var offset uint32
+
+	key := u.keyStore.MasterKey()
 
 	for {
 		in := &rpc.GetAllItemsIn{
@@ -47,11 +53,13 @@ func (u *Usecase) Do(ctx context.Context) error {
 
 		items := make([]model.RawItem, 0, len(out.Items))
 		for _, item := range out.Items {
-			// todo расшифровка
-			// todo общие данные в отдельных полях
+			decrypted, err := u.cipher.Decrypt(item.EncryptedData, key)
+			if err != nil {
+				return fmt.Errorf("%s: %w", op, err)
+			}
 
 			var data model.EncryptedData
-			err = json.Unmarshal(item.EncryptedData, &data)
+			err = json.Unmarshal(decrypted, &data)
 			if err != nil {
 				return fmt.Errorf("%s: %w", op, err)
 			}
@@ -67,7 +75,7 @@ func (u *Usecase) Do(ctx context.Context) error {
 			})
 		}
 
-		err = u.store.SaveItems(ctx, items)
+		err = u.itemStore.SaveItems(ctx, items)
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
 		}

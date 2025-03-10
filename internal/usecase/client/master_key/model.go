@@ -1,6 +1,5 @@
-package login
+package master_key
 
 type Data struct {
-	Email    string
 	Password string
 }

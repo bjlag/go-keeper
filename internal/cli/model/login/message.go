@@ -1,8 +1,5 @@
 package login
 
-type OpenMessage struct{}
+type OpenMsg struct{}
 
-type SuccessMessage struct {
-	AccessToken  string
-	RefreshToken string
-}
+type SuccessMsg struct{}

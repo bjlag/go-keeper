@@ -11,6 +11,14 @@ type client interface {
 	GetAllItems(ctx context.Context, in *rpc.GetAllItemsIn) (*rpc.GetAllItemsOut, error)
 }
 
-type store interface {
+type itemStore interface {
 	SaveItems(ctx context.Context, items []model.RawItem) error
+}
+
+type keyStore interface {
+	MasterKey() []byte
+}
+
+type cipher interface {
+	Decrypt(data, key []byte) ([]byte, error)
 }

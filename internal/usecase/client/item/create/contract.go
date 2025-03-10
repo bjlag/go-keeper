@@ -4,13 +4,21 @@ import (
 	"context"
 
 	model "github.com/bjlag/go-keeper/internal/domain/client"
-	rpc "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
+	dto "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
 )
 
-type server interface {
-	CreateItem(ctx context.Context, in *rpc.CreateItemIn) error
+type rpc interface {
+	CreateItem(ctx context.Context, in *dto.CreateItemIn) error
 }
 
-type store interface {
+type itemStore interface {
 	CreateItem(ctx context.Context, item model.Item) error
+}
+
+type keyStore interface {
+	MasterKey() []byte
+}
+
+type cipher interface {
+	Encrypt(data, key []byte) ([]byte, error)
 }

@@ -5,11 +5,11 @@ import (
 
 	"github.com/google/uuid"
 
-	rpc "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
+	dto "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
 )
 
-type server interface {
-	DeleteItem(ctx context.Context, in *rpc.DeleteItemIn) error
+type rpc interface {
+	DeleteItem(ctx context.Context, in *dto.DeleteItemIn) error
 }
 
 type store interface {

@@ -18,7 +18,6 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/model/register"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/domain/client"
-	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/token"
 )
 
 var errUnsupportedCategory = errors.New("unsupported category")
@@ -42,8 +41,6 @@ type Model struct {
 	formList     *listf.Model
 	formPassword *password.Model
 	formText     *text.Model
-
-	storeTokens *token.Store
 }
 
 func InitModel(opts ...Option) *Model {
@@ -67,7 +64,7 @@ func InitModel(opts ...Option) *Model {
 func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
 		func() tea.Msg {
-			return login.OpenMessage{}
+			return login.OpenMsg{}
 		},
 	)
 }
@@ -118,13 +115,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 
-	case Open:
+	case OpenMsg:
 		return m, nil
 	case common.BackMessage:
-		return m.Update(Open{})
+		return m.Update(OpenMsg{})
 
 	// Forms
-	case login.OpenMessage:
+	case login.OpenMsg:
 		return m.formLogin.Update(msg)
 	case register.OpenMessage:
 		return m.formRegister.Update(msg)
@@ -151,13 +148,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	// Success
-	case login.SuccessMessage:
-		m.storeTokens.SaveTokens(msg.AccessToken, msg.RefreshToken)
-	case register.SuccessMessage:
-		m.storeTokens.SaveTokens(msg.AccessToken, msg.RefreshToken)
+	case login.SuccessMsg:
+		return m.Update(OpenMsg{})
+	case register.SuccessMsg:
+		return m.Update(OpenMsg{})
 	}
 
-	return m.Update(Open{})
+	return m.Update(OpenMsg{})
 }
 
 func (m *Model) View() string {

@@ -2,7 +2,7 @@ package register
 
 import tea "github.com/charmbracelet/bubbletea"
 
-type SuccessMessage struct {
+type SuccessMsg struct {
 	AccessToken  string
 	RefreshToken string
 }

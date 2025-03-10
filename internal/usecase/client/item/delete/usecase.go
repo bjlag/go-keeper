@@ -6,25 +6,25 @@ import (
 
 	"github.com/google/uuid"
 
-	rpc "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
+	dto "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
 )
 
 type Usecase struct {
-	server server
-	store  store
+	rpc   rpc
+	store store
 }
 
-func NewUsecase(server server, store store) *Usecase {
+func NewUsecase(rpc rpc, store store) *Usecase {
 	return &Usecase{
-		server: server,
-		store:  store,
+		rpc:   rpc,
+		store: store,
 	}
 }
 
 func (u *Usecase) Do(ctx context.Context, guid uuid.UUID) error {
 	const op = "usecase.item.delete.Do"
 
-	err := u.server.DeleteItem(ctx, &rpc.DeleteItemIn{
+	err := u.rpc.DeleteItem(ctx, &dto.DeleteItemIn{
 		GUID: guid,
 	})
 	if err != nil {
