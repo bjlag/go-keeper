@@ -3,6 +3,7 @@ package master
 import (
 	"github.com/bjlag/go-keeper/internal/cli/model/item/bank_card"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/create"
+	"github.com/bjlag/go-keeper/internal/cli/model/item/file"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/password"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/text"
 	"github.com/bjlag/go-keeper/internal/cli/model/list"
@@ -58,5 +59,12 @@ func WithBankCardItemForm(form *bank_card.Model) Option {
 	return func(m *Model) {
 		form.SetMainModel(m)
 		m.formBankCard = form
+	}
+}
+
+func WithFileItemForm(form *file.Model) Option {
+	return func(m *Model) {
+		form.SetMainModel(m)
+		m.formFile = form
 	}
 }

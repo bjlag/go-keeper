@@ -2,6 +2,7 @@ package master
 
 import (
 	"errors"
+	"github.com/bjlag/go-keeper/internal/cli/model/item/file"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -43,6 +44,7 @@ type Model struct {
 	formPassword *password.Model
 	formText     *text.Model
 	formBankCard *bank_card.Model
+	formFile     *file.Model
 }
 
 func InitModel(opts ...Option) *Model {
@@ -144,6 +146,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			})
 		case client.CategoryBankCard:
 			return m.formBankCard.Update(bank_card.OpenMsg{
+				BackModel: msg.BackModel,
+				BackState: msg.BackState,
+				Item:      msg.Item,
+			})
+		case client.CategoryFile:
+			return m.formFile.Update(file.OpenMsg{
 				BackModel: msg.BackModel,
 				BackState: msg.BackState,
 				Item:      msg.Item,

@@ -89,7 +89,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		f.categories.SetItems(nil)
 		f.categories.InsertItem(len(f.categories.Items()), elist.Category{Category: client.CategoryPassword, Title: client.CategoryPassword.String()})
 		f.categories.InsertItem(len(f.categories.Items()), elist.Category{Category: client.CategoryText, Title: client.CategoryText.String()})
-		f.categories.InsertItem(len(f.categories.Items()), elist.Category{Category: client.CategoryBlob, Title: client.CategoryBlob.String()})
+		f.categories.InsertItem(len(f.categories.Items()), elist.Category{Category: client.CategoryFile, Title: client.CategoryFile.String()})
 		f.categories.InsertItem(len(f.categories.Items()), elist.Category{Category: client.CategoryBankCard, Title: client.CategoryBankCard.String()})
 
 		return f, nil

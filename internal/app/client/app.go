@@ -9,6 +9,7 @@ import (
 
 	"github.com/bjlag/go-keeper/internal/cli/model/item/bank_card"
 	formCreate "github.com/bjlag/go-keeper/internal/cli/model/item/create"
+	"github.com/bjlag/go-keeper/internal/cli/model/item/file"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/password"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/text"
 	"github.com/bjlag/go-keeper/internal/cli/model/list"
@@ -97,6 +98,7 @@ func (a *App) Run(ctx context.Context) error {
 		master.WithPasswordItemForm(password.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem)),
 		master.WithTextItemForm(text.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem)),
 		master.WithBankCardItemForm(bank_card.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem)),
+		master.WithFileItemForm(file.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem)),
 	)
 
 	f, err := tea.LogToFile("debug.log", "debug")

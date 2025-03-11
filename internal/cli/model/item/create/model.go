@@ -34,7 +34,7 @@ func InitModel() *Model {
 		categories: elist.CreateDefaultList("Выберите категорию:", defaultWidth, listHeight, elist.CategoryDelegate{},
 			elist.Category{Category: client.CategoryPassword, Title: client.CategoryPassword.String()},
 			elist.Category{Category: client.CategoryText, Title: client.CategoryText.String()},
-			elist.Category{Category: client.CategoryBlob, Title: client.CategoryBlob.String()},
+			elist.Category{Category: client.CategoryFile, Title: client.CategoryFile.String()},
 			elist.Category{Category: client.CategoryBankCard, Title: client.CategoryBankCard.String()},
 		),
 	}

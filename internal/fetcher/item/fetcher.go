@@ -40,8 +40,8 @@ func (u *Fetcher) ItemsByCategory(ctx context.Context, category model.Category) 
 				v = &model.Password{}
 			case model.CategoryText:
 				break
-			case model.CategoryBlob:
-				v = &model.Blob{}
+			case model.CategoryFile:
+				v = &model.File{}
 			case model.CategoryBankCard:
 				v = &model.BankCard{}
 			default:

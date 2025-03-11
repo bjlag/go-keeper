@@ -11,7 +11,7 @@ type Category int
 const (
 	CategoryPassword Category = iota
 	CategoryText
-	CategoryBlob
+	CategoryFile
 	CategoryBankCard
 )
 
@@ -21,7 +21,7 @@ func (c Category) String() string {
 		return "Пароль"
 	case CategoryText:
 		return "Текст"
-	case CategoryBlob:
+	case CategoryFile:
 		return "Файл"
 	case CategoryBankCard:
 		return "Банковская карта"
@@ -96,13 +96,26 @@ func NewBankCardItem(title, number, cvv, expiry, note string) Item {
 	)
 }
 
+func NewFileItem(title, name string, data []byte, note string) Item {
+	return NewItem(
+		CategoryFile,
+		title,
+		&File{
+			Name: name,
+			Data: data,
+		},
+		note,
+	)
+}
+
 type Password struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
 }
 
-type Blob struct {
-	Data string `json:"data"`
+type File struct {
+	Name string `json:"path"`
+	Data []byte `json:"data"`
 }
 
 type BankCard struct {
