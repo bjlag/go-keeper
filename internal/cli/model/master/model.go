@@ -10,6 +10,7 @@ import (
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element/button"
+	"github.com/bjlag/go-keeper/internal/cli/model/item/bank_card"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/create"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/password"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/text"
@@ -41,6 +42,7 @@ type Model struct {
 	formList     *listf.Model
 	formPassword *password.Model
 	formText     *text.Model
+	formBankCard *bank_card.Model
 }
 
 func InitModel(opts ...Option) *Model {
@@ -78,7 +80,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, common.Keys.Enter):
 			switch m.pos {
 			case posViewBtn:
-				return m.formList.Update(listf.GetAllDataMessage{})
+				return m.formList.Update(listf.GetDataMsg{})
 			case posCreateBtn:
 				return m.formCreate.Update(create.Open{})
 			case posCloseBtn:
@@ -114,7 +116,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case OpenMsg:
 		return m, nil
-	case common.BackMessage:
+	case common.BackMsg:
 		return m.Update(OpenMsg{})
 
 	// Forms
@@ -122,9 +124,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.formLogin.Update(msg)
 	case register.OpenMessage:
 		return m.formRegister.Update(msg)
-	case listf.OpenCategoryListMessage:
+	case listf.OpenCategoriesMsg:
 		return m.formList.Update(msg)
-	case listf.OpenItemListMessage:
+	case listf.OpenItemsMsg:
 		return m.formList.Update(msg)
 	case common.OpenItemMessage:
 		switch msg.Category {
@@ -136,6 +138,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			})
 		case client.CategoryText:
 			return m.formText.Update(text.OpenMsg{
+				BackModel: msg.BackModel,
+				BackState: msg.BackState,
+				Item:      msg.Item,
+			})
+		case client.CategoryBankCard:
+			return m.formBankCard.Update(bank_card.OpenMsg{
 				BackModel: msg.BackModel,
 				BackState: msg.BackState,
 				Item:      msg.Item,

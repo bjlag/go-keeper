@@ -66,7 +66,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			return f, nil
 		case key.Matches(msg, common.Keys.Back):
-			return f.main.Update(common.BackMessage{})
+			return f.main.Update(common.BackMsg{})
 		}
 	}
 

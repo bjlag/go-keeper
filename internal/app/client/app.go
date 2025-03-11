@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"go.uber.org/zap"
 
+	"github.com/bjlag/go-keeper/internal/cli/model/item/bank_card"
 	formCreate "github.com/bjlag/go-keeper/internal/cli/model/item/create"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/password"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/text"
@@ -95,6 +96,7 @@ func (a *App) Run(ctx context.Context) error {
 		master.WithListForm(list.InitModel(ucSync, fetchItem)),
 		master.WithPasswordItemForm(password.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem)),
 		master.WithTextItemForm(text.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem)),
+		master.WithBankCardItemForm(bank_card.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem)),
 	)
 
 	f, err := tea.LogToFile("debug.log", "debug")

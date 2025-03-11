@@ -76,7 +76,7 @@ type Model struct {
 func InitModel(usecaseCreate *create.Usecase, usecaseSave *edit.Usecase, usecaseDelete *remove.Usecase) *Model {
 	return &Model{
 		help:   help.New(),
-		header: "Регистрация",
+		header: "Пароль",
 		state:  stateCreate,
 
 		usecaseCreate: usecaseCreate,
@@ -201,7 +201,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.err = m.createAction()
 					return m, nil
 				case posCreateBackBtn:
-					return m.backModel.Update(common.BackMessage{
+					return m.backModel.Update(common.BackMsg{
 						State: m.backState,
 					})
 				default:
@@ -219,7 +219,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.err = m.deleteAction()
 				return m, nil
 			case posEditBackBtn:
-				return m.backModel.Update(common.BackMessage{
+				return m.backModel.Update(common.BackMsg{
 					State: m.backState,
 				})
 			default:
@@ -228,7 +228,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			return m, nil
 		case key.Matches(msg, common.Keys.Back):
-			return m.backModel.Update(common.BackMessage{
+			return m.backModel.Update(common.BackMsg{
 				State: m.backState,
 			})
 		}

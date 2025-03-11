@@ -138,7 +138,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			return f, nil
 		case key.Matches(msg, common.Keys.Back):
-			return f.backModel.Update(common.BackMessage{})
+			return f.backModel.Update(common.BackMsg{})
 		case key.Matches(msg, common.Keys.Enter):
 			f.err = nil
 
@@ -146,7 +146,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case f.pos == posSubmitBtn || f.pos == posEmail || f.pos == posPassword:
 				return f.submit()
 			case f.pos == posBackBtn:
-				return f.main.Update(common.BackMessage{})
+				return f.main.Update(common.BackMsg{})
 			}
 
 			return f, nil

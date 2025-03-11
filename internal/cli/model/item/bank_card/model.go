@@ -1,4 +1,4 @@
-package text
+package bank_card
 
 import (
 	"errors"
@@ -24,6 +24,9 @@ import (
 
 const (
 	posEditTitle int = iota
+	posEditNumber
+	posEditExpiry
+	posEditCVV
 	posEditNotes
 	posEditEditBtn
 	posEditDeleteBtn
@@ -32,6 +35,9 @@ const (
 
 const (
 	posCreateTitle int = iota
+	posCreateNumber
+	posCreateExpiry
+	posCreateCVV
 	posCreateNotes
 	posCreateSaveBtn
 	posCreateBackBtn
@@ -44,7 +50,10 @@ const (
 	stateEdit
 )
 
-var errUnsupportedCommand = errors.New("unsupported command")
+var (
+	errUnsupportedCommand   = errors.New("unsupported command")
+	errInvalidValuePassword = errors.New("invalid value password")
+)
 
 type Model struct {
 	main     tea.Model
@@ -69,7 +78,7 @@ type Model struct {
 func InitModel(usecaseCreate *create.Usecase, usecaseSave *edit.Usecase, usecaseDelete *remove.Usecase) *Model {
 	return &Model{
 		help:   help.New(),
-		header: "Текст",
+		header: "Банковская карта",
 		state:  stateCreate,
 
 		usecaseCreate: usecaseCreate,
@@ -105,9 +114,18 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.guid = msg.Item.GUID
 			m.category = msg.Item.Category
 
+			value, ok := msg.Item.Value.(*client.BankCard)
+			if !ok {
+				m.err = errInvalidValuePassword
+				return m, nil
+			}
+
 			m.elements = []interface{}{
 				posEditTitle:     tinput.CreateDefaultTextInput("Название", tinput.WithValue(msg.Item.Title), tinput.WithFocused()),
-				posEditNotes:     tarea.CreateDefaultTextArea("Текст", tarea.WithValue(msg.Item.Notes)),
+				posEditNumber:    tinput.CreateDefaultTextInput("Номер", tinput.WithValue(value.Number)),
+				posEditExpiry:    tinput.CreateDefaultTextInput("Истекает", tinput.WithValue(value.Expiry)),
+				posEditCVV:       tinput.CreateDefaultTextInput("CVV", tinput.WithValue(value.CVV)),
+				posEditNotes:     tarea.CreateDefaultTextArea("Заметки", tarea.WithValue(msg.Item.Notes)),
 				posEditEditBtn:   button.CreateDefaultButton("Изменить"),
 				posEditDeleteBtn: button.CreateDefaultButton("Удалить"),
 				posEditBackBtn:   button.CreateDefaultButton("Назад"),
@@ -117,10 +135,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		m.state = stateCreate
-		m.header = "Новый текст"
+		m.header = "Новая банковская карта"
 		m.elements = []interface{}{
 			posCreateTitle:   tinput.CreateDefaultTextInput("Название", tinput.WithFocused()),
-			posCreateNotes:   tarea.CreateDefaultTextArea("Текст"),
+			posCreateNumber:  tinput.CreateDefaultTextInput("Номер"),
+			posCreateExpiry:  tinput.CreateDefaultTextInput("Истекает"),
+			posCreateCVV:     tinput.CreateDefaultTextInput("CVV"),
+			posCreateNotes:   tarea.CreateDefaultTextArea("Заметки"),
 			posCreateSaveBtn: button.CreateDefaultButton("Сохранить"),
 			posCreateBackBtn: button.CreateDefaultButton("Назад"),
 		}
@@ -190,6 +211,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				default:
 					m.err = errUnsupportedCommand
 				}
+
+				return m, nil
 			}
 
 			switch m.pos {

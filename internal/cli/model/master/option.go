@@ -1,6 +1,7 @@
 package master
 
 import (
+	"github.com/bjlag/go-keeper/internal/cli/model/item/bank_card"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/create"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/password"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/text"
@@ -50,5 +51,12 @@ func WithTextItemForm(form *text.Model) Option {
 	return func(m *Model) {
 		form.SetMainModel(m)
 		m.formText = form
+	}
+}
+
+func WithBankCardItemForm(form *bank_card.Model) Option {
+	return func(m *Model) {
+		form.SetMainModel(m)
+		m.formBankCard = form
 	}
 }

@@ -4,10 +4,10 @@ import (
 	"github.com/bjlag/go-keeper/internal/domain/client"
 )
 
-type GetAllDataMessage struct{}
+type GetDataMsg struct{}
 
-type OpenCategoryListMessage struct{}
+type OpenCategoriesMsg struct{}
 
-type OpenItemListMessage struct {
+type OpenItemsMsg struct {
 	Category client.Category
 }

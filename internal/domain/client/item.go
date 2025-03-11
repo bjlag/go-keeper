@@ -83,6 +83,19 @@ func NewTextItem(title, note string) Item {
 	)
 }
 
+func NewBankCardItem(title, number, cvv, expiry, note string) Item {
+	return NewItem(
+		CategoryBankCard,
+		title,
+		&BankCard{
+			Number: number,
+			CVV:    cvv,
+			Expiry: expiry,
+		},
+		note,
+	)
+}
+
 type Password struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
@@ -93,7 +106,7 @@ type Blob struct {
 }
 
 type BankCard struct {
-	Number string    `json:"number"`
-	CVV    string    `json:"cvv"`
-	Expiry time.Time `json:"exp"`
+	Number string `json:"number"`
+	CVV    string `json:"cvv"`
+	Expiry string `json:"exp"`
 }

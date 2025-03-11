@@ -70,20 +70,20 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		f.categories.SetWidth(msg.Width)
 		f.items.SetWidth(msg.Width)
 		return f, nil
-	case common.BackMessage:
+	case common.BackMsg:
 		switch msg.State {
 		case stateCategoryList:
-			return f.Update(OpenCategoryListMessage{})
+			return f.Update(OpenCategoriesMsg{})
 		case stateItemList:
-			return f.Update(OpenItemListMessage{})
+			return f.Update(OpenItemsMsg{})
 		}
 
-	case GetAllDataMessage:
+	case GetDataMsg:
 		f.state = stateCategoryList
 		f.err = f.usecaseSync.Do(context.TODO())
 
-		return f.Update(OpenCategoryListMessage{})
-	case OpenCategoryListMessage:
+		return f.Update(OpenCategoriesMsg{})
+	case OpenCategoriesMsg:
 		f.state = stateCategoryList
 
 		f.categories.SetItems(nil)
@@ -93,7 +93,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		f.categories.InsertItem(len(f.categories.Items()), elist.Category{Category: client.CategoryBankCard, Title: client.CategoryBankCard.String()})
 
 		return f, nil
-	case OpenItemListMessage:
+	case OpenItemsMsg:
 		f.state = stateItemList
 
 		if c, ok := f.categories.SelectedItem().(elist.Category); ok {
@@ -127,7 +127,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case stateCategoryList:
 				if c, ok := f.categories.SelectedItem().(elist.Category); ok {
 					f.selectedCategory = c.Category
-					return f.Update(OpenItemListMessage{
+					return f.Update(OpenItemsMsg{
 						Category: c.Category,
 					})
 				}
@@ -148,9 +148,9 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, common.Keys.Back):
 			switch f.state {
 			case stateCategoryList:
-				return f.main.Update(common.BackMessage{})
+				return f.main.Update(common.BackMsg{})
 			case stateItemList:
-				return f.Update(OpenCategoryListMessage{})
+				return f.Update(OpenCategoriesMsg{})
 			}
 		}
 	}
