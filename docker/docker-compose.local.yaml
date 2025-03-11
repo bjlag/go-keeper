@@ -1,0 +1,16 @@
+version: "3.8"
+services:
+    pg:
+        image: postgres:16.4-alpine3.20
+        container_name: go-keeper-server-db
+        restart: always
+        environment:
+            - POSTGRES_DB=master
+            - POSTGRES_PASSWORD=secret
+        ports:
+            - "5444:5432"
+        volumes:
+            - pg:/var/lib/postgresql/data
+
+volumes:
+    pg:
