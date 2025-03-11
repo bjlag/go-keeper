@@ -95,8 +95,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return f, nil
 	case OpenMsg:
 		for i := range f.elements {
-			switch e := f.elements[i].(type) {
-			case textinput.Model:
+			if e, ok := f.elements[i].(textinput.Model); ok {
 				e.SetValue("")
 				f.elements[i] = e
 			}

@@ -21,6 +21,10 @@ linters:
         - gocognit
         - cyclop
         - exhaustive
+        - funlen
+        - nilnil
+        - mnd
+        - godox
 
 linters-settings:
     revive:
@@ -47,3 +51,4 @@ linters-settings:
             - empty
             - stdlib
             - github\.com\/charmbracelet\/bubbletea\.Model
+            - github\.com\/golang-migrate\/migrate\/v4\/database\.Driver

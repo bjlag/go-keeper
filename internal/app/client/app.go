@@ -23,8 +23,8 @@ import (
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/option"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/token"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/create"
-	"github.com/bjlag/go-keeper/internal/usecase/client/item/delete"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/edit"
+	"github.com/bjlag/go-keeper/internal/usecase/client/item/remove"
 	"github.com/bjlag/go-keeper/internal/usecase/client/login"
 	mkey "github.com/bjlag/go-keeper/internal/usecase/client/master_key"
 	"github.com/bjlag/go-keeper/internal/usecase/client/register"
@@ -63,8 +63,8 @@ func (a *App) Run(ctx context.Context) error {
 		_ = rpcClient.Close()
 	}()
 
-	// todo базу создавать и подключаться после успешного логин
-	// todo название файла базы должно быть уникальным под каждую учетку под которой авторизовались
+	// TODO базу создавать и подключаться после успешного логин
+	// TODO название файла базы должно быть уникальным под каждую учетку под которой авторизовались
 	db, err := sqlite.New("./client.db").Connect()
 	if err != nil {
 		a.log.Error("failed to open db", zap.Error(err))
@@ -84,7 +84,7 @@ func (a *App) Run(ctx context.Context) error {
 	ucSync := sync.NewUsecase(rpcClient, storeItem, storeTokens, cipher)
 	ucCreateItem := create.NewUsecase(rpcClient, storeItem, storeTokens, cipher)
 	ucSaveItem := edit.NewUsecase(rpcClient, storeItem, storeTokens, cipher)
-	ucDeleteItem := delete.NewUsecase(rpcClient, storeItem)
+	ucRemoveItem := remove.NewUsecase(rpcClient, storeItem)
 
 	fetchItem := item.NewFetcher(storeItem)
 
@@ -93,8 +93,8 @@ func (a *App) Run(ctx context.Context) error {
 		master.WithRegisterForm(formRegister.InitModel(ucRegister, ucMasterKey)),
 		master.WithCreatForm(formCreate.InitModel()),
 		master.WithListForm(list.InitModel(ucSync, fetchItem)),
-		master.WithPasswordItemForm(password.InitModel(ucCreateItem, ucSaveItem, ucDeleteItem)),
-		master.WithTextItemForm(text.InitModel(ucCreateItem, ucSaveItem, ucDeleteItem)),
+		master.WithPasswordItemForm(password.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem)),
+		master.WithTextItemForm(text.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem)),
 	)
 
 	f, err := tea.LogToFile("debug.log", "debug")

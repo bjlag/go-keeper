@@ -13,7 +13,7 @@ import (
 	pb "github.com/bjlag/go-keeper/internal/generated/rpc"
 	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
 	"github.com/bjlag/go-keeper/internal/infrastructure/logger"
-	"github.com/bjlag/go-keeper/internal/usecase/server/item/delete"
+	"github.com/bjlag/go-keeper/internal/usecase/server/item/remove"
 )
 
 type Handler struct {
@@ -39,12 +39,12 @@ func (h *Handler) Handle(ctx context.Context, in *pb.DeleteItemIn) (*emptypb.Emp
 		return nil, status.Error(codes.InvalidArgument, "invalid item guid")
 	}
 
-	err = h.usecase.Do(ctx, delete.In{
+	err = h.usecase.Do(ctx, remove.In{
 		UserGUID: userGUID,
 		ItemGUID: itemGUID,
 	})
 	if err != nil {
-		if errors.Is(err, delete.ErrNotFoundUpdatedData) {
+		if errors.Is(err, remove.ErrNotFoundUpdatedData) {
 			return nil, status.Error(codes.NotFound, "item not found")
 		}
 

@@ -98,8 +98,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			for i := range m.elements {
-				switch e := m.elements[i].(type) {
-				case button.Button:
+				if e, ok := m.elements[i].(button.Button); ok {
 					if i == m.pos {
 						e.Focus()
 						m.elements[i] = e
@@ -111,8 +110,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			return m, nil
-		case key.Matches(msg, common.Keys.Quit):
-			return m, tea.Quit
 		}
 
 	case OpenMsg:

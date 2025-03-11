@@ -1,4 +1,4 @@
-package delete
+package remove
 
 import (
 	"context"
@@ -21,7 +21,7 @@ func NewUsecase(store store) *Usecase {
 }
 
 func (u Usecase) Do(ctx context.Context, in In) error {
-	const op = "usecase.item.delete.Do"
+	const op = "usecase.item.remove.Do"
 
 	err := u.store.Delete(ctx, in.ItemGUID, in.UserGUID)
 	if err != nil {

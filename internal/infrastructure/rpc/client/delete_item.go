@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/bjlag/go-keeper/internal/generated/rpc"
 	"github.com/google/uuid"
+
+	"github.com/bjlag/go-keeper/internal/generated/rpc"
 )
 
 type DeleteItemIn struct {

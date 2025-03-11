@@ -1,4 +1,4 @@
-package delete
+package remove
 
 import (
 	"context"
@@ -22,7 +22,7 @@ func NewUsecase(rpc rpc, store store) *Usecase {
 }
 
 func (u *Usecase) Do(ctx context.Context, guid uuid.UUID) error {
-	const op = "usecase.item.delete.Do"
+	const op = "usecase.item.remove.Do"
 
 	err := u.rpc.DeleteItem(ctx, &dto.DeleteItemIn{
 		GUID: guid,

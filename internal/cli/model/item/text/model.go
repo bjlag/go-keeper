@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/google/uuid"
@@ -17,9 +18,8 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/domain/client"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/create"
-	"github.com/bjlag/go-keeper/internal/usecase/client/item/delete"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/edit"
-	"github.com/charmbracelet/bubbles/textarea"
+	"github.com/bjlag/go-keeper/internal/usecase/client/item/remove"
 )
 
 const (
@@ -63,10 +63,10 @@ type Model struct {
 
 	usecaseCreate *create.Usecase
 	usecaseEdit   *edit.Usecase
-	usecaseDelete *delete.Usecase
+	usecaseDelete *remove.Usecase
 }
 
-func InitModel(usecaseCreate *create.Usecase, usecaseSave *edit.Usecase, usecaseDelete *delete.Usecase) *Model {
+func InitModel(usecaseCreate *create.Usecase, usecaseSave *edit.Usecase, usecaseDelete *remove.Usecase) *Model {
 	return &Model{
 		help:   help.New(),
 		header: "Регистрация",
@@ -90,8 +90,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		for i := range m.elements {
-			switch e := m.elements[i].(type) {
-			case textinput.Model:
+			if e, ok := m.elements[i].(textinput.Model); ok {
 				e.Width = msg.Width
 			}
 		}

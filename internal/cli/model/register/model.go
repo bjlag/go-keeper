@@ -90,8 +90,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		for i := range f.elements {
-			switch e := f.elements[i].(type) {
-			case textinput.Model:
+			if e, ok := f.elements[i].(textinput.Model); ok {
 				e.Width = msg.Width
 			}
 		}

@@ -22,7 +22,6 @@ func (l SQLite) Connect() (*sqlx.DB, error) {
 
 	db, err := sqlx.Connect("sqlite3", l.dsn)
 	if err != nil {
-
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 

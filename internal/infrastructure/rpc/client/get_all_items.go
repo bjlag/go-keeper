@@ -3,8 +3,9 @@ package client
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/bjlag/go-keeper/internal/generated/rpc"
 )

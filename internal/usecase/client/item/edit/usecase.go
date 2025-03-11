@@ -59,6 +59,9 @@ func (u *Usecase) Do(ctx context.Context, item model.Item) error {
 		GUID:          item.GUID,
 		EncryptedData: encryptedData,
 	})
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
 
 	err = u.itemStore.SaveItem(ctx, item)
 	if err != nil {

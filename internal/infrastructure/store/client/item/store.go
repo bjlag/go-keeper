@@ -101,8 +101,8 @@ func (s *Store) DeleteItem(ctx context.Context, guid uuid.UUID) error {
 	return nil
 }
 
-// todo пределать на модель model.Item
 func (s *Store) SaveItems(ctx context.Context, items []model.RawItem) error {
+	// todo пределать на модель model.Item
 	const op = prefixOp + "SaveItems"
 
 	tx, err := s.db.BeginTx(ctx, nil)

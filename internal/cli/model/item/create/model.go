@@ -12,8 +12,6 @@ import (
 	elist "github.com/bjlag/go-keeper/internal/cli/element/list"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/domain/client"
-	"github.com/bjlag/go-keeper/internal/fetcher/item"
-	"github.com/bjlag/go-keeper/internal/usecase/client/sync"
 )
 
 const (
@@ -27,9 +25,6 @@ type Model struct {
 	header     string
 	categories list.Model
 	err        error
-
-	usecaseSync *sync.Usecase
-	fetcherItem *item.Fetcher
 }
 
 func InitModel() *Model {

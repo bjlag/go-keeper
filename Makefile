@@ -61,7 +61,7 @@ lint:
 .PHONY: fmt
 fmt:
 	@echo " > Start fmt"
-	@goimports -local "github.com/bjlag/go-keeper" -d -w $$(find . -type f -name '*.go' -not -path "*_mock.go")
+	@goimports -local "github.com/bjlag/go-keeper" -d -w $$(find . -type f -name '*.go' -not -path "*_mock.go" -not -path "./internal/generated/*")
 
 ## test: start testing
 .PHONY: test

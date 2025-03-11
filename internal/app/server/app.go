@@ -19,8 +19,8 @@ import (
 	rpcRegister "github.com/bjlag/go-keeper/internal/rpc/register"
 	rpcUpdateItem "github.com/bjlag/go-keeper/internal/rpc/update_item"
 	"github.com/bjlag/go-keeper/internal/usecase/server/item/create"
-	"github.com/bjlag/go-keeper/internal/usecase/server/item/delete"
 	"github.com/bjlag/go-keeper/internal/usecase/server/item/get_all"
+	"github.com/bjlag/go-keeper/internal/usecase/server/item/remove"
 	"github.com/bjlag/go-keeper/internal/usecase/server/item/update"
 	"github.com/bjlag/go-keeper/internal/usecase/server/user/login"
 	rt "github.com/bjlag/go-keeper/internal/usecase/server/user/refresh_tokens"
@@ -62,7 +62,7 @@ func (a *App) Run(ctx context.Context) error {
 	ucGetAllData := get_all.NewUsecase(dataStore)
 	ucCreateItem := create.NewUsecase(dataStore)
 	ucUpdateItem := update.NewUsecase(dataStore)
-	ucDeleteItem := delete.NewUsecase(dataStore)
+	ucRemoveItem := remove.NewUsecase(dataStore)
 
 	s := server.NewRPCServer(
 		server.WithAddress(a.cfg.Address.Host, a.cfg.Address.Port),
@@ -75,7 +75,7 @@ func (a *App) Run(ctx context.Context) error {
 		server.WithHandler(server.GetAllItemsMethod, rpcGetAllItems.New(ucGetAllData).Handle),
 		server.WithHandler(server.CreateItemMethod, rpcCreateItem.New(ucCreateItem).Handle),
 		server.WithHandler(server.UpdateItemMethod, rpcUpdateItem.New(ucUpdateItem).Handle),
-		server.WithHandler(server.DeleteItemMethod, rpcDeleteItem.New(ucDeleteItem).Handle),
+		server.WithHandler(server.DeleteItemMethod, rpcDeleteItem.New(ucRemoveItem).Handle),
 	)
 
 	err = s.Start(ctx)
