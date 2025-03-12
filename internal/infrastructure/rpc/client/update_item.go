@@ -12,20 +12,22 @@ import (
 type UpdateItemIn struct {
 	GUID          uuid.UUID
 	EncryptedData []byte
+	Version       int64
 }
 
-func (c RPCClient) UpdateItem(ctx context.Context, in *UpdateItemIn) error {
+func (c RPCClient) UpdateItem(ctx context.Context, in *UpdateItemIn) (int64, error) {
 	const op = "client.rpc.UpdateItem"
 
 	rpcIn := &rpc.UpdateItemIn{
 		Guid:          in.GUID.String(),
 		EncryptedData: in.EncryptedData,
+		Version:       in.Version,
 	}
 
-	_, err := c.client.UpdateItem(ctx, rpcIn)
+	rpcOut, err := c.client.UpdateItem(ctx, rpcIn)
 	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return nil
+	return rpcOut.GetNewVersion(), nil
 }

@@ -7,5 +7,5 @@ import (
 )
 
 type usecase interface {
-	Do(ctx context.Context, data update.In) error
+	Do(ctx context.Context, data update.In) (newVersion int64, err error)
 }

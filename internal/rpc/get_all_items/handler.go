@@ -69,7 +69,7 @@ func (h *Handler) Handle(ctx context.Context, in *pb.GetAllItemsIn) (*pb.GetAllI
 			Guid:          item.GUID.String(),
 			EncryptedData: item.EncryptedData,
 			CreatedAt:     timestamppb.New(item.CreatedAt),
-			UpdatedAt:     timestamppb.New(item.CreatedAt),
+			UpdatedAt:     timestamppb.New(item.UpdatedAt),
 		})
 	}
 

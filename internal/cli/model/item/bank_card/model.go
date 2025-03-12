@@ -15,6 +15,7 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/element/button"
 	tarea "github.com/bjlag/go-keeper/internal/cli/element/textarea"
 	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
+	"github.com/bjlag/go-keeper/internal/cli/message/item/bank_card"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/domain/client"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/create"
@@ -104,7 +105,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		return m, nil
-	case OpenMsg:
+	case bank_card.OpenMsg:
 		m.backState = msg.BackState
 		m.backModel = msg.BackModel
 

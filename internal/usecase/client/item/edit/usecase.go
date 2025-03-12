@@ -3,11 +3,18 @@ package edit
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"time"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	model "github.com/bjlag/go-keeper/internal/domain/client"
 	dto "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
 )
+
+var ErrConflict = errors.New("conflict")
 
 type Usecase struct {
 	rpc       rpc
@@ -55,13 +62,21 @@ func (u *Usecase) Do(ctx context.Context, item model.Item) error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	err = u.rpc.UpdateItem(ctx, &dto.UpdateItemIn{
+	newVersion, err := u.rpc.UpdateItem(ctx, &dto.UpdateItemIn{
 		GUID:          item.GUID,
 		EncryptedData: encryptedData,
+		Version:       item.UpdatedAt.UTC().UnixMicro(),
 	})
 	if err != nil {
+		if s, ok := status.FromError(err); ok && s.Code() == codes.FailedPrecondition {
+			return ErrConflict
+		}
 		return fmt.Errorf("%s: %w", op, err)
 	}
+
+	sec := newVersion / 1000000
+	nsec := (newVersion % 1000000) * time.Microsecond.Nanoseconds()
+	item.UpdatedAt = time.Unix(sec, nsec)
 
 	err = u.itemStore.SaveItem(ctx, item)
 	if err != nil {

@@ -3,6 +3,7 @@ package login
 import (
 	"context"
 	"errors"
+	login2 "github.com/bjlag/go-keeper/internal/cli/message/login"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -93,7 +94,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		return f, nil
-	case OpenMsg:
+	case login2.OpenMsg:
 		for i := range f.elements {
 			if e, ok := f.elements[i].(textinput.Model); ok {
 				e.SetValue("")
@@ -261,7 +262,7 @@ func (f *Model) submit() (tea.Model, tea.Cmd) {
 		return f, nil
 	}
 
-	return f.main.Update(SuccessMsg{})
+	return f.main.Update(login2.SuccessMsg{})
 }
 
 func (f *Model) updateInputs(msg tea.Msg) tea.Cmd {

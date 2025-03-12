@@ -23,6 +23,7 @@ const (
 	Keeper_Register_FullMethodName      = "/keeper.Keeper/Register"
 	Keeper_Login_FullMethodName         = "/keeper.Keeper/Login"
 	Keeper_RefreshTokens_FullMethodName = "/keeper.Keeper/RefreshTokens"
+	Keeper_GetByGuid_FullMethodName     = "/keeper.Keeper/GetByGuid"
 	Keeper_GetAllItems_FullMethodName   = "/keeper.Keeper/GetAllItems"
 	Keeper_CreateItem_FullMethodName    = "/keeper.Keeper/CreateItem"
 	Keeper_UpdateItem_FullMethodName    = "/keeper.Keeper/UpdateItem"
@@ -38,9 +39,10 @@ type KeeperClient interface {
 	Login(ctx context.Context, in *LoginIn, opts ...grpc.CallOption) (*LoginOut, error)
 	RefreshTokens(ctx context.Context, in *RefreshTokensIn, opts ...grpc.CallOption) (*RefreshTokensOut, error)
 	// data
+	GetByGuid(ctx context.Context, in *GetByGuidIn, opts ...grpc.CallOption) (*GetByGuidOut, error)
 	GetAllItems(ctx context.Context, in *GetAllItemsIn, opts ...grpc.CallOption) (*GetAllItemsOut, error)
 	CreateItem(ctx context.Context, in *CreateItemIn, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	UpdateItem(ctx context.Context, in *UpdateItemIn, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	UpdateItem(ctx context.Context, in *UpdateItemIn, opts ...grpc.CallOption) (*UpdateItemOut, error)
 	DeleteItem(ctx context.Context, in *DeleteItemIn, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -82,6 +84,16 @@ func (c *keeperClient) RefreshTokens(ctx context.Context, in *RefreshTokensIn, o
 	return out, nil
 }
 
+func (c *keeperClient) GetByGuid(ctx context.Context, in *GetByGuidIn, opts ...grpc.CallOption) (*GetByGuidOut, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetByGuidOut)
+	err := c.cc.Invoke(ctx, Keeper_GetByGuid_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *keeperClient) GetAllItems(ctx context.Context, in *GetAllItemsIn, opts ...grpc.CallOption) (*GetAllItemsOut, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetAllItemsOut)
@@ -102,9 +114,9 @@ func (c *keeperClient) CreateItem(ctx context.Context, in *CreateItemIn, opts ..
 	return out, nil
 }
 
-func (c *keeperClient) UpdateItem(ctx context.Context, in *UpdateItemIn, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *keeperClient) UpdateItem(ctx context.Context, in *UpdateItemIn, opts ...grpc.CallOption) (*UpdateItemOut, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(emptypb.Empty)
+	out := new(UpdateItemOut)
 	err := c.cc.Invoke(ctx, Keeper_UpdateItem_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -131,9 +143,10 @@ type KeeperServer interface {
 	Login(context.Context, *LoginIn) (*LoginOut, error)
 	RefreshTokens(context.Context, *RefreshTokensIn) (*RefreshTokensOut, error)
 	// data
+	GetByGuid(context.Context, *GetByGuidIn) (*GetByGuidOut, error)
 	GetAllItems(context.Context, *GetAllItemsIn) (*GetAllItemsOut, error)
 	CreateItem(context.Context, *CreateItemIn) (*emptypb.Empty, error)
-	UpdateItem(context.Context, *UpdateItemIn) (*emptypb.Empty, error)
+	UpdateItem(context.Context, *UpdateItemIn) (*UpdateItemOut, error)
 	DeleteItem(context.Context, *DeleteItemIn) (*emptypb.Empty, error)
 }
 
@@ -153,13 +166,16 @@ func (UnimplementedKeeperServer) Login(context.Context, *LoginIn) (*LoginOut, er
 func (UnimplementedKeeperServer) RefreshTokens(context.Context, *RefreshTokensIn) (*RefreshTokensOut, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RefreshTokens not implemented")
 }
+func (UnimplementedKeeperServer) GetByGuid(context.Context, *GetByGuidIn) (*GetByGuidOut, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetByGuid not implemented")
+}
 func (UnimplementedKeeperServer) GetAllItems(context.Context, *GetAllItemsIn) (*GetAllItemsOut, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllItems not implemented")
 }
 func (UnimplementedKeeperServer) CreateItem(context.Context, *CreateItemIn) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateItem not implemented")
 }
-func (UnimplementedKeeperServer) UpdateItem(context.Context, *UpdateItemIn) (*emptypb.Empty, error) {
+func (UnimplementedKeeperServer) UpdateItem(context.Context, *UpdateItemIn) (*UpdateItemOut, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateItem not implemented")
 }
 func (UnimplementedKeeperServer) DeleteItem(context.Context, *DeleteItemIn) (*emptypb.Empty, error) {
@@ -235,6 +251,24 @@ func _Keeper_RefreshTokens_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeeperServer).RefreshTokens(ctx, req.(*RefreshTokensIn))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Keeper_GetByGuid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetByGuidIn)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeeperServer).GetByGuid(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Keeper_GetByGuid_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeeperServer).GetByGuid(ctx, req.(*GetByGuidIn))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -329,6 +363,10 @@ var Keeper_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RefreshTokens",
 			Handler:    _Keeper_RefreshTokens_Handler,
+		},
+		{
+			MethodName: "GetByGuid",
+			Handler:    _Keeper_GetByGuid_Handler,
 		},
 		{
 			MethodName: "GetAllItems",

@@ -2,6 +2,7 @@ package list
 
 import (
 	"context"
+	list2 "github.com/bjlag/go-keeper/internal/cli/message/list"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -73,17 +74,17 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case common.BackMsg:
 		switch msg.State {
 		case stateCategoryList:
-			return f.Update(OpenCategoriesMsg{})
+			return f.Update(list2.OpenCategoriesMsg{})
 		case stateItemList:
-			return f.Update(OpenItemsMsg{})
+			return f.Update(list2.OpenItemsMsg{})
 		}
 
-	case GetDataMsg:
+	case list2.GetDataMsg:
 		f.state = stateCategoryList
 		f.err = f.usecaseSync.Do(context.TODO())
 
-		return f.Update(OpenCategoriesMsg{})
-	case OpenCategoriesMsg:
+		return f.Update(list2.OpenCategoriesMsg{})
+	case list2.OpenCategoriesMsg:
 		f.state = stateCategoryList
 
 		f.categories.SetItems(nil)
@@ -93,7 +94,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		f.categories.InsertItem(len(f.categories.Items()), elist.Category{Category: client.CategoryBankCard, Title: client.CategoryBankCard.String()})
 
 		return f, nil
-	case OpenItemsMsg:
+	case list2.OpenItemsMsg:
 		f.state = stateItemList
 
 		if c, ok := f.categories.SelectedItem().(elist.Category); ok {
@@ -107,13 +108,9 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		f.items.SetItems(nil)
-		for _, p := range items {
+		for _, model := range items {
 			f.items.InsertItem(len(f.categories.Items()), elist.Item{
-				GUID:     p.GUID,
-				Category: p.Category,
-				Title:    p.Title,
-				Value:    p.Value,
-				Notes:    p.Notes,
+				Model: model,
 			})
 		}
 
@@ -127,19 +124,19 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case stateCategoryList:
 				if c, ok := f.categories.SelectedItem().(elist.Category); ok {
 					f.selectedCategory = c.Category
-					return f.Update(OpenItemsMsg{
+					return f.Update(list2.OpenItemsMsg{
 						Category: c.Category,
 					})
 				}
 			case stateItemList:
 				if i, ok := f.items.SelectedItem().(elist.Item); ok {
-					f.selectedCategory = i.Category
+					f.selectedCategory = i.Model.Category
 
 					return f.main.Update(common.OpenItemMessage{
 						BackModel: f,
 						BackState: f.state,
-						Category:  i.Category,
-						Item:      &i,
+						Category:  i.Model.Category,
+						Item:      &i.Model,
 					})
 				}
 			}
@@ -150,7 +147,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case stateCategoryList:
 				return f.main.Update(common.BackMsg{})
 			case stateItemList:
-				return f.Update(OpenCategoriesMsg{})
+				return f.Update(list2.OpenCategoriesMsg{})
 			}
 		}
 	}

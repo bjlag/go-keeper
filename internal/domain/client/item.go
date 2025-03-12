@@ -66,7 +66,7 @@ func NewPasswordItem(title, login, password, note string) Item {
 	return NewItem(
 		CategoryPassword,
 		title,
-		&Password{
+		Password{
 			Login:    login,
 			Password: password,
 		},
@@ -87,7 +87,7 @@ func NewBankCardItem(title, number, cvv, expiry, note string) Item {
 	return NewItem(
 		CategoryBankCard,
 		title,
-		&BankCard{
+		BankCard{
 			Number: number,
 			CVV:    cvv,
 			Expiry: expiry,
@@ -100,7 +100,7 @@ func NewFileItem(title, name string, data []byte, note string) Item {
 	return NewItem(
 		CategoryFile,
 		title,
-		&File{
+		File{
 			Name: name,
 			Data: data,
 		},

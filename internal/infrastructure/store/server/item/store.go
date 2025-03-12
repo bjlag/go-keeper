@@ -2,6 +2,7 @@ package item
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 
@@ -11,7 +12,10 @@ import (
 	model "github.com/bjlag/go-keeper/internal/domain/server/data"
 )
 
-var ErrNotAffectedRows = errors.New("not affected")
+var (
+	ErrNotAffectedRows = errors.New("not affected")
+	ErrNotFound        = errors.New("not found")
+)
 
 type Store struct {
 	db *sqlx.DB
@@ -41,6 +45,50 @@ func (s *Store) GetAllByUser(ctx context.Context, userGUID uuid.UUID, limit, off
 	}
 
 	return convertToModels(rows), nil
+}
+
+func (s *Store) ItemByGUID(ctx context.Context, guid uuid.UUID) (*model.Item, error) {
+	const op = "store.item.ItemByGUID"
+
+	query := `
+		SELECT guid, user_guid, encrypted_data, created_at, updated_at
+		FROM items
+		WHERE guid = $1
+	`
+
+	var r row
+	if err := s.db.GetContext(ctx, &r, query, guid); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	result := r.convertToModel()
+
+	return &result, nil
+}
+
+func (s *Store) UserItemByGUID(ctx context.Context, userGUID, itemGUID uuid.UUID) (*model.Item, error) {
+	const op = "store.item.UserItemByGUID"
+
+	query := `
+		SELECT guid, user_guid, encrypted_data, created_at, updated_at
+		FROM items
+		WHERE guid = $1 AND user_guid = $2
+	`
+
+	var r row
+	if err := s.db.GetContext(ctx, &r, query, itemGUID, userGUID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	result := r.convertToModel()
+
+	return &result, nil
 }
 
 func (s *Store) Create(ctx context.Context, item model.Item) error {

@@ -8,7 +8,6 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/emptypb"
 
 	pb "github.com/bjlag/go-keeper/internal/generated/rpc"
 	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
@@ -26,7 +25,7 @@ func New(usecase usecase) *Handler {
 	}
 }
 
-func (h *Handler) Handle(ctx context.Context, in *pb.UpdateItemIn) (*emptypb.Empty, error) {
+func (h *Handler) Handle(ctx context.Context, in *pb.UpdateItemIn) (*pb.UpdateItemOut, error) {
 	log := logger.FromCtx(ctx)
 
 	userGUID := auth.UserGUIDFromCtx(ctx)
@@ -43,12 +42,17 @@ func (h *Handler) Handle(ctx context.Context, in *pb.UpdateItemIn) (*emptypb.Emp
 		return nil, status.Error(codes.InvalidArgument, "invalid item guid")
 	}
 
-	err = h.usecase.Do(ctx, update.In{
+	newVersion, err := h.usecase.Do(ctx, update.In{
 		UserGUID:      userGUID,
 		ItemGUID:      itemGUID,
 		EncryptedData: in.GetEncryptedData(),
+		Version:       in.GetVersion(),
 	})
 	if err != nil {
+		if errors.Is(err, update.ErrConflict) {
+			return nil, status.Error(codes.FailedPrecondition, "data outdated")
+		}
+
 		if errors.Is(err, update.ErrNotFoundUpdatedData) {
 			return nil, status.Error(codes.NotFound, "item not found")
 		}
@@ -57,5 +61,7 @@ func (h *Handler) Handle(ctx context.Context, in *pb.UpdateItemIn) (*emptypb.Emp
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
-	return &emptypb.Empty{}, nil
+	return &pb.UpdateItemOut{
+		NewVersion: newVersion,
+	}, nil
 }

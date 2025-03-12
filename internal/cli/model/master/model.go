@@ -2,7 +2,13 @@ package master
 
 import (
 	"errors"
-	"github.com/bjlag/go-keeper/internal/cli/model/item/file"
+	bank_card2 "github.com/bjlag/go-keeper/internal/cli/message/item/bank_card"
+	create2 "github.com/bjlag/go-keeper/internal/cli/message/item/create"
+	file2 "github.com/bjlag/go-keeper/internal/cli/message/item/file"
+	password2 "github.com/bjlag/go-keeper/internal/cli/message/item/password"
+	text2 "github.com/bjlag/go-keeper/internal/cli/message/item/text"
+	"github.com/bjlag/go-keeper/internal/cli/message/list"
+	login2 "github.com/bjlag/go-keeper/internal/cli/message/login"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -13,6 +19,7 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/element/button"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/bank_card"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/create"
+	"github.com/bjlag/go-keeper/internal/cli/model/item/file"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/password"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/text"
 	listf "github.com/bjlag/go-keeper/internal/cli/model/list"
@@ -68,7 +75,7 @@ func InitModel(opts ...Option) *Model {
 func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
 		func() tea.Msg {
-			return login.OpenMsg{}
+			return login2.OpenMsg{}
 		},
 	)
 }
@@ -82,9 +89,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, common.Keys.Enter):
 			switch m.pos {
 			case posViewBtn:
-				return m.formList.Update(listf.GetDataMsg{})
+				return m.formList.Update(list.GetDataMsg{})
 			case posCreateBtn:
-				return m.formCreate.Update(create.Open{})
+				return m.formCreate.Update(create2.Open{})
 			case posCloseBtn:
 				return m, tea.Quit
 			}
@@ -122,36 +129,36 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.Update(OpenMsg{})
 
 	// Forms
-	case login.OpenMsg:
+	case login2.OpenMsg:
 		return m.formLogin.Update(msg)
 	case register.OpenMessage:
 		return m.formRegister.Update(msg)
-	case listf.OpenCategoriesMsg:
+	case list.OpenCategoriesMsg:
 		return m.formList.Update(msg)
-	case listf.OpenItemsMsg:
+	case list.OpenItemsMsg:
 		return m.formList.Update(msg)
 	case common.OpenItemMessage:
 		switch msg.Category {
 		case client.CategoryPassword:
-			return m.formPassword.Update(password.OpenMsg{
+			return m.formPassword.Update(password2.OpenMsg{
 				BackModel: msg.BackModel,
 				BackState: msg.BackState,
 				Item:      msg.Item,
 			})
 		case client.CategoryText:
-			return m.formText.Update(text.OpenMsg{
+			return m.formText.Update(text2.OpenMsg{
 				BackModel: msg.BackModel,
 				BackState: msg.BackState,
 				Item:      msg.Item,
 			})
 		case client.CategoryBankCard:
-			return m.formBankCard.Update(bank_card.OpenMsg{
+			return m.formBankCard.Update(bank_card2.OpenMsg{
 				BackModel: msg.BackModel,
 				BackState: msg.BackState,
 				Item:      msg.Item,
 			})
 		case client.CategoryFile:
-			return m.formFile.Update(file.OpenMsg{
+			return m.formFile.Update(file2.OpenMsg{
 				BackModel: msg.BackModel,
 				BackState: msg.BackState,
 				Item:      msg.Item,
@@ -161,7 +168,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	// Success
-	case login.SuccessMsg:
+	case login2.SuccessMsg:
 		return m.Update(OpenMsg{})
 	case register.SuccessMsg:
 		return m.Update(OpenMsg{})

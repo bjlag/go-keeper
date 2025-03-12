@@ -1,14 +1,14 @@
-package edit
+package sync
 
 import (
 	"context"
 
 	model "github.com/bjlag/go-keeper/internal/domain/client"
-	dto "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
+	rpc "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
 )
 
-type rpc interface {
-	UpdateItem(ctx context.Context, in *dto.UpdateItemIn) (int64, error)
+type client interface {
+	GetByGUID(ctx context.Context, in *rpc.GetByGUIDIn) (*rpc.GetByGUIDOut, error)
 }
 
 type itemStore interface {
@@ -20,5 +20,5 @@ type keyStore interface {
 }
 
 type cipher interface {
-	Encrypt(data, key []byte) ([]byte, error)
+	Decrypt(data, key []byte) ([]byte, error)
 }

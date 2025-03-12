@@ -2,6 +2,7 @@ package text
 
 import (
 	"errors"
+	text2 "github.com/bjlag/go-keeper/internal/cli/message/item/text"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -95,7 +96,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		return m, nil
-	case OpenMsg:
+	case text2.OpenMsg:
 		m.backState = msg.BackState
 		m.backModel = msg.BackModel
 

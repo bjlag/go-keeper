@@ -14,6 +14,7 @@ const (
 	RegisterMethod      = "Register"
 	LoginMethod         = "Login"
 	RefreshTokensMethod = "RefreshTokens"
+	GetByGUIDMethod     = "GetByGUID"
 	GetAllItemsMethod   = "GetAllItems"
 	CreateItemMethod    = "CreateItem"
 	UpdateItemMethod    = "UpdateItem"
@@ -62,6 +63,20 @@ func (s RPCServer) RefreshTokens(ctx context.Context, in *pb.RefreshTokensIn) (*
 	return h(ctx, in)
 }
 
+func (s RPCServer) GetByGuid(ctx context.Context, in *pb.GetByGuidIn) (*pb.GetByGuidOut, error) {
+	handler, err := s.getHandler(GetByGUIDMethod)
+	if err != nil {
+		return nil, err
+	}
+
+	h, ok := handler.(func(context.Context, *pb.GetByGuidIn) (*pb.GetByGuidOut, error))
+	if !ok {
+		return nil, status.Errorf(codes.Internal, "handler for %s method not found", GetByGUIDMethod)
+	}
+
+	return h(ctx, in)
+}
+
 func (s RPCServer) GetAllItems(ctx context.Context, in *pb.GetAllItemsIn) (*pb.GetAllItemsOut, error) {
 	handler, err := s.getHandler(GetAllItemsMethod)
 	if err != nil {
@@ -90,13 +105,13 @@ func (s RPCServer) CreateItem(ctx context.Context, in *pb.CreateItemIn) (*emptyp
 	return h(ctx, in)
 }
 
-func (s RPCServer) UpdateItem(ctx context.Context, in *pb.UpdateItemIn) (*emptypb.Empty, error) {
+func (s RPCServer) UpdateItem(ctx context.Context, in *pb.UpdateItemIn) (*pb.UpdateItemOut, error) {
 	handler, err := s.getHandler(UpdateItemMethod)
 	if err != nil {
 		return nil, err
 	}
 
-	h, ok := handler.(func(context.Context, *pb.UpdateItemIn) (*emptypb.Empty, error))
+	h, ok := handler.(func(context.Context, *pb.UpdateItemIn) (*pb.UpdateItemOut, error))
 	if !ok {
 		return nil, status.Errorf(codes.Internal, "handler for %s method not found", UpdateItemMethod)
 	}

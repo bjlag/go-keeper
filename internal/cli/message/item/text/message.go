@@ -1,4 +1,4 @@
-package common
+package text
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
@@ -6,13 +6,8 @@ import (
 	"github.com/bjlag/go-keeper/internal/domain/client"
 )
 
-type BackMsg struct {
-	State int
-}
-
-type OpenItemMessage struct {
+type OpenMsg struct {
 	BackModel tea.Model
 	BackState int
 	Item      *client.Item
-	Category  client.Category
 }

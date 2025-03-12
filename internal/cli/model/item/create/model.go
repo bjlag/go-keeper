@@ -1,6 +1,7 @@
 package create
 
 import (
+	create2 "github.com/bjlag/go-keeper/internal/cli/message/item/create"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -52,7 +53,7 @@ func (f *Model) Init() tea.Cmd {
 
 func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case Open:
+	case create2.Open:
 		return f, nil
 	case tea.KeyMsg:
 		switch {

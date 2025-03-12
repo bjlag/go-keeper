@@ -5,12 +5,10 @@ import (
 	"io"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/google/uuid"
-
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/domain/client"
+	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 func CreateDefaultList(title string, with, height int, itemDelegate list.ItemDelegate, items ...list.Item) list.Model {
@@ -66,11 +64,7 @@ func (d CategoryDelegate) Render(w io.Writer, m list.Model, index int, listItem 
 }
 
 type Item struct {
-	GUID     uuid.UUID
-	Category client.Category
-	Title    string
-	Value    interface{}
-	Notes    string
+	Model client.Item
 }
 
 func (i Item) FilterValue() string { return "" }
@@ -95,7 +89,7 @@ func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		return
 	}
 
-	str := fmt.Sprintf("%d. %s", index+1, i.Title)
+	str := fmt.Sprintf("%d. %s", index+1, i.Model.Title)
 
 	fn := style.ListItemStyle.Render
 	if index == m.Index() {

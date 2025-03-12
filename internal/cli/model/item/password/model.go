@@ -2,7 +2,9 @@ package password
 
 import (
 	"errors"
+	sync2 "github.com/bjlag/go-keeper/internal/cli/model/item/sync"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -15,6 +17,8 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/element/button"
 	tarea "github.com/bjlag/go-keeper/internal/cli/element/textarea"
 	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
+	message "github.com/bjlag/go-keeper/internal/cli/message/item/password"
+	"github.com/bjlag/go-keeper/internal/cli/message/item/sync"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/domain/client"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/create"
@@ -66,18 +70,23 @@ type Model struct {
 	backState int
 
 	guid     uuid.UUID
+	item     *client.Item
 	category client.Category
+
+	formSync *sync2.Model
 
 	usecaseCreate *create.Usecase
 	usecaseEdit   *edit.Usecase
 	usecaseDelete *remove.Usecase
 }
 
-func InitModel(usecaseCreate *create.Usecase, usecaseSave *edit.Usecase, usecaseDelete *remove.Usecase) *Model {
+func InitModel(usecaseCreate *create.Usecase, usecaseSave *edit.Usecase, usecaseDelete *remove.Usecase, formSync *sync2.Model) *Model {
 	return &Model{
 		help:   help.New(),
 		header: "Пароль",
 		state:  stateCreate,
+
+		formSync: formSync,
 
 		usecaseCreate: usecaseCreate,
 		usecaseEdit:   usecaseSave,
@@ -102,13 +111,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		return m, nil
-	case OpenMsg:
+	case message.OpenMsg:
 		m.backState = msg.BackState
 		m.backModel = msg.BackModel
 
 		if msg.Item != nil {
 			m.state = stateEdit
 			m.header = msg.Item.Title
+			m.item = msg.Item
 			m.guid = msg.Item.GUID
 			m.category = msg.Item.Category
 
@@ -168,7 +178,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.elements[i] = style.SetFocusStyle(e)
 						continue
 					}
-
+					time.Now().Unix()
 					e.Blur()
 					m.elements[i] = style.SetNoStyle(e)
 				case textarea.Model:
@@ -213,7 +223,15 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			switch m.pos {
 			case posEditEditBtn:
-				m.err = m.editAction()
+				err := m.editAction()
+				if err != nil && errors.Is(err, edit.ErrConflict) {
+					return m.formSync.Update(sync.OpenMsg{
+						BackModel: m,
+						Item:      m.item,
+					})
+				}
+
+				m.err = err
 				return m, nil
 			case posEditDeleteBtn:
 				m.err = m.deleteAction()

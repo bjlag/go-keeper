@@ -2,6 +2,7 @@ package file
 
 import (
 	"errors"
+	file2 "github.com/bjlag/go-keeper/internal/cli/message/item/file"
 	"os"
 	"strings"
 	"time"
@@ -16,7 +17,6 @@ import (
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element/button"
-	"github.com/bjlag/go-keeper/internal/cli/element/list"
 	tarea "github.com/bjlag/go-keeper/internal/cli/element/textarea"
 	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
 	"github.com/bjlag/go-keeper/internal/cli/style"
@@ -54,6 +54,8 @@ var (
 	errInvalidValue       = errors.New("invalid value")
 )
 
+type clearErrorMsg struct{}
+
 func clearErrorAfter(t time.Duration) tea.Cmd {
 	return tea.Tick(t, func(_ time.Time) tea.Msg {
 		return clearErrorMsg{}
@@ -76,7 +78,7 @@ type Model struct {
 
 	backModel tea.Model
 	backState int
-	item      *list.Item
+	item      *client.Item
 
 	guid     uuid.UUID
 	category client.Category
@@ -123,7 +125,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		return m, nil
-	case OpenMsg:
+	case file2.OpenMsg:
 		m.backState = msg.BackState
 		m.backModel = msg.BackModel
 
@@ -233,7 +235,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, common.Keys.Back):
 			if m.selectFileMode {
 				m.selectFileMode = false
-				return m.Update(OpenMsg{
+				return m.Update(file2.OpenMsg{
 					BackModel: m.backModel,
 					BackState: m.backState,
 					Item:      m.item,
