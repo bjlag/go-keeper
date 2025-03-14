@@ -102,7 +102,7 @@ func (a *App) Run(ctx context.Context) error {
 		master.WithListForm(list.InitModel(ucSync, fetchItem)),
 		master.WithPasswordItemForm(password.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, formSync)),
 		master.WithTextItemForm(text.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, formSync)),
-		master.WithBankCardItemForm(bank_card.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem)),
+		master.WithBankCardItemForm(bank_card.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, formSync)),
 		master.WithFileItemForm(file.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, formSync)),
 	)
 
