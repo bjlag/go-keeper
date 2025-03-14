@@ -3,13 +3,12 @@ package client
 import (
 	"context"
 	"fmt"
-	itemSync "github.com/bjlag/go-keeper/internal/usecase/client/item/sync"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"go.uber.org/zap"
 
+	formCreate "github.com/bjlag/go-keeper/internal/cli/model/create"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/bank_card"
-	formCreate "github.com/bjlag/go-keeper/internal/cli/model/item/create"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/file"
 	"github.com/bjlag/go-keeper/internal/cli/model/item/password"
 	syncItem "github.com/bjlag/go-keeper/internal/cli/model/item/sync"
@@ -29,6 +28,7 @@ import (
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/create"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/edit"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/remove"
+	itemSync "github.com/bjlag/go-keeper/internal/usecase/client/item/sync"
 	"github.com/bjlag/go-keeper/internal/usecase/client/login"
 	mkey "github.com/bjlag/go-keeper/internal/usecase/client/master_key"
 	"github.com/bjlag/go-keeper/internal/usecase/client/register"
@@ -93,17 +93,17 @@ func (a *App) Run(ctx context.Context) error {
 
 	fetchItem := item.NewFetcher(storeItem)
 
-	formSync := syncItem.InitModel(ucItemSync)
+	frmRegister := formRegister.InitModel(ucRegister, ucMasterKey)
+	frmSync := syncItem.InitModel(ucItemSync)
+	frmPasswordItem := password.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, frmSync)
+	frmTextItem := text.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, frmSync)
+	frmBankCardItem := bank_card.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, frmSync)
+	frmFileItem := file.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, frmSync)
 
 	m := master.InitModel(
-		master.WithLoginForm(formLogin.InitModel(ucLogin, ucMasterKey)),
-		master.WithRegisterForm(formRegister.InitModel(ucRegister, ucMasterKey)),
-		master.WithCreatForm(formCreate.InitModel()),
-		master.WithListForm(list.InitModel(ucSync, fetchItem)),
-		master.WithPasswordItemForm(password.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, formSync)),
-		master.WithTextItemForm(text.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, formSync)),
-		master.WithBankCardItemForm(bank_card.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, formSync)),
-		master.WithFileItemForm(file.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, formSync)),
+		master.WithLoginForm(formLogin.InitModel(ucLogin, ucMasterKey, frmRegister)),
+		master.WithCreatForm(formCreate.InitModel(frmPasswordItem, frmTextItem, frmBankCardItem, frmFileItem)),
+		master.WithListForm(list.InitModel(ucSync, fetchItem, frmPasswordItem, frmTextItem, frmBankCardItem, frmFileItem)),
 	)
 
 	f, err := tea.LogToFile("debug.log", "debug")

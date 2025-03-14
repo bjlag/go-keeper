@@ -10,11 +10,7 @@ import (
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element/button"
-	"github.com/bjlag/go-keeper/internal/cli/message/item/bank_card"
-	"github.com/bjlag/go-keeper/internal/cli/message/item/file"
-	"github.com/bjlag/go-keeper/internal/cli/message/item/password"
-	"github.com/bjlag/go-keeper/internal/cli/message/item/sync"
-	"github.com/bjlag/go-keeper/internal/cli/message/item/text"
+	"github.com/bjlag/go-keeper/internal/cli/message"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/domain/client"
 	itemSync "github.com/bjlag/go-keeper/internal/usecase/client/item/sync"
@@ -26,7 +22,6 @@ const (
 )
 
 type Model struct {
-	main     tea.Model
 	help     help.Model
 	header   string
 	elements []button.Button
@@ -46,17 +41,13 @@ func InitModel(usecaseSync *itemSync.Usecase) *Model {
 	}
 }
 
-func (m *Model) SetMainModel(model tea.Model) {
-	m.main = model
-}
-
 func (m *Model) Init() tea.Cmd {
 	return nil
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case sync.OpenMsg:
+	case message.OpenItemMsg:
 		m.prevModel = msg.BackModel
 
 		if msg.Item == nil {
@@ -122,48 +113,18 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, nil
 				}
 
-				switch m.item.Category {
-				case client.CategoryPassword:
-					return m.prevModel.Update(password.OpenMsg{
-						Item: &m.item,
-					})
-				case client.CategoryText:
-					return m.prevModel.Update(text.OpenMsg{
-						Item: &m.item,
-					})
-				case client.CategoryFile:
-					return m.prevModel.Update(file.OpenMsg{
-						Item: &m.item,
-					})
-				case client.CategoryBankCard:
-					return m.prevModel.Update(bank_card.OpenMsg{
-						Item: &m.item,
-					})
-				}
+				return m.prevModel.Update(message.BackMsg{
+					Item: &m.item,
+				})
 			case posCancelBtn:
-				switch m.item.Category {
-				case client.CategoryPassword:
-					return m.prevModel.Update(password.OpenMsg{
-						Item: &m.item,
-					})
-				case client.CategoryText:
-					return m.prevModel.Update(text.OpenMsg{
-						Item: &m.item,
-					})
-				case client.CategoryFile:
-					return m.prevModel.Update(file.OpenMsg{
-						Item: &m.item,
-					})
-				case client.CategoryBankCard:
-					return m.prevModel.Update(bank_card.OpenMsg{
-						Item: &m.item,
-					})
-				}
+				return m.prevModel.Update(message.BackMsg{
+					Item: &m.item,
+				})
 			}
 
 			return m, nil
 		case key.Matches(msg, common.Keys.Back):
-			return m.prevModel.Update(common.BackMsg{})
+			return m.prevModel.Update(message.BackMsg{})
 		}
 	}
 

@@ -1,14 +1,6 @@
 package master
 
 import (
-	"errors"
-	bank_card2 "github.com/bjlag/go-keeper/internal/cli/message/item/bank_card"
-	create2 "github.com/bjlag/go-keeper/internal/cli/message/item/create"
-	file2 "github.com/bjlag/go-keeper/internal/cli/message/item/file"
-	password2 "github.com/bjlag/go-keeper/internal/cli/message/item/password"
-	text2 "github.com/bjlag/go-keeper/internal/cli/message/item/text"
-	"github.com/bjlag/go-keeper/internal/cli/message/list"
-	login2 "github.com/bjlag/go-keeper/internal/cli/message/login"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -17,19 +9,12 @@ import (
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element/button"
-	"github.com/bjlag/go-keeper/internal/cli/model/item/bank_card"
-	"github.com/bjlag/go-keeper/internal/cli/model/item/create"
-	"github.com/bjlag/go-keeper/internal/cli/model/item/file"
-	"github.com/bjlag/go-keeper/internal/cli/model/item/password"
-	"github.com/bjlag/go-keeper/internal/cli/model/item/text"
+	"github.com/bjlag/go-keeper/internal/cli/message"
+	"github.com/bjlag/go-keeper/internal/cli/model/create"
 	listf "github.com/bjlag/go-keeper/internal/cli/model/list"
 	"github.com/bjlag/go-keeper/internal/cli/model/login"
-	"github.com/bjlag/go-keeper/internal/cli/model/register"
 	"github.com/bjlag/go-keeper/internal/cli/style"
-	"github.com/bjlag/go-keeper/internal/domain/client"
 )
-
-var errUnsupportedCategory = errors.New("unsupported category")
 
 const (
 	posViewBtn int = iota
@@ -44,14 +29,9 @@ type Model struct {
 	pos      int
 	err      error
 
-	formLogin    *login.Model
-	formRegister *register.Model
-	formCreate   *create.Model
-	formList     *listf.Model
-	formPassword *password.Model
-	formText     *text.Model
-	formBankCard *bank_card.Model
-	formFile     *file.Model
+	formLogin  *login.Model
+	formCreate *create.Model
+	formList   *listf.Model
 }
 
 func InitModel(opts ...Option) *Model {
@@ -75,12 +55,16 @@ func InitModel(opts ...Option) *Model {
 func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
 		func() tea.Msg {
-			return login2.OpenMsg{}
+			return message.OpenLoginMsg{}
 		},
 	)
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if msg == nil {
+		return m, nil
+	}
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
@@ -89,9 +73,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, common.Keys.Enter):
 			switch m.pos {
 			case posViewBtn:
-				return m.formList.Update(list.GetDataMsg{})
+				return m.formList.Update(message.OpenCategoriesMsg{})
 			case posCreateBtn:
-				return m.formCreate.Update(create2.Open{})
+				return m.formCreate.Update(message.OpenItemMsg{})
 			case posCloseBtn:
 				return m, tea.Quit
 			}
@@ -123,58 +107,23 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-	case OpenMsg:
-		return m, nil
-	case common.BackMsg:
-		return m.Update(OpenMsg{})
+	case message.BackMsg:
+		return m.Update(nil)
 
 	// Forms
-	case login2.OpenMsg:
+	case message.OpenLoginMsg:
 		return m.formLogin.Update(msg)
-	case register.OpenMessage:
-		return m.formRegister.Update(msg)
-	case list.OpenCategoriesMsg:
+	case message.OpenCategoriesMsg:
 		return m.formList.Update(msg)
-	case list.OpenItemsMsg:
+	case message.OpenItemsMsg:
 		return m.formList.Update(msg)
-	case common.OpenItemMessage:
-		switch msg.Category {
-		case client.CategoryPassword:
-			return m.formPassword.Update(password2.OpenMsg{
-				BackModel: msg.BackModel,
-				BackState: msg.BackState,
-				Item:      msg.Item,
-			})
-		case client.CategoryText:
-			return m.formText.Update(text2.OpenMsg{
-				BackModel: msg.BackModel,
-				BackState: msg.BackState,
-				Item:      msg.Item,
-			})
-		case client.CategoryBankCard:
-			return m.formBankCard.Update(bank_card2.OpenMsg{
-				BackModel: msg.BackModel,
-				BackState: msg.BackState,
-				Item:      msg.Item,
-			})
-		case client.CategoryFile:
-			return m.formFile.Update(file2.OpenMsg{
-				BackModel: msg.BackModel,
-				BackState: msg.BackState,
-				Item:      msg.Item,
-			})
-		default:
-			m.err = errUnsupportedCategory
-		}
 
 	// Success
-	case login2.SuccessMsg:
-		return m.Update(OpenMsg{})
-	case register.SuccessMsg:
-		return m.Update(OpenMsg{})
+	case message.SuccessMsg:
+		return m.Update(nil)
 	}
 
-	return m.Update(OpenMsg{})
+	return m.Update(nil)
 }
 
 func (m *Model) View() string {

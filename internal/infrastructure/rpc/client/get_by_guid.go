@@ -41,7 +41,7 @@ func (c RPCClient) GetByGUID(ctx context.Context, in *GetByGUIDIn) (*GetByGUIDOu
 	return &GetByGUIDOut{
 		GUID:          itemGUID,
 		EncryptedData: out.GetEncryptedData(),
-		CreatedAt:     out.CreatedAt.AsTime(),
-		UpdatedAt:     out.UpdatedAt.AsTime(),
+		CreatedAt:     out.GetCreatedAt().AsTime(),
+		UpdatedAt:     out.GetUpdatedAt().AsTime(),
 	}, nil
 }

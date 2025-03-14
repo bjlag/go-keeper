@@ -63,7 +63,7 @@ func (s RPCServer) RefreshTokens(ctx context.Context, in *pb.RefreshTokensIn) (*
 	return h(ctx, in)
 }
 
-func (s RPCServer) GetByGuid(ctx context.Context, in *pb.GetByGuidIn) (*pb.GetByGuidOut, error) {
+func (s RPCServer) GetByGuid(ctx context.Context, in *pb.GetByGuidIn) (*pb.GetByGuidOut, error) { //nolint:revive
 	handler, err := s.getHandler(GetByGUIDMethod)
 	if err != nil {
 		return nil, err

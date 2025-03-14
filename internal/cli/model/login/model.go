@@ -3,7 +3,6 @@ package login
 import (
 	"context"
 	"errors"
-	login2 "github.com/bjlag/go-keeper/internal/cli/message/login"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -16,7 +15,7 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element/button"
 	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
-	"github.com/bjlag/go-keeper/internal/cli/model/register"
+	"github.com/bjlag/go-keeper/internal/cli/message"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/infrastructure/validator"
 	"github.com/bjlag/go-keeper/internal/usecase/client/login"
@@ -41,11 +40,13 @@ type Model struct {
 	pos      int
 	err      error
 
+	fromRegister tea.Model
+
 	usecaseLogin     *login.Usecase
 	usecaseMasterKey *master_key.Usecase
 }
 
-func InitModel(usecaseLogin *login.Usecase, usecaseMasterKey *master_key.Usecase) *Model {
+func InitModel(usecaseLogin *login.Usecase, usecaseMasterKey *master_key.Usecase, fromRegister tea.Model) *Model {
 	f := &Model{
 		help:   help.New(),
 		header: "Авторизация",
@@ -56,6 +57,8 @@ func InitModel(usecaseLogin *login.Usecase, usecaseMasterKey *master_key.Usecase
 			posRegisterBtn: button.CreateDefaultButton("Регистрация"),
 			posCloseBtn:    button.CreateDefaultButton("Закрыть"),
 		},
+
+		fromRegister: fromRegister,
 
 		usecaseLogin:     usecaseLogin,
 		usecaseMasterKey: usecaseMasterKey,
@@ -94,13 +97,15 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		return f, nil
-	case login2.OpenMsg:
+	case message.OpenLoginMsg:
 		for i := range f.elements {
 			if e, ok := f.elements[i].(textinput.Model); ok {
 				e.SetValue("")
 				f.elements[i] = e
 			}
 		}
+	case message.SuccessMsg:
+		return f.main.Update(msg)
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, common.Keys.Quit):
@@ -148,8 +153,8 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case f.pos == posSubmitBtn || f.pos == posEmail || f.pos == posPassword:
 				return f.submit()
 			case f.pos == posRegisterBtn:
-				return f.main.Update(register.OpenMessage{
-					BackModel: f,
+				return f.fromRegister.Update(message.OpenRegisterMsg{
+					LoginModel: f,
 				})
 			case f.pos == posCloseBtn:
 				return f, tea.Quit
@@ -262,7 +267,7 @@ func (f *Model) submit() (tea.Model, tea.Cmd) {
 		return f, nil
 	}
 
-	return f.main.Update(login2.SuccessMsg{})
+	return f.main.Update(message.SuccessMsg{})
 }
 
 func (f *Model) updateInputs(msg tea.Msg) tea.Cmd {

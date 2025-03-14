@@ -5,10 +5,11 @@ import (
 	"io"
 	"strings"
 
-	"github.com/bjlag/go-keeper/internal/cli/style"
-	"github.com/bjlag/go-keeper/internal/domain/client"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+
+	"github.com/bjlag/go-keeper/internal/cli/style"
+	"github.com/bjlag/go-keeper/internal/domain/client"
 )
 
 func CreateDefaultList(title string, with, height int, itemDelegate list.ItemDelegate, items ...list.Item) list.Model {

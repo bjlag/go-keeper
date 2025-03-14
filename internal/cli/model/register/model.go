@@ -15,6 +15,7 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element/button"
 	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
+	"github.com/bjlag/go-keeper/internal/cli/message"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/infrastructure/validator"
 	"github.com/bjlag/go-keeper/internal/usecase/client/master_key"
@@ -31,14 +32,13 @@ const (
 var errUserAlreadyRegistered = common.NewFormError("Пользователь уже зарегистрирован")
 
 type Model struct {
-	main     tea.Model
 	help     help.Model
 	header   string
 	elements []interface{}
 	pos      int
 	err      error
 
-	backModel tea.Model
+	loginModel tea.Model
 
 	usecaseRegister  *register.Usecase
 	usecaseMasterKey *master_key.Usecase
@@ -78,10 +78,6 @@ func InitModel(usecaseRegister *register.Usecase, usecaseMasterKey *master_key.U
 	return f
 }
 
-func (f *Model) SetMainModel(m tea.Model) {
-	f.main = m
-}
-
 func (f *Model) Init() tea.Cmd {
 	return nil
 }
@@ -95,8 +91,8 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		return f, nil
-	case OpenMessage:
-		f.backModel = msg.BackModel
+	case message.OpenRegisterMsg:
+		f.loginModel = msg.LoginModel
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, common.Keys.Quit):
@@ -138,7 +134,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			return f, nil
 		case key.Matches(msg, common.Keys.Back):
-			return f.backModel.Update(common.BackMsg{})
+			return f.loginModel.Update(message.BackMsg{})
 		case key.Matches(msg, common.Keys.Enter):
 			f.err = nil
 
@@ -146,7 +142,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case f.pos == posSubmitBtn || f.pos == posEmail || f.pos == posPassword:
 				return f.submit()
 			case f.pos == posBackBtn:
-				return f.main.Update(common.BackMsg{})
+				return f.loginModel.Update(message.OpenLoginMsg{})
 			}
 
 			return f, nil
@@ -256,7 +252,7 @@ func (f *Model) submit() (tea.Model, tea.Cmd) {
 		return f, nil
 	}
 
-	return f.main.Update(SuccessMsg{})
+	return f.loginModel.Update(message.SuccessMsg{})
 }
 
 func (f *Model) updateInputs(msg tea.Msg) tea.Cmd {

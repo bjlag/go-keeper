@@ -2,7 +2,7 @@ package list
 
 import (
 	"context"
-	list2 "github.com/bjlag/go-keeper/internal/cli/message/list"
+	"errors"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -12,11 +12,14 @@ import (
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	elist "github.com/bjlag/go-keeper/internal/cli/element/list"
+	"github.com/bjlag/go-keeper/internal/cli/message"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/domain/client"
 	"github.com/bjlag/go-keeper/internal/fetcher/item"
 	"github.com/bjlag/go-keeper/internal/usecase/client/sync"
 )
+
+var errUnsupportedCategory = errors.New("unsupported category")
 
 const (
 	stateCategoryList int = iota
@@ -39,11 +42,23 @@ type Model struct {
 
 	selectedCategory client.Category
 
+	formPassword tea.Model
+	formText     tea.Model
+	formBankCard tea.Model
+	formFile     tea.Model
+
 	usecaseSync *sync.Usecase
 	fetcherItem *item.Fetcher
 }
 
-func InitModel(usecaseSync *sync.Usecase, fetcherItem *item.Fetcher) *Model {
+func InitModel(
+	usecaseSync *sync.Usecase,
+	fetcherItem *item.Fetcher,
+	formPassword tea.Model,
+	formText tea.Model,
+	formBankCard tea.Model,
+	formFile tea.Model,
+) *Model {
 	f := &Model{
 		help:       help.New(),
 		header:     "Категории",
@@ -52,6 +67,11 @@ func InitModel(usecaseSync *sync.Usecase, fetcherItem *item.Fetcher) *Model {
 
 		usecaseSync: usecaseSync,
 		fetcherItem: fetcherItem,
+
+		formPassword: formPassword,
+		formText:     formText,
+		formBankCard: formBankCard,
+		formFile:     formFile,
 	}
 
 	return f
@@ -71,21 +91,17 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		f.categories.SetWidth(msg.Width)
 		f.items.SetWidth(msg.Width)
 		return f, nil
-	case common.BackMsg:
+	case message.BackMsg:
 		switch msg.State {
 		case stateCategoryList:
-			return f.Update(list2.OpenCategoriesMsg{})
+			return f.Update(message.OpenCategoriesMsg{})
 		case stateItemList:
-			return f.Update(list2.OpenItemsMsg{})
+			return f.Update(message.OpenItemsMsg{})
 		}
-
-	case list2.GetDataMsg:
+	case message.OpenCategoriesMsg:
 		f.state = stateCategoryList
+
 		f.err = f.usecaseSync.Do(context.TODO())
-
-		return f.Update(list2.OpenCategoriesMsg{})
-	case list2.OpenCategoriesMsg:
-		f.state = stateCategoryList
 
 		f.categories.SetItems(nil)
 		f.categories.InsertItem(len(f.categories.Items()), elist.Category{Category: client.CategoryPassword, Title: client.CategoryPassword.String()})
@@ -94,7 +110,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		f.categories.InsertItem(len(f.categories.Items()), elist.Category{Category: client.CategoryBankCard, Title: client.CategoryBankCard.String()})
 
 		return f, nil
-	case list2.OpenItemsMsg:
+	case message.OpenItemsMsg:
 		f.state = stateItemList
 
 		if c, ok := f.categories.SelectedItem().(elist.Category); ok {
@@ -124,7 +140,7 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case stateCategoryList:
 				if c, ok := f.categories.SelectedItem().(elist.Category); ok {
 					f.selectedCategory = c.Category
-					return f.Update(list2.OpenItemsMsg{
+					return f.Update(message.OpenItemsMsg{
 						Category: c.Category,
 					})
 				}
@@ -132,12 +148,34 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if i, ok := f.items.SelectedItem().(elist.Item); ok {
 					f.selectedCategory = i.Model.Category
 
-					return f.main.Update(common.OpenItemMessage{
-						BackModel: f,
-						BackState: f.state,
-						Category:  i.Model.Category,
-						Item:      &i.Model,
-					})
+					switch i.Model.Category {
+					case client.CategoryPassword:
+						return f.formPassword.Update(message.OpenItemMsg{
+							BackModel: f,
+							BackState: f.state,
+							Item:      &i.Model,
+						})
+					case client.CategoryText:
+						return f.formText.Update(message.OpenItemMsg{
+							BackModel: f,
+							BackState: f.state,
+							Item:      &i.Model,
+						})
+					case client.CategoryBankCard:
+						return f.formBankCard.Update(message.OpenItemMsg{
+							BackModel: f,
+							BackState: f.state,
+							Item:      &i.Model,
+						})
+					case client.CategoryFile:
+						return f.formFile.Update(message.OpenItemMsg{
+							BackModel: f,
+							BackState: f.state,
+							Item:      &i.Model,
+						})
+					default:
+						f.err = errUnsupportedCategory
+					}
 				}
 			}
 
@@ -145,9 +183,9 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, common.Keys.Back):
 			switch f.state {
 			case stateCategoryList:
-				return f.main.Update(common.BackMsg{})
+				return f.main.Update(message.BackMsg{})
 			case stateItemList:
-				return f.Update(list2.OpenCategoriesMsg{})
+				return f.Update(message.OpenCategoriesMsg{})
 			}
 		}
 	}

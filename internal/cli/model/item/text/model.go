@@ -2,9 +2,6 @@ package text
 
 import (
 	"errors"
-	"github.com/bjlag/go-keeper/internal/cli/message/item/sync"
-	text2 "github.com/bjlag/go-keeper/internal/cli/message/item/text"
-	modelSync "github.com/bjlag/go-keeper/internal/cli/model/item/sync"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -18,6 +15,7 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/element/button"
 	tarea "github.com/bjlag/go-keeper/internal/cli/element/textarea"
 	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
+	"github.com/bjlag/go-keeper/internal/cli/message"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/domain/client"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/create"
@@ -50,7 +48,6 @@ const (
 var errUnsupportedCommand = errors.New("unsupported command")
 
 type Model struct {
-	main     tea.Model
 	help     help.Model
 	header   string
 	state    state
@@ -65,14 +62,14 @@ type Model struct {
 	item     *client.Item
 	category client.Category
 
-	formSync *modelSync.Model
+	formSync tea.Model
 
 	usecaseCreate *create.Usecase
 	usecaseEdit   *edit.Usecase
 	usecaseDelete *remove.Usecase
 }
 
-func InitModel(usecaseCreate *create.Usecase, usecaseSave *edit.Usecase, usecaseDelete *remove.Usecase, formSync *modelSync.Model) *Model {
+func InitModel(usecaseCreate *create.Usecase, usecaseSave *edit.Usecase, usecaseDelete *remove.Usecase, formSync tea.Model) *Model {
 	return &Model{
 		help:   help.New(),
 		header: "Текст",
@@ -84,10 +81,6 @@ func InitModel(usecaseCreate *create.Usecase, usecaseSave *edit.Usecase, usecase
 		usecaseEdit:   usecaseSave,
 		usecaseDelete: usecaseDelete,
 	}
-}
-
-func (m *Model) SetMainModel(model tea.Model) {
-	m.main = model
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -103,7 +96,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		return m, nil
-	case text2.OpenMsg:
+	case message.BackMsg:
+		if msg.Item != nil {
+			m.item = msg.Item
+		}
+		return m, nil
+	case message.OpenItemMsg:
 		m.backState = msg.BackState
 		m.backModel = msg.BackModel
 
@@ -193,7 +191,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.err = m.createAction()
 					return m, nil
 				case posCreateBackBtn:
-					return m.backModel.Update(common.BackMsg{
+					return m.backModel.Update(message.BackMsg{
 						State: m.backState,
 					})
 				default:
@@ -205,7 +203,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case posEditEditBtn:
 				err := m.editAction()
 				if err != nil && errors.Is(err, edit.ErrConflict) {
-					return m.formSync.Update(sync.OpenMsg{
+					return m.formSync.Update(message.OpenItemMsg{
 						BackModel: m,
 						Item:      m.item,
 					})
@@ -217,7 +215,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.err = m.deleteAction()
 				return m, nil
 			case posEditBackBtn:
-				return m.backModel.Update(common.BackMsg{
+				return m.backModel.Update(message.BackMsg{
 					State: m.backState,
 				})
 			default:
@@ -226,7 +224,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			return m, nil
 		case key.Matches(msg, common.Keys.Back):
-			return m.backModel.Update(common.BackMsg{
+			return m.backModel.Update(message.BackMsg{
 				State: m.backState,
 			})
 		}

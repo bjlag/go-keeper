@@ -25,6 +25,7 @@ linters:
         - nilnil
         - mnd
         - godox
+        - gocyclo
 
 linters-settings:
     revive:
