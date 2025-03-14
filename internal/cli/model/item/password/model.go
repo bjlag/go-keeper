@@ -2,16 +2,13 @@ package password
 
 import (
 	"errors"
-	sync2 "github.com/bjlag/go-keeper/internal/cli/model/item/sync"
-	"strings"
-	"time"
-
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/google/uuid"
+	"strings"
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element/button"
@@ -19,6 +16,7 @@ import (
 	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
 	message "github.com/bjlag/go-keeper/internal/cli/message/item/password"
 	"github.com/bjlag/go-keeper/internal/cli/message/item/sync"
+	modelSync "github.com/bjlag/go-keeper/internal/cli/model/item/sync"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/domain/client"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/create"
@@ -73,14 +71,14 @@ type Model struct {
 	item     *client.Item
 	category client.Category
 
-	formSync *sync2.Model
+	formSync *modelSync.Model
 
 	usecaseCreate *create.Usecase
 	usecaseEdit   *edit.Usecase
 	usecaseDelete *remove.Usecase
 }
 
-func InitModel(usecaseCreate *create.Usecase, usecaseSave *edit.Usecase, usecaseDelete *remove.Usecase, formSync *sync2.Model) *Model {
+func InitModel(usecaseCreate *create.Usecase, usecaseSave *edit.Usecase, usecaseDelete *remove.Usecase, formSync *modelSync.Model) *Model {
 	return &Model{
 		help:   help.New(),
 		header: "Пароль",
@@ -178,7 +176,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.elements[i] = style.SetFocusStyle(e)
 						continue
 					}
-					time.Now().Unix()
+
 					e.Blur()
 					m.elements[i] = style.SetNoStyle(e)
 				case textarea.Model:

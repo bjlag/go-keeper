@@ -12,6 +12,7 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/element/button"
 	"github.com/bjlag/go-keeper/internal/cli/message/item/password"
 	"github.com/bjlag/go-keeper/internal/cli/message/item/sync"
+	"github.com/bjlag/go-keeper/internal/cli/message/item/text"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/domain/client"
 	itemSync "github.com/bjlag/go-keeper/internal/usecase/client/item/sync"
@@ -124,11 +125,19 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m.prevModel.Update(password.OpenMsg{
 						Item: &m.item,
 					})
+				case client.CategoryText:
+					return m.prevModel.Update(text.OpenMsg{
+						Item: &m.item,
+					})
 				}
 			case posCancelBtn:
 				switch m.item.Category {
 				case client.CategoryPassword:
 					return m.prevModel.Update(password.OpenMsg{
+						Item: &m.item,
+					})
+				case client.CategoryText:
+					return m.prevModel.Update(text.OpenMsg{
 						Item: &m.item,
 					})
 				}

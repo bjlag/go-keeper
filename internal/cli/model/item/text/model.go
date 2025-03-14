@@ -2,7 +2,9 @@ package text
 
 import (
 	"errors"
+	"github.com/bjlag/go-keeper/internal/cli/message/item/sync"
 	text2 "github.com/bjlag/go-keeper/internal/cli/message/item/text"
+	modelSync "github.com/bjlag/go-keeper/internal/cli/model/item/sync"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -60,18 +62,23 @@ type Model struct {
 	backState int
 
 	guid     uuid.UUID
+	item     *client.Item
 	category client.Category
+
+	formSync *modelSync.Model
 
 	usecaseCreate *create.Usecase
 	usecaseEdit   *edit.Usecase
 	usecaseDelete *remove.Usecase
 }
 
-func InitModel(usecaseCreate *create.Usecase, usecaseSave *edit.Usecase, usecaseDelete *remove.Usecase) *Model {
+func InitModel(usecaseCreate *create.Usecase, usecaseSave *edit.Usecase, usecaseDelete *remove.Usecase, formSync *modelSync.Model) *Model {
 	return &Model{
 		help:   help.New(),
 		header: "Текст",
 		state:  stateCreate,
+
+		formSync: formSync,
 
 		usecaseCreate: usecaseCreate,
 		usecaseEdit:   usecaseSave,
@@ -103,6 +110,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.Item != nil {
 			m.state = stateEdit
 			m.header = msg.Item.Title
+			m.item = msg.Item
 			m.guid = msg.Item.GUID
 			m.category = msg.Item.Category
 
@@ -195,7 +203,15 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			switch m.pos {
 			case posEditEditBtn:
-				m.err = m.editAction()
+				err := m.editAction()
+				if err != nil && errors.Is(err, edit.ErrConflict) {
+					return m.formSync.Update(sync.OpenMsg{
+						BackModel: m,
+						Item:      m.item,
+					})
+				}
+
+				m.err = err
 				return m, nil
 			case posEditDeleteBtn:
 				m.err = m.deleteAction()

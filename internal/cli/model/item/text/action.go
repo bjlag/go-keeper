@@ -21,8 +21,9 @@ func (m *Model) editAction() error {
 		element.GetValue(m.elements, posEditTitle),
 		element.GetValue(m.elements, posEditNotes),
 	)
-
 	item.GUID = m.guid
+	item.CreatedAt = m.item.CreatedAt
+	item.UpdatedAt = m.item.UpdatedAt
 
 	return m.usecaseEdit.Do(context.TODO(), item)
 }

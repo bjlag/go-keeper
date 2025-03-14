@@ -82,6 +82,7 @@ func (u *Usecase) Do(ctx context.Context, guid uuid.UUID) (*model.Item, error) {
 		Category:  data.Category,
 		Title:     data.Title,
 		Value:     value,
+		Notes:     data.Notes,
 		CreatedAt: item.CreatedAt,
 		UpdatedAt: item.UpdatedAt,
 	}
