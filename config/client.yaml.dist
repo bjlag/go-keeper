@@ -4,6 +4,11 @@ server:
     host: localhost
     port: 8080
 
+masterKey:
+    saltLength: 16
+    iterCount: 100000
+    length: 32
+
 database:
     host: localhost
     port: 5444

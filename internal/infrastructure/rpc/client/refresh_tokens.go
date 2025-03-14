@@ -7,15 +7,18 @@ import (
 	"github.com/bjlag/go-keeper/internal/generated/rpc"
 )
 
+// RefreshTokensIn параметры запроса.
 type RefreshTokensIn struct {
-	RefreshToken string
+	RefreshToken string // RefreshToken refresh токен.
 }
 
+// RefreshTokensOut результат.
 type RefreshTokensOut struct {
-	AccessToken  string
-	RefreshToken string
+	AccessToken  string // AccessToken access токен.
+	RefreshToken string // RefreshToken refresh токен.
 }
 
+// RefreshTokens метод для обновления токенов используя refresh токен.
 func (c RPCClient) RefreshTokens(ctx context.Context, in RefreshTokensIn) (*RefreshTokensOut, error) {
 	const op = "client.rpc.RefreshTokens"
 

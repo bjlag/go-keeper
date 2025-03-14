@@ -1,3 +1,4 @@
+// Package sqlite отвечает за работу с базой данных SQLite.
 package sqlite
 
 import (
@@ -17,6 +18,7 @@ func New(dsn string) *SQLite {
 	}
 }
 
+// Connect создает подключение к базе.
 func (l SQLite) Connect() (*sqlx.DB, error) {
 	const op = "sqlite.Connect"
 

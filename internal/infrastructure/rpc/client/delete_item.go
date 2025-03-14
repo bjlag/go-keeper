@@ -9,10 +9,12 @@ import (
 	"github.com/bjlag/go-keeper/internal/generated/rpc"
 )
 
+// DeleteItemIn данные удаляемого элемента.
 type DeleteItemIn struct {
-	GUID uuid.UUID
+	GUID uuid.UUID // GUID удаляемого элемента.
 }
 
+// DeleteItem метод для удаления элемента.
 func (c RPCClient) DeleteItem(ctx context.Context, in *DeleteItemIn) error {
 	const op = "client.rpc.DeleteItem"
 

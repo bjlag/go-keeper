@@ -1,3 +1,4 @@
+// Package server настраивает и запускает сервер.
 package server
 
 import (

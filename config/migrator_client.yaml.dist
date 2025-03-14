@@ -1,10 +1,10 @@
 env: dev
 
-source_path: "./migrations/client"
-migrations_table: "migrations"
+sourcePath: "./migrations/client"
+migrationsTable: "migrations"
 
 database:
-    type: pg
+    type: sqlite
     host: localhost
     port: 5444
     name: master

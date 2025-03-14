@@ -1,3 +1,4 @@
+// Package client настраивает и запускает клиент.
 package client
 
 import (
@@ -35,12 +36,6 @@ import (
 	"github.com/bjlag/go-keeper/internal/usecase/client/sync"
 )
 
-const (
-	saltLength         = 16
-	masterKeyIterCount = 100_000
-	masterKeyLength    = 256 / 8
-)
-
 type App struct {
 	cfg Config
 	log *zap.Logger
@@ -75,8 +70,8 @@ func (a *App) Run(ctx context.Context) error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	salter := master_key.NewSaltGenerator(saltLength)
-	keymaker := master_key.NewKeyGenerator(masterKeyIterCount, masterKeyLength)
+	salter := master_key.NewSaltGenerator(a.cfg.MasterKey.SaltLength)
+	keymaker := master_key.NewKeyGenerator(a.cfg.MasterKey.IterCount, a.cfg.MasterKey.Length)
 	cipher := new(crypt.Cipher)
 
 	storeItem := sItem.NewStore(db)

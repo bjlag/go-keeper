@@ -24,6 +24,7 @@ func New(usecase usecase) *Handler {
 	}
 }
 
+// Handle метод для регистрации пользователя.
 func (h *Handler) Handle(ctx context.Context, in *pb.RegisterIn) (*pb.RegisterOut, error) {
 	log := logger.FromCtx(ctx)
 

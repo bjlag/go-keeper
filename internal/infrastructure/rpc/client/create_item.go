@@ -11,12 +11,14 @@ import (
 	"github.com/bjlag/go-keeper/internal/generated/rpc"
 )
 
+// CreateItemIn данные создаваемого элемента.
 type CreateItemIn struct {
-	GUID          uuid.UUID
-	EncryptedData []byte
-	CreatedAt     time.Time
+	GUID          uuid.UUID // GUID создаваемого элемента.
+	EncryptedData []byte    // EncryptedData секретные данные элемента в зашифрованном виде.
+	CreatedAt     time.Time // CreatedAt дата и время создания элемента.
 }
 
+// CreateItem метод для создания элемента.
 func (c RPCClient) CreateItem(ctx context.Context, in *CreateItemIn) error {
 	const op = "client.rpc.CreateItem"
 

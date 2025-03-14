@@ -1,3 +1,4 @@
+// Package refresh_tokens отвечает за обновление токенов на стороне сервера.
 package refresh_tokens
 
 import (

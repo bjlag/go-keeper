@@ -1,3 +1,4 @@
+// Package cipher отвечает за шифрование и дешифровку данных по переданному ключу.
 package cipher
 
 import (
@@ -13,6 +14,7 @@ type Cipher struct {
 	gcmInstance cipher.AEAD
 }
 
+// Encrypt шифрует переданные данные data используя переданный ключ key.
 func (c *Cipher) Encrypt(data, key []byte) ([]byte, error) {
 	err := c.setup(key)
 	if err != nil {
@@ -28,6 +30,7 @@ func (c *Cipher) Encrypt(data, key []byte) ([]byte, error) {
 	return c.gcmInstance.Seal(nonce, nonce, data, nil), nil
 }
 
+// Decrypt дешифрует переданные зашифрованные данные в encryptedData используя переданный ключ key.
 func (c *Cipher) Decrypt(encryptedData, key []byte) ([]byte, error) {
 	err := c.setup(key)
 	if err != nil {

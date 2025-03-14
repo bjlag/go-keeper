@@ -1,3 +1,4 @@
+// Package create описывает модель, которая выводит UI для создания элемента.
 package create
 
 import (

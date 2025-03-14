@@ -1,3 +1,4 @@
+// Package item отвечает за работу с элементами в базе данных на стороне клиента.
 package item
 
 import (
@@ -25,6 +26,7 @@ func NewStore(db *sqlx.DB) *Store {
 	}
 }
 
+// SaveItem сохраняет переданный элемент в базе.
 func (s *Store) SaveItem(ctx context.Context, item model.Item) error {
 	const op = prefixOp + "SaveItem"
 
@@ -50,6 +52,7 @@ func (s *Store) SaveItem(ctx context.Context, item model.Item) error {
 	return nil
 }
 
+// CreateItem создает переданную модель элемента в базе.
 func (s *Store) CreateItem(ctx context.Context, item model.Item) error {
 	const op = prefixOp + "CreateItem"
 
@@ -86,6 +89,7 @@ func (s *Store) CreateItem(ctx context.Context, item model.Item) error {
 	return nil
 }
 
+// DeleteItem удаляет элемент с переданным GUID из базы.
 func (s *Store) DeleteItem(ctx context.Context, guid uuid.UUID) error {
 	const op = prefixOp + "DeleteItem"
 
@@ -101,6 +105,7 @@ func (s *Store) DeleteItem(ctx context.Context, guid uuid.UUID) error {
 	return nil
 }
 
+// SaveItems сохраняет несколько элементов.
 func (s *Store) SaveItems(ctx context.Context, items []model.RawItem) error {
 	// todo пределать на модель model.Item
 	const op = prefixOp + "SaveItems"
@@ -138,6 +143,7 @@ func (s *Store) SaveItems(ctx context.Context, items []model.RawItem) error {
 	return nil
 }
 
+// ItemsByCategory получает элементы указанной категории.
 func (s *Store) ItemsByCategory(ctx context.Context, category model.Category) ([]model.RawItem, error) {
 	const op = prefixOp + "Passwords"
 

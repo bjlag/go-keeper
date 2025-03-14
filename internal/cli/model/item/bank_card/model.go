@@ -1,3 +1,4 @@
+// Package bank_card описывает модель для работы UI с банковскими картами.
 package bank_card
 
 import (

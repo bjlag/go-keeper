@@ -10,22 +10,26 @@ import (
 	"github.com/bjlag/go-keeper/internal/generated/rpc"
 )
 
+// GetAllItemsIn параметры запроса.
 type GetAllItemsIn struct {
-	Limit  uint32
-	Offset uint32
+	Limit  uint32 // Limit сколько получить данных максимум.
+	Offset uint32 // Offset с какой позиции получать данные.
 }
 
+// GetAllItemsOut результат работы.
 type GetAllItemsOut struct {
-	Items []GetAllDataItem
+	Items []GetAllDataItem // Items список полученных элементов.
 }
 
+// GetAllDataItem данные полученного элемента.
 type GetAllDataItem struct {
-	GUID          uuid.UUID
-	EncryptedData []byte
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	GUID          uuid.UUID // GUID идентификатор.
+	EncryptedData []byte    // EncryptedData зашифрованные данные.
+	CreatedAt     time.Time // CreatedAt дата и время создания.
+	UpdatedAt     time.Time // UpdatedAt дата и время обновления.
 }
 
+// GetAllItems метод для получения всех данных авторизованного пользователя.
 func (c RPCClient) GetAllItems(ctx context.Context, in *GetAllItemsIn) (*GetAllItemsOut, error) {
 	const op = "client.rpc.GetAllItems"
 

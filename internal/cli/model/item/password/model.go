@@ -1,3 +1,4 @@
+// Package password описывает модель для работы UI с паролями.
 package password
 
 import (

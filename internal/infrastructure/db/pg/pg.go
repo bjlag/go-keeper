@@ -1,3 +1,4 @@
+// Package pg отвечает за работу с базой данных PostgreSQL.
 package pg
 
 import (
@@ -26,6 +27,7 @@ func New(dsn string) *PG {
 	}
 }
 
+// Connect создает подключение к базе.
 func (p *PG) Connect() (*sqlx.DB, error) {
 	const op = "pg.Connect"
 

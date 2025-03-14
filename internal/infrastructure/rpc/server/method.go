@@ -10,6 +10,7 @@ import (
 	pb "github.com/bjlag/go-keeper/internal/generated/rpc"
 )
 
+// Зарегистрированные методы.
 const (
 	RegisterMethod      = "Register"
 	LoginMethod         = "Login"
@@ -21,6 +22,7 @@ const (
 	DeleteItemMethod    = "DeleteItem"
 )
 
+// Register регистрация пользователя.
 func (s RPCServer) Register(ctx context.Context, in *pb.RegisterIn) (*pb.RegisterOut, error) {
 	handler, err := s.getHandler(RegisterMethod)
 	if err != nil {
@@ -35,6 +37,7 @@ func (s RPCServer) Register(ctx context.Context, in *pb.RegisterIn) (*pb.Registe
 	return h(ctx, in)
 }
 
+// Login аутентификация пользователя.
 func (s RPCServer) Login(ctx context.Context, in *pb.LoginIn) (*pb.LoginOut, error) {
 	handler, err := s.getHandler(LoginMethod)
 	if err != nil {
@@ -49,6 +52,7 @@ func (s RPCServer) Login(ctx context.Context, in *pb.LoginIn) (*pb.LoginOut, err
 	return h(ctx, in)
 }
 
+// RefreshTokens обновление токенов.
 func (s RPCServer) RefreshTokens(ctx context.Context, in *pb.RefreshTokensIn) (*pb.RefreshTokensOut, error) {
 	handler, err := s.getHandler(RefreshTokensMethod)
 	if err != nil {
@@ -63,6 +67,7 @@ func (s RPCServer) RefreshTokens(ctx context.Context, in *pb.RefreshTokensIn) (*
 	return h(ctx, in)
 }
 
+// GetByGuid получение элемента по его GUID.
 func (s RPCServer) GetByGuid(ctx context.Context, in *pb.GetByGuidIn) (*pb.GetByGuidOut, error) { //nolint:revive
 	handler, err := s.getHandler(GetByGUIDMethod)
 	if err != nil {
@@ -77,6 +82,7 @@ func (s RPCServer) GetByGuid(ctx context.Context, in *pb.GetByGuidIn) (*pb.GetBy
 	return h(ctx, in)
 }
 
+// GetAllItems получение всех элементов.
 func (s RPCServer) GetAllItems(ctx context.Context, in *pb.GetAllItemsIn) (*pb.GetAllItemsOut, error) {
 	handler, err := s.getHandler(GetAllItemsMethod)
 	if err != nil {
@@ -91,6 +97,7 @@ func (s RPCServer) GetAllItems(ctx context.Context, in *pb.GetAllItemsIn) (*pb.G
 	return h(ctx, in)
 }
 
+// CreateItem создание элемента.
 func (s RPCServer) CreateItem(ctx context.Context, in *pb.CreateItemIn) (*emptypb.Empty, error) {
 	handler, err := s.getHandler(CreateItemMethod)
 	if err != nil {
@@ -105,6 +112,7 @@ func (s RPCServer) CreateItem(ctx context.Context, in *pb.CreateItemIn) (*emptyp
 	return h(ctx, in)
 }
 
+// UpdateItem обновление элемента.
 func (s RPCServer) UpdateItem(ctx context.Context, in *pb.UpdateItemIn) (*pb.UpdateItemOut, error) {
 	handler, err := s.getHandler(UpdateItemMethod)
 	if err != nil {
@@ -119,6 +127,7 @@ func (s RPCServer) UpdateItem(ctx context.Context, in *pb.UpdateItemIn) (*pb.Upd
 	return h(ctx, in)
 }
 
+// DeleteItem удаление элемента.
 func (s RPCServer) DeleteItem(ctx context.Context, in *pb.DeleteItemIn) (*emptypb.Empty, error) {
 	handler, err := s.getHandler(DeleteItemMethod)
 	if err != nil {

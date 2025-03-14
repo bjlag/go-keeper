@@ -16,7 +16,7 @@ type row struct {
 	UpdatedAt    time.Time `db:"updated_at"`
 }
 
-func convertToRow(m *model.User) row {
+func convertToRow(m model.User) row {
 	return row{
 		GUID:         m.GUID,
 		Email:        m.Email,

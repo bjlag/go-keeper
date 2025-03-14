@@ -1,3 +1,4 @@
+// Package text описывает модель для работы UI с текстом.
 package text
 
 import (

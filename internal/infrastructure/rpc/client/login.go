@@ -7,16 +7,19 @@ import (
 	"github.com/bjlag/go-keeper/internal/generated/rpc"
 )
 
+// LoginIn параметры запроса.
 type LoginIn struct {
-	Email    string
-	Password string
+	Email    string // Email пользователя.
+	Password string // Password пароль пользователя.
 }
 
+// LoginOut результат.
 type LoginOut struct {
-	AccessToken  string
-	RefreshToken string
+	AccessToken  string // AccessToken access токен.
+	RefreshToken string // RefreshToken refresh токен.
 }
 
+// Login метод для аутентификации пользователя.
 func (c RPCClient) Login(ctx context.Context, in LoginIn) (*LoginOut, error) {
 	const op = "client.rpc.Login"
 

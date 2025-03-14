@@ -12,6 +12,7 @@ import (
 	"github.com/bjlag/go-keeper/internal/domain/client"
 )
 
+// CreateDefaultList создает список [list.Model] с заранее определенными стилями и элементами списка.
 func CreateDefaultList(title string, with, height int, itemDelegate list.ItemDelegate, items ...list.Item) list.Model {
 	l := list.New(items, itemDelegate, with, height)
 
@@ -25,6 +26,7 @@ func CreateDefaultList(title string, with, height int, itemDelegate list.ItemDel
 	return l
 }
 
+// Category описывает элемент списка для категорий.
 type Category struct {
 	Category client.Category
 	Title    string
@@ -64,6 +66,7 @@ func (d CategoryDelegate) Render(w io.Writer, m list.Model, index int, listItem 
 	_, _ = fmt.Fprint(w, fn(str))
 }
 
+// Item описывает элемент списка для конкретной записи: пароль, текст и пр.
 type Item struct {
 	Model client.Item
 }

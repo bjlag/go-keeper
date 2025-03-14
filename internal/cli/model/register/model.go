@@ -1,3 +1,4 @@
+// Package register описывает модель для работы UI регистрации пользователя.
 package register
 
 import (

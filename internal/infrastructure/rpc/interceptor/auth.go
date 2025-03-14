@@ -18,16 +18,21 @@ import (
 )
 
 const (
-	AuthMeta   = "authorization"
+	// authMeta мета заголовок, в котором лежит access токен.
+	authMeta = "authorization"
+	// bearerAuth метод аутентификации.
 	bearerAuth = "Bearer"
 )
 
+// methodSkip содержит gRPC методы, у которых не надо проверять аутентификацию.
 var methodSkip = map[string]struct{}{
 	rpc.Keeper_Login_FullMethodName:         {},
 	rpc.Keeper_Register_FullMethodName:      {},
 	rpc.Keeper_RefreshTokens_FullMethodName: {},
 }
 
+// CheckAccessTokenServerInterceptor клиентский интерцептор, который перед запросом к серверу кладет мета заголовок
+// в запрос с access токеном, чтобы сервер мог проверить аутентифицирован пользователь или нет.
 func CheckAccessTokenServerInterceptor(jwt *auth.JWT, log *zap.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		if _, ok := methodSkip[info.FullMethod]; ok {
@@ -39,7 +44,7 @@ func CheckAccessTokenServerInterceptor(jwt *auth.JWT, log *zap.Logger) grpc.Unar
 			return nil, status.Errorf(codes.PermissionDenied, "permission denied")
 		}
 
-		meta := md.Get(AuthMeta)
+		meta := md.Get(authMeta)
 		if len(meta) == 0 {
 			return nil, status.Errorf(codes.PermissionDenied, "permission denied")
 		}
@@ -62,13 +67,15 @@ func CheckAccessTokenServerInterceptor(jwt *auth.JWT, log *zap.Logger) grpc.Unar
 	}
 }
 
+// AuthClientInterceptor интерцептор, который на стороне сервера, перед исполнением запроса, проверяет
+// по переданной информации с клиента, аутентифицирован пользователь или нет.
 func AuthClientInterceptor(tokens *token.Store) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		if _, ok := methodSkip[method]; ok {
 			return invoker(ctx, method, req, reply, cc, opts...)
 		}
 
-		ctx = metadata.AppendToOutgoingContext(ctx, AuthMeta, fmt.Sprintf("%s %s", bearerAuth, tokens.AccessToken()))
+		ctx = metadata.AppendToOutgoingContext(ctx, authMeta, fmt.Sprintf("%s %s", bearerAuth, tokens.AccessToken()))
 		err := invoker(ctx, method, req, reply, cc, opts...)
 		if status.Code(err) == codes.PermissionDenied {
 			in := &rpc.RefreshTokensIn{
@@ -90,7 +97,7 @@ func AuthClientInterceptor(tokens *token.Store) grpc.UnaryClientInterceptor {
 				md = metadata.New(nil)
 			}
 
-			md.Set(AuthMeta, fmt.Sprintf("%s %s", bearerAuth, tokens.AccessToken()))
+			md.Set(authMeta, fmt.Sprintf("%s %s", bearerAuth, tokens.AccessToken()))
 			err = invoker(metadata.NewOutgoingContext(ctx, md), method, req, reply, cc, opts...)
 		}
 

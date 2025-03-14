@@ -81,6 +81,11 @@ proto:
 	@echo "  >  Generate gRPC"
 	@protoc --go_out=. --go_opt=paths=import --go-grpc_out=. --go-grpc_opt=paths=import --go-grpc_opt=require_unimplemented_servers=false proto/*
 
+## doc: open documentation
+.PHONY: doc
+doc:
+	godoc -http=:8888 -play
+
 .PHONY: help
 help: Makefile
 	@echo

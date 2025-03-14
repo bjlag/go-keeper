@@ -1,3 +1,4 @@
+// Package list описывает модель для работы UI списка категорий и элементов.
 package list
 
 import (

@@ -1,3 +1,4 @@
+// Package login описывает модель для работы UI аутентификации пользователя.
 package login
 
 import (

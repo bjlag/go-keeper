@@ -1,3 +1,4 @@
+// Package sync отвечает за сценарий синхронизации клиента с сервером.
 package sync
 
 import (

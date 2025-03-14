@@ -6,10 +6,16 @@ import (
 	"github.com/google/uuid"
 )
 
+// User описывает пользователя.
 type User struct {
-	GUID         uuid.UUID
-	Email        string
+	// GUID уникальный идентификатор пользователя.
+	GUID uuid.UUID
+	// Email пользователя.
+	Email string
+	// PasswordHash хеш пароля.
 	PasswordHash string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	// CreatedAt дата и время создания пользователя.
+	CreatedAt time.Time
+	// UpdatedAt дата и время обновления пользователя.
+	UpdatedAt time.Time
 }

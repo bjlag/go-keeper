@@ -1,3 +1,4 @@
+// Package auth отвечает за выпуск JWT токенов и работу с ними.
 package auth
 
 import (
@@ -40,6 +41,7 @@ func NewJWT(secretKey string, accessTokenExp, refreshTokenExp time.Duration) *JW
 	}
 }
 
+// GetUserGUIDFromAccessToken получает GUID пользователя из переданного access токена.
 func (g *JWT) GetUserGUIDFromAccessToken(tokenString string) (uuid.UUID, error) {
 	const op = prefixOp + "GetUserGUIDFromAccessToken"
 
@@ -64,6 +66,7 @@ func (g *JWT) GetUserGUIDFromAccessToken(tokenString string) (uuid.UUID, error) 
 	return guid, nil
 }
 
+// GetUserGUIDFromRefreshToken получает GUID пользователя из переданного refresh токена.
 func (g *JWT) GetUserGUIDFromRefreshToken(tokenString string) (uuid.UUID, error) {
 	const op = prefixOp + "GetUserGUIDFromRefreshToken"
 
@@ -88,6 +91,7 @@ func (g *JWT) GetUserGUIDFromRefreshToken(tokenString string) (uuid.UUID, error)
 	return guid, nil
 }
 
+// GenerateTokens генерирует и возвращает пару токенов: access и refresh.
 func (g *JWT) GenerateTokens(uuid string) (accessToken string, refreshToken string, err error) {
 	const op = prefixOp + "GenerateTokens"
 
@@ -107,6 +111,9 @@ func (g *JWT) GenerateTokens(uuid string) (accessToken string, refreshToken stri
 	return
 }
 
+// GenerateAccessToken генерирует и возвращает access токен.
+// В claims токена кладет GUID переданного пользователя.
+// Используется для аутентификации пользователя.
 func (g *JWT) GenerateAccessToken(uuid string) (string, *Claims, error) {
 	const op = prefixOp + "GenerateAccessToken"
 
@@ -129,6 +136,9 @@ func (g *JWT) GenerateAccessToken(uuid string) (string, *Claims, error) {
 	return tokenString, claim, nil
 }
 
+// GenerateRefreshToken генерирует и возвращает refresh токен.
+// В claims токена кладет GUID переданного пользователя.
+// Используется для обновления access и refresh токенов.
 func (g *JWT) GenerateRefreshToken(cl *Claims) (string, error) {
 	const op = prefixOp + "GenerateRefreshToken"
 
@@ -151,6 +161,7 @@ func (g *JWT) GenerateRefreshToken(cl *Claims) (string, error) {
 	return tokenString, nil
 }
 
+// ParseToken парсит токен из его строкового представления в tokenString.
 func (g *JWT) ParseToken(tokenString, subjectClaim string) (*jwt.Token, *Claims, error) {
 	const op = prefixOp + "ParseToken"
 

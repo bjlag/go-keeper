@@ -1,3 +1,4 @@
+// Package option отвечает за работу с опциями в базе данных на стороне клиента.
 package option
 
 import (
@@ -23,6 +24,8 @@ func NewStore(db *sqlx.DB) *Store {
 	}
 }
 
+// SaveOption сохраняет переданную модель опции в базе данных.
+// Если элемента в базе нет, то создает.
 func (s *Store) SaveOption(ctx context.Context, option model.Option) error {
 	const op = prefixOp + "SaveOption"
 
@@ -42,6 +45,7 @@ func (s *Store) SaveOption(ctx context.Context, option model.Option) error {
 	return nil
 }
 
+// OptionBySlug получает опцию по ее слагу.
 func (s *Store) OptionBySlug(ctx context.Context, slug string) (*model.Option, error) {
 	const op = prefixOp + "OptionBySlug"
 

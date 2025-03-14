@@ -9,12 +9,14 @@ import (
 	"github.com/bjlag/go-keeper/internal/generated/rpc"
 )
 
+// UpdateItemIn параметры запроса.
 type UpdateItemIn struct {
-	GUID          uuid.UUID
-	EncryptedData []byte
-	Version       int64
+	GUID          uuid.UUID // GUID идентификатор обновляемого элемента.
+	EncryptedData []byte    // EncryptedData зашифрованные данные элемента
+	Version       int64     // Version версия, с которой обновляем элемент (текущая версия).
 }
 
+// UpdateItem метод для обновления элемента.
 func (c RPCClient) UpdateItem(ctx context.Context, in *UpdateItemIn) (int64, error) {
 	const op = "client.rpc.UpdateItem"
 

@@ -1,3 +1,4 @@
+// Package get_by_guid отвечает за получение элемента на стороне сервера.
 package get_by_guid
 
 import (

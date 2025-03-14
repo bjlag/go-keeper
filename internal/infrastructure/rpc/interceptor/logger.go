@@ -10,6 +10,7 @@ import (
 	"github.com/bjlag/go-keeper/internal/infrastructure/logger"
 )
 
+// LoggerServerInterceptor интерцептор логирующий запросы на стороне сервера.
 func LoggerServerInterceptor(log *zap.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		hLog := log
@@ -28,6 +29,7 @@ func LoggerServerInterceptor(log *zap.Logger) grpc.UnaryServerInterceptor {
 	}
 }
 
+// LoggerClientInterceptor интерцептор логирующий запросы на стороне клиента.
 func LoggerClientInterceptor(log *zap.Logger) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		err := invoker(ctx, method, req, reply, cc, opts...)

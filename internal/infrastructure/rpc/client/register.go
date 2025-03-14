@@ -7,16 +7,19 @@ import (
 	"github.com/bjlag/go-keeper/internal/generated/rpc"
 )
 
+// RegisterIn параметры запроса.
 type RegisterIn struct {
-	Email    string
-	Password string
+	Email    string // Email пользователя.
+	Password string // Password пароль пользователя.
 }
 
+// RegisterOut результат.
 type RegisterOut struct {
-	AccessToken  string
-	RefreshToken string
+	AccessToken  string // AccessToken access токен.
+	RefreshToken string // RefreshToken refresh токен.
 }
 
+// Register метод для регистрации пользователя.
 func (c RPCClient) Register(ctx context.Context, in RegisterIn) (*RegisterOut, error) {
 	const op = "client.rpc.Register"
 

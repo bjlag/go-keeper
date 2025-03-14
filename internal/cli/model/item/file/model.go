@@ -1,3 +1,4 @@
+// Package file описывает модель для работы UI с файлами (бинарными данными).
 package file
 
 import (

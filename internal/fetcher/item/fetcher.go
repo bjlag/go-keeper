@@ -1,3 +1,4 @@
+// Package item отвечает за получение данных по элементам.
 package item
 
 import (
@@ -11,6 +12,8 @@ import (
 
 const prefixOp = "fetcher.item"
 
+// ErrUnknownCategory ошибка на случай если получены данные, значение которых не известны.
+// Неизвестно, в какую модель их раскладывать.
 var ErrUnknownCategory = errors.New("unknown category")
 
 type Fetcher struct {
@@ -23,6 +26,7 @@ func NewFetcher(itemStore itemStore) *Fetcher {
 	}
 }
 
+// ItemsByCategory получает элементы из локальной базы клиента по указанной категории.
 func (u *Fetcher) ItemsByCategory(ctx context.Context, category model.Category) ([]model.Item, error) {
 	const op = prefixOp + ".ItemsByCategory"
 

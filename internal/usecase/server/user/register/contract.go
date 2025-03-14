@@ -8,7 +8,7 @@ import (
 
 type userStore interface {
 	GetByEmail(ctx context.Context, email string) (*model.User, error)
-	Add(ctx context.Context, user *model.User) error
+	Add(ctx context.Context, user model.User) error
 }
 
 type tokenGenerator interface {

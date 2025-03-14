@@ -25,6 +25,7 @@ func New(usecase usecase) *Handler {
 	}
 }
 
+// Handle метод для обновления токенов по refresh токену.
 func (h *Handler) Handle(ctx context.Context, in *pb.RefreshTokensIn) (*pb.RefreshTokensOut, error) {
 	log := logger.FromCtx(ctx)
 

@@ -25,6 +25,7 @@ func New(usecase usecase) *Handler {
 	}
 }
 
+// Handle метод создания элемента для аутентифицированного пользователя.
 func (h *Handler) Handle(ctx context.Context, in *pb.CreateItemIn) (*emptypb.Empty, error) {
 	log := logger.FromCtx(ctx)
 

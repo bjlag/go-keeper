@@ -1,3 +1,4 @@
+// Package logger отвечает за создание логгера и работу с ним.
 package logger
 
 import (
@@ -12,6 +13,7 @@ import (
 
 type ctxKeyLogger int
 
+// IDLoggerKey ID ключа для работы с логгером через контекст.
 const IDLoggerKey ctxKeyLogger = 0
 
 var (
@@ -19,6 +21,8 @@ var (
 	logger *zap.Logger
 )
 
+// Get получить логгер. Используется паттерн Singletone.
+// При первом получении создается экземпляр логгера и кладется в глобальную переменную пакета.
 func Get(env string) *zap.Logger {
 	once.Do(func() {
 		var config zap.Config
@@ -42,6 +46,7 @@ func Get(env string) *zap.Logger {
 	return logger
 }
 
+// FromCtx получает логгер из контекста.
 func FromCtx(ctx context.Context) *zap.Logger {
 	if l, ok := ctx.Value(IDLoggerKey).(*zap.Logger); ok {
 		return l
@@ -52,6 +57,7 @@ func FromCtx(ctx context.Context) *zap.Logger {
 	return zap.NewNop()
 }
 
+// WithCtx кладет логгер в контекст.
 func WithCtx(ctx context.Context, l *zap.Logger) context.Context {
 	if lp, ok := ctx.Value(IDLoggerKey).(*zap.Logger); ok {
 		if lp == l {

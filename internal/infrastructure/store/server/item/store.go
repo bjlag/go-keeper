@@ -1,3 +1,4 @@
+// Package item отвечает за работу с элементами в базе данных на стороне сервера.
 package item
 
 import (
@@ -13,8 +14,10 @@ import (
 )
 
 var (
+	// ErrNotAffectedRows ошибка в случае, если при обновлении не было задето ни одной записи.
 	ErrNotAffectedRows = errors.New("not affected")
-	ErrNotFound        = errors.New("not found")
+	// ErrNotFound ошибка в случае, если не было найдено ни одной записи.
+	ErrNotFound = errors.New("not found")
 )
 
 type Store struct {
@@ -27,6 +30,7 @@ func NewStore(db *sqlx.DB) *Store {
 	}
 }
 
+// GetAllByUser получить все элементы пользователя.
 func (s *Store) GetAllByUser(ctx context.Context, userGUID uuid.UUID, limit, offset uint32) ([]model.Item, error) {
 	const op = "store.item.GetAllByUser"
 
@@ -47,6 +51,7 @@ func (s *Store) GetAllByUser(ctx context.Context, userGUID uuid.UUID, limit, off
 	return convertToModels(rows), nil
 }
 
+// ItemByGUID получить элемент по его GUID.
 func (s *Store) ItemByGUID(ctx context.Context, guid uuid.UUID) (*model.Item, error) {
 	const op = "store.item.ItemByGUID"
 
@@ -69,6 +74,7 @@ func (s *Store) ItemByGUID(ctx context.Context, guid uuid.UUID) (*model.Item, er
 	return &result, nil
 }
 
+// UserItemByGUID получить элемент пользователя по его GUID.
 func (s *Store) UserItemByGUID(ctx context.Context, userGUID, itemGUID uuid.UUID) (*model.Item, error) {
 	const op = "store.item.UserItemByGUID"
 
@@ -91,6 +97,7 @@ func (s *Store) UserItemByGUID(ctx context.Context, userGUID, itemGUID uuid.UUID
 	return &result, nil
 }
 
+// Create создать элемент по переданной модели.
 func (s *Store) Create(ctx context.Context, item model.Item) error {
 	const op = "store.item.Create"
 
@@ -115,6 +122,7 @@ func (s *Store) Create(ctx context.Context, item model.Item) error {
 	return nil
 }
 
+// Update обновить элемент пользователя.
 func (s *Store) Update(ctx context.Context, guid uuid.UUID, userGUID uuid.UUID, data model.UpdatedItem) error {
 	const op = "store.item.Update"
 
@@ -147,6 +155,7 @@ func (s *Store) Update(ctx context.Context, guid uuid.UUID, userGUID uuid.UUID, 
 	return nil
 }
 
+// Delete удалить элемент пользователя.
 func (s *Store) Delete(ctx context.Context, guid uuid.UUID, userGUID uuid.UUID) error {
 	const op = "store.item.Delete"
 

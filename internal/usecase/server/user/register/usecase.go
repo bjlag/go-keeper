@@ -1,3 +1,4 @@
+// Package register отвечает за регистрацию пользователя на стороне сервера.
 package register
 
 import (
@@ -43,7 +44,7 @@ func (u Usecase) Do(ctx context.Context, data Data) (*Result, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	user := &model.User{
+	user := model.User{
 		GUID:         uuid.New(),
 		Email:        data.Email,
 		PasswordHash: string(passwordHash),

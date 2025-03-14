@@ -24,6 +24,7 @@ func New(usecase usecase) *Handler {
 	}
 }
 
+// Handle метод для аутентификации пользователя.
 func (h *Handler) Handle(ctx context.Context, in *pb.LoginIn) (*pb.LoginOut, error) {
 	log := logger.FromCtx(ctx)
 

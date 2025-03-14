@@ -1,3 +1,4 @@
+// Package create отвечает за сценарий создания элемента на стороне клиента.
 package create
 
 import (

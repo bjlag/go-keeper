@@ -25,6 +25,7 @@ func New(usecase usecase) *Handler {
 	}
 }
 
+// Handle метод для обновления элемента аутентифицированного пользователя.
 func (h *Handler) Handle(ctx context.Context, in *pb.UpdateItemIn) (*pb.UpdateItemOut, error) {
 	log := logger.FromCtx(ctx)
 

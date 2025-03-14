@@ -6,15 +6,21 @@ import (
 	"github.com/google/uuid"
 )
 
+// Category тип под категорию.
 type Category int
 
 const (
+	// CategoryPassword пароль.
 	CategoryPassword Category = iota
+	// CategoryText текст.
 	CategoryText
+	// CategoryFile файл (бинарные данные).
 	CategoryFile
+	// CategoryBankCard банковская карта.
 	CategoryBankCard
 )
 
+// String возвращает строковое представление категории.
 func (c Category) String() string {
 	switch c {
 	case CategoryPassword:
@@ -29,6 +35,7 @@ func (c Category) String() string {
 	return ""
 }
 
+// RawItem описывает элемент как он приходит с сервера.
 type RawItem struct {
 	GUID      uuid.UUID
 	Category  Category
@@ -39,6 +46,8 @@ type RawItem struct {
 	UpdatedAt time.Time
 }
 
+// Item содержит элемент после разбора.
+// В Value будет лежать структура в зависимости от категории Category - Password, File, BankCard.
 type Item struct {
 	GUID      uuid.UUID
 	Category  Category
@@ -49,6 +58,7 @@ type Item struct {
 	UpdatedAt time.Time
 }
 
+// NewItem создает новый элемент.
 func NewItem(category Category, title string, value interface{}, note string) Item {
 	now := time.Now()
 	return Item{
@@ -62,6 +72,7 @@ func NewItem(category Category, title string, value interface{}, note string) It
 	}
 }
 
+// NewPasswordItem создает новый элемент категории CategoryPassword.
 func NewPasswordItem(title, login, password, note string) Item {
 	return NewItem(
 		CategoryPassword,
@@ -74,6 +85,7 @@ func NewPasswordItem(title, login, password, note string) Item {
 	)
 }
 
+// NewTextItem создает новый элемент категории CategoryText.
 func NewTextItem(title, note string) Item {
 	return NewItem(
 		CategoryText,
@@ -83,6 +95,7 @@ func NewTextItem(title, note string) Item {
 	)
 }
 
+// NewBankCardItem создает новый элемент категории CategoryBankCard.
 func NewBankCardItem(title, number, cvv, expiry, note string) Item {
 	return NewItem(
 		CategoryBankCard,
@@ -96,6 +109,7 @@ func NewBankCardItem(title, number, cvv, expiry, note string) Item {
 	)
 }
 
+// NewFileItem создает новый элемент категории CategoryFile.
 func NewFileItem(title, name string, data []byte, note string) Item {
 	return NewItem(
 		CategoryFile,
@@ -108,18 +122,28 @@ func NewFileItem(title, name string, data []byte, note string) Item {
 	)
 }
 
+// Password описывает пароль.
 type Password struct {
-	Login    string `json:"login"`
+	// Login логин.
+	Login string `json:"login"`
+	// Password пароль.
 	Password string `json:"password"`
 }
 
+// File файл.
 type File struct {
+	// Name название файла.
 	Name string `json:"path"`
+	// Data контент файла.
 	Data []byte `json:"data"`
 }
 
+// BankCard банковская карта.
 type BankCard struct {
+	// Number номер карты.
 	Number string `json:"number"`
-	CVV    string `json:"cvv"`
+	// CVV код.
+	CVV string `json:"cvv"`
+	// Expiry действует до.
 	Expiry string `json:"exp"`
 }

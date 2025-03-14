@@ -26,6 +26,7 @@ func New(usecase usecase) *Handler {
 	}
 }
 
+// Handle метод получение элемента по его GUID аутентифицированного пользователя.
 func (h *Handler) Handle(ctx context.Context, in *pb.GetByGuidIn) (*pb.GetByGuidOut, error) {
 	log := logger.FromCtx(ctx)
 

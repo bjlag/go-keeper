@@ -1,3 +1,4 @@
+// Package update отвечает за обновление элемента на стороне сервера.
 package update
 
 import (

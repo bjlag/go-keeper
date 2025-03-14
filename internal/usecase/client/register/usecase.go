@@ -1,3 +1,4 @@
+// Package register отвечает за сценарий регистрации пользователя на стороне клиента.
 package register
 
 import (

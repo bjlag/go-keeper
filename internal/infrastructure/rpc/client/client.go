@@ -1,3 +1,4 @@
+// Package client содержит логику для работы с сервером через RPC протокол.
 package client
 
 import (
@@ -17,6 +18,9 @@ type RPCClient struct {
 	client rpc.KeeperClient
 }
 
+// NewRPCClient создает gRPC подключение к серверу расположенному на хосте serverHost и порте serverPort.
+// tokensStore используется для интерцептора отвечающего за авторизацию клиента.
+// log используется для интерцептора по логированию запросов.
 func NewRPCClient(serverHost string, serverPort int, tokensStore *token.Store, log *zap.Logger) (*RPCClient, error) {
 	conn, err := grpc.NewClient(
 		fmt.Sprintf("%s:%d", serverHost, serverPort),
@@ -36,6 +40,7 @@ func NewRPCClient(serverHost string, serverPort int, tokensStore *token.Store, l
 	}, nil
 }
 
+// Close закрывает подключение.
 func (c RPCClient) Close() error {
 	return c.conn.Close()
 }

@@ -1,3 +1,4 @@
+// Package master_key отвечает за сценарий генерации и сохранения мастер ключа на стороне клиента.
 package master_key
 
 import (

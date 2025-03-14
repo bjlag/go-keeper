@@ -1,3 +1,4 @@
+// Package master описывает основную модель, которая стартует при запуске CLI приложения.
 package master
 
 import (

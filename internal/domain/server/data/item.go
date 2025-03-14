@@ -6,14 +6,21 @@ import (
 	"github.com/google/uuid"
 )
 
+// Item описывает секретные данные.
 type Item struct {
-	GUID          uuid.UUID
-	UserGUID      uuid.UUID
+	// GUID уникальный идентификатор.
+	GUID uuid.UUID
+	// UserGUID идентификатор пользователя, которому принадлежат данные.
+	UserGUID uuid.UUID
+	// EncryptedData сами секретные данные в зашифрованном виде.
 	EncryptedData []byte
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	// CreatedAt дата и время создания записи.
+	CreatedAt time.Time
+	// UpdatedAt дата и время обновления записи.
+	UpdatedAt time.Time
 }
 
+// UpdatedItem описывает данные для обновления.
 type UpdatedItem struct {
 	EncryptedData []byte
 	UpdatedAt     time.Time

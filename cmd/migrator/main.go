@@ -1,3 +1,9 @@
+// Отвечает за применение миграций к базе данных.
+// Поддерживает PostgreSQL и SQLite.
+//
+// Конфигурация указывается через флаг -c, описывается в YAML файле:
+//   - пример для клиента ./config/migrator_client.yaml.dist
+//   - пример для сервера ./config/migrator_server.yaml.dist
 package main
 
 import (
@@ -22,6 +28,7 @@ import (
 	"github.com/bjlag/go-keeper/internal/infrastructure/logger"
 )
 
+// Константы содержат поддерживаемые базы данных.
 const (
 	typePG     = "pg"
 	typeSqlite = "sqlite"

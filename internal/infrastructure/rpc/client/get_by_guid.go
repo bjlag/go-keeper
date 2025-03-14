@@ -10,17 +10,20 @@ import (
 	"github.com/bjlag/go-keeper/internal/generated/rpc"
 )
 
+// GetByGUIDIn параметры запроса.
 type GetByGUIDIn struct {
-	GUID uuid.UUID
+	GUID uuid.UUID // GUID элемента, данные которого надо получить.
 }
 
+// GetByGUIDOut результат работы.
 type GetByGUIDOut struct {
-	GUID          uuid.UUID
-	EncryptedData []byte
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	GUID          uuid.UUID // GUID идентификатор элемента.
+	EncryptedData []byte    // EncryptedData зашифрованные данные элемента.
+	CreatedAt     time.Time // CreatedAt дата и время создания элемента.
+	UpdatedAt     time.Time // UpdatedAt дата и время обновления элемента.
 }
 
+// GetByGUID метод для получения элемента по его GUID.
 func (c RPCClient) GetByGUID(ctx context.Context, in *GetByGUIDIn) (*GetByGUIDOut, error) {
 	const op = "client.rpc.GetByGUID"
 

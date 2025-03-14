@@ -5,11 +5,16 @@ import (
 	"fmt"
 )
 
+// EncryptedData описывает зашифрованные данные, которые приходят с сервера.
 type EncryptedData struct {
-	Title    string   `json:"title"`
+	// Title название элемента.
+	Title string `json:"title"`
+	// Category категория элемента: пароль, текст, файл и пр.
 	Category Category `json:"category_id"`
-	Value    *[]byte  `json:"value,omitempty"`
-	Notes    string   `json:"notes"`
+	// Value у каждой категории свой набор данных, после расшифровки хранится в байтах, по сути это JSON.
+	Value *[]byte `json:"value,omitempty"`
+	// Notes какие-то заметки, которые можно указать у элемента.
+	Notes string `json:"notes"`
 }
 
 func (d *EncryptedData) UnmarshalJSON(data []byte) error {

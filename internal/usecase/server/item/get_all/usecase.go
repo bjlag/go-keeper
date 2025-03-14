@@ -1,3 +1,4 @@
+// Package get_all отвечает за получение всех элементов на стороне сервера.
 package get_all
 
 import (

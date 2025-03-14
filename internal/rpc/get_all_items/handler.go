@@ -31,6 +31,7 @@ func New(usecase usecase) *Handler {
 	}
 }
 
+// Handle метод получения всех элементов аутентифицированного пользователя.
 func (h *Handler) Handle(ctx context.Context, in *pb.GetAllItemsIn) (*pb.GetAllItemsOut, error) {
 	log := logger.FromCtx(ctx)
 

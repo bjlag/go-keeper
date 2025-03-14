@@ -1,3 +1,4 @@
+// Package remove отвечает за сценарий удаления элемента на стороне клиента.
 package remove
 
 import (

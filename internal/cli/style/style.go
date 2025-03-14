@@ -1,3 +1,4 @@
+// Package style содержит стили CLI приложения, которые используются для вывода UI.
 package style
 
 import (

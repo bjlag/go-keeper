@@ -1,3 +1,4 @@
+// Package server отвечает за работу gRPC сервера.
 package server
 
 import (

@@ -26,6 +26,7 @@ func New(usecase usecase) *Handler {
 	}
 }
 
+// Handle метод удаления элемента у аутентифицированного пользователя.
 func (h *Handler) Handle(ctx context.Context, in *pb.DeleteItemIn) (*emptypb.Empty, error) {
 	log := logger.FromCtx(ctx)
 

@@ -1,3 +1,4 @@
+// Package user отвечает за работу с пользователями на стороне сервера.
 package user
 
 import (
@@ -12,6 +13,7 @@ import (
 	model "github.com/bjlag/go-keeper/internal/domain/server/user"
 )
 
+// ErrNotFound ошибка в случае, если пользователь не найден.
 var ErrNotFound = errors.New("user not found")
 
 type Store struct {
@@ -24,6 +26,7 @@ func NewStore(db *sqlx.DB) *Store {
 	}
 }
 
+// GetByGUID получить пользователя по его GUID.
 func (s Store) GetByGUID(ctx context.Context, guid uuid.UUID) (*model.User, error) {
 	const op = "store.user.GetByGUID"
 
@@ -44,6 +47,7 @@ func (s Store) GetByGUID(ctx context.Context, guid uuid.UUID) (*model.User, erro
 	return user.convertToModel(), nil
 }
 
+// GetByEmail получить пользователя по его емейлу.
 func (s Store) GetByEmail(ctx context.Context, email string) (*model.User, error) {
 	const op = "store.user.GetByEmail"
 
@@ -64,7 +68,8 @@ func (s Store) GetByEmail(ctx context.Context, email string) (*model.User, error
 	return user.convertToModel(), nil
 }
 
-func (s Store) Add(ctx context.Context, user *model.User) error {
+// Add добавить пользователя.
+func (s Store) Add(ctx context.Context, user model.User) error {
 	const op = "store.user.Add"
 
 	query := `INSERT INTO users (guid, email, password_hash) VALUES (:guid, :email, :password_hash)`
