@@ -103,7 +103,7 @@ func (a *App) Run(ctx context.Context) error {
 		master.WithPasswordItemForm(password.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, formSync)),
 		master.WithTextItemForm(text.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, formSync)),
 		master.WithBankCardItemForm(bank_card.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem)),
-		master.WithFileItemForm(file.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem)),
+		master.WithFileItemForm(file.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, formSync)),
 	)
 
 	f, err := tea.LogToFile("debug.log", "debug")

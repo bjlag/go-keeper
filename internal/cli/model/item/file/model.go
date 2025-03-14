@@ -2,7 +2,6 @@ package file
 
 import (
 	"errors"
-	file2 "github.com/bjlag/go-keeper/internal/cli/message/item/file"
 	"os"
 	"strings"
 	"time"
@@ -19,6 +18,9 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/element/button"
 	tarea "github.com/bjlag/go-keeper/internal/cli/element/textarea"
 	tinput "github.com/bjlag/go-keeper/internal/cli/element/textinput"
+	"github.com/bjlag/go-keeper/internal/cli/message/item/file"
+	"github.com/bjlag/go-keeper/internal/cli/message/item/sync"
+	modelSync "github.com/bjlag/go-keeper/internal/cli/model/item/sync"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/domain/client"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/create"
@@ -83,12 +85,14 @@ type Model struct {
 	guid     uuid.UUID
 	category client.Category
 
+	formSync *modelSync.Model
+
 	usecaseCreate *create.Usecase
 	usecaseEdit   *edit.Usecase
 	usecaseDelete *remove.Usecase
 }
 
-func InitModel(usecaseCreate *create.Usecase, usecaseSave *edit.Usecase, usecaseDelete *remove.Usecase) *Model {
+func InitModel(usecaseCreate *create.Usecase, usecaseSave *edit.Usecase, usecaseDelete *remove.Usecase, formSync *modelSync.Model) *Model {
 	fp := filepicker.New()
 	fp.AllowedTypes = []string{".txt", ".md", ".jpg", ".jpeg", ".png"}
 	fp.CurrentDirectory, _ = os.UserHomeDir()
@@ -99,6 +103,8 @@ func InitModel(usecaseCreate *create.Usecase, usecaseSave *edit.Usecase, usecase
 		header:     "Файл",
 		state:      stateCreate,
 		filepicker: fp,
+
+		formSync: formSync,
 
 		usecaseCreate: usecaseCreate,
 		usecaseEdit:   usecaseSave,
@@ -125,7 +131,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		return m, nil
-	case file2.OpenMsg:
+	case file.OpenMsg:
 		m.backState = msg.BackState
 		m.backModel = msg.BackModel
 
@@ -218,7 +224,15 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			switch m.pos {
 			case posEditEditBtn:
-				m.err = m.editAction()
+				err := m.editAction()
+				if err != nil && errors.Is(err, edit.ErrConflict) {
+					return m.formSync.Update(sync.OpenMsg{
+						BackModel: m,
+						Item:      m.item,
+					})
+				}
+
+				m.err = err
 				return m, nil
 			case posEditDeleteBtn:
 				m.err = m.deleteAction()
@@ -235,7 +249,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, common.Keys.Back):
 			if m.selectFileMode {
 				m.selectFileMode = false
-				return m.Update(file2.OpenMsg{
+				return m.Update(file.OpenMsg{
 					BackModel: m.backModel,
 					BackState: m.backState,
 					Item:      m.item,

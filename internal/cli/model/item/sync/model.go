@@ -10,6 +10,8 @@ import (
 
 	"github.com/bjlag/go-keeper/internal/cli/common"
 	"github.com/bjlag/go-keeper/internal/cli/element/button"
+	"github.com/bjlag/go-keeper/internal/cli/message/item/bank_card"
+	"github.com/bjlag/go-keeper/internal/cli/message/item/file"
 	"github.com/bjlag/go-keeper/internal/cli/message/item/password"
 	"github.com/bjlag/go-keeper/internal/cli/message/item/sync"
 	"github.com/bjlag/go-keeper/internal/cli/message/item/text"
@@ -129,6 +131,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m.prevModel.Update(text.OpenMsg{
 						Item: &m.item,
 					})
+				case client.CategoryFile:
+					return m.prevModel.Update(file.OpenMsg{
+						Item: &m.item,
+					})
+				case client.CategoryBankCard:
+					return m.prevModel.Update(bank_card.OpenMsg{
+						Item: &m.item,
+					})
 				}
 			case posCancelBtn:
 				switch m.item.Category {
@@ -138,6 +148,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					})
 				case client.CategoryText:
 					return m.prevModel.Update(text.OpenMsg{
+						Item: &m.item,
+					})
+				case client.CategoryFile:
+					return m.prevModel.Update(file.OpenMsg{
+						Item: &m.item,
+					})
+				case client.CategoryBankCard:
+					return m.prevModel.Update(bank_card.OpenMsg{
 						Item: &m.item,
 					})
 				}
@@ -184,13 +202,13 @@ func (m *Model) View() string {
 		b.WriteString(v.Password)
 		b.WriteRune('\n')
 		b.WriteRune('\n')
-	case client.File:
+	case *client.File:
 		b.WriteString("Название файла")
 		b.WriteRune('\n')
 		b.WriteString(v.Name)
 		b.WriteRune('\n')
 		b.WriteRune('\n')
-	case client.BankCard:
+	case *client.BankCard:
 		b.WriteString("Номер карты")
 		b.WriteRune('\n')
 		b.WriteString(v.Number)
