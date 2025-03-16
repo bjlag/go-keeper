@@ -5,6 +5,8 @@ NAME = $(shell basename "$(PWD)")
 DIR = $(shell pwd)
 DOCKER_FILE = "docker-compose.local.yaml"
 
+.DEFAULT_GOAL := up
+
 .PHONY: all
 all: help
 
@@ -85,8 +87,13 @@ proto:
 doc:
 	godoc -http=:8888 -play
 
-build-client-osx:
-	go build -ldflags "-X main.buildVersion=$(BUILD_VERSION) -X 'main.buildDate=$(BUILD_DATE)'" -o ./cmd/client/client-osx ./cmd/client/.
+build-client:
+	@echo " > Building client for OSX"
+	@GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.buildVersion=$(BUILD_VERSION) -X 'main.buildDate=$(BUILD_DATE)'" -o ./cmd/client/client_darwin_amd64 ./cmd/client/.
+	@echo " > Building client for Linux"
+	@GOOS=linux GOARCH=amd64 go build -ldflags "-X main.buildVersion=$(BUILD_VERSION) -X 'main.buildDate=$(BUILD_DATE)'" -o ./cmd/client/client_linux_amd64 ./cmd/client/.
+	@echo " > Building client for Windows"
+	@GOOS=windows GOARCH=amd64 go build -ldflags "-X main.buildVersion=$(BUILD_VERSION) -X 'main.buildDate=$(BUILD_DATE)'" -o ./cmd/client/client_windows_amd64 ./cmd/client/.
 
 .PHONY: help
 help: Makefile

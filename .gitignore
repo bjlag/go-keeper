@@ -14,7 +14,9 @@
 
 # Binaries
 cmd/client/main
-cmd/client/client-osx
+cmd/client/client_darwin_amd64
+cmd/client/client_linux_amd64
+cmd/client/client_windows_amd64
 cmd/server/main
 cmd/server/server
 cmd/migrator/main
