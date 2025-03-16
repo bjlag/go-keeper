@@ -1,6 +1,5 @@
-BUILD_VERSION = "v1.0.0"
-BUILD_DATE = $(shell date +'%Y/%m/%d %H:%M:%S')
-BUILD_COMMIT = $(shell git rev-parse --short HEAD)
+BUILD_VERSION ?= "v1.0.0"
+BUILD_DATE ?= $(shell date +'%Y/%m/%d %H:%M:%S')
 
 NAME = $(shell basename "$(PWD)")
 DIR = $(shell pwd)
@@ -85,6 +84,9 @@ proto:
 .PHONY: doc
 doc:
 	godoc -http=:8888 -play
+
+build-client-osx:
+	go build -ldflags "-X main.buildVersion=$(BUILD_VERSION) -X 'main.buildDate=$(BUILD_DATE)'" -o ./cmd/client/client-osx ./cmd/client/.
 
 .PHONY: help
 help: Makefile

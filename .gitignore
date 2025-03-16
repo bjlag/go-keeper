@@ -14,7 +14,7 @@
 
 # Binaries
 cmd/client/main
-cmd/client/client
+cmd/client/client-osx
 cmd/server/main
 cmd/server/server
 cmd/migrator/main

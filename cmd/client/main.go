@@ -2,12 +2,16 @@
 //
 // Конфигурация указывается через флаг -c, описывается в YAML файле:
 //   - пример ./config/client.yaml.dist
+//
+// Флаг -version выведет текущую версию и дату сборки.
 package main
 
 import (
 	"context"
 	"flag"
+	"fmt"
 	logNative "log"
+	"os"
 	"os/signal"
 	"syscall"
 
@@ -23,6 +27,12 @@ const (
 	configPathDefault = "./config/client.yaml"
 )
 
+var (
+	viewVersion  bool
+	buildVersion string
+	buildDate    string
+)
+
 func main() {
 	defer func() {
 		if r := recover(); r != nil {
@@ -33,7 +43,13 @@ func main() {
 	var configPath string
 
 	flag.StringVar(&configPath, "c", configPathDefault, "Path to config file")
+	flag.BoolVar(&viewVersion, "version", false, "View build version and data")
 	flag.Parse()
+
+	if viewVersion {
+		fmt.Printf("Version: %s\nBuild: %s\n", buildVersion, buildDate)
+		os.Exit(0)
+	}
 
 	var cfg client.Config
 	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
