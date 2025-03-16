@@ -6,46 +6,44 @@ import (
 	"github.com/bjlag/go-keeper/internal/domain/client"
 )
 
-// OpenLoginMsg сообщение указывает, что надо открыть модель для аутентификации.
-type OpenLoginMsg struct{}
+type (
+	// OpenLoginMsg сообщение указывает, что надо открыть модель для аутентификации.
+	OpenLoginMsg struct{}
 
-// OpenRegisterMsg сообщение указывает, что надо открыть модель для регистрации.
-type OpenRegisterMsg struct {
-	// LoginModel содержит ссылку на модель аутентификации, чтобы на нее можно было вернуться
-	// в случае отказа от регистрации.
-	LoginModel tea.Model
-}
+	// OpenRegisterMsg сообщение указывает, что надо открыть модель для регистрации.
+	OpenRegisterMsg struct {
+		// LoginModel содержит ссылку на модель аутентификации, чтобы на нее можно было вернуться
+		// в случае отказа от регистрации.
+		LoginModel tea.Model
+	}
 
-// SuccessMsg вспомогательное сообщение, что какое-то событие выполнилось успешно, например, аутентификация.
-type SuccessMsg struct{}
+	// SuccessMsg вспомогательное сообщение, что какое-то событие выполнилось успешно, например, аутентификация.
+	SuccessMsg struct{}
 
-// List
+	// OpenCategoriesMsg сообщение используется для открытия списка категорий.
+	OpenCategoriesMsg struct{}
 
-// OpenCategoriesMsg сообщение используется для открытия списка категорий.
-type OpenCategoriesMsg struct{}
+	// OpenItemsMsg сообщение используется для открытия списка элементов определенной категории.
+	OpenItemsMsg struct {
+		// Category содержит категорию элементов, которые надо вывести.
+		Category client.Category
+	}
 
-// OpenItemsMsg сообщение используется для открытия списка элементов определенной категории.
-type OpenItemsMsg struct {
-	// Category содержит категорию элементов, которые надо вывести.
-	Category client.Category
-}
+	// BackMsg используется для возврата в предыдущую модель, например, из элемента в список элементов.
+	BackMsg struct {
+		// State состояние модели, в которое надо вернуться.
+		State int
+		// Item каким элементом надо заменить данные в модели, в которую возвращаемся.
+		Item *client.Item
+	}
 
-// BackMsg используется для возврата в предыдущую модель, например, из элемента в список элементов.
-type BackMsg struct {
-	// State состояние модели, в которое надо вернуться.
-	State int
-	// Item каким элементом надо заменить данные в модели, в которую возвращаемся.
-	Item *client.Item
-}
-
-// Item
-
-// OpenItemMsg содержит информацию, какой элемент надо открыть.
-type OpenItemMsg struct {
-	// BackModel модель, в которую надо вернуться, в случае отмены.
-	BackModel tea.Model
-	// BackState состояние, в которое надо вернуть модель, в случае отмены.
-	BackState int
-	// Item каким элементом надо заменить данные в модели, в которую возвращаемся.
-	Item *client.Item
-}
+	// OpenItemMsg содержит информацию, какой элемент надо открыть.
+	OpenItemMsg struct {
+		// BackModel модель, в которую надо вернуться, в случае отмены.
+		BackModel tea.Model
+		// BackState состояние, в которое надо вернуть модель, в случае отмены.
+		BackState int
+		// Item каким элементом надо заменить данные в модели, в которую возвращаемся.
+		Item *client.Item
+	}
+)
