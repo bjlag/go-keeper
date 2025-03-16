@@ -20,6 +20,7 @@ type RPCServer struct {
 
 	host     string
 	port     int
+	listener net.Listener
 	handlers map[string]any
 	jwt      *auth.JWT
 	log      *zap.Logger
@@ -45,11 +46,6 @@ func (s RPCServer) Start(ctx context.Context) error {
 		zap.Int("port", s.port),
 	)
 
-	listen, err := net.Listen("tcp", fmt.Sprintf("%s:%d", s.host, s.port))
-	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
-	}
-
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			interceptor.LoggerServerInterceptor(s.log),
@@ -61,7 +57,7 @@ func (s RPCServer) Start(ctx context.Context) error {
 
 	g, gCtx := errgroup.WithContext(ctx)
 	g.Go(func() error {
-		return grpcServer.Serve(listen)
+		return grpcServer.Serve(s.listener)
 	})
 	g.Go(func() error {
 		<-gCtx.Done()

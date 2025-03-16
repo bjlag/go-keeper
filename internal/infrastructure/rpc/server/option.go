@@ -2,6 +2,7 @@ package server
 
 import (
 	"go.uber.org/zap"
+	"net"
 
 	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
 )
@@ -14,6 +15,13 @@ func WithAddress(host string, port int) Option {
 	return func(s *RPCServer) {
 		s.host = host
 		s.port = port
+	}
+}
+
+// WithListener передача сетевого прослушивателя сервера.
+func WithListener(listener net.Listener) Option {
+	return func(s *RPCServer) {
+		s.listener = listener
 	}
 }
 

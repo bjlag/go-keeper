@@ -4,6 +4,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"net"
 
 	"go.uber.org/zap"
 
@@ -70,8 +71,13 @@ func (a *App) Run(ctx context.Context) error {
 	ucGetByGUID := get_by_guid.NewUsecase(dataStore)
 	ucGetAllData := get_all.NewUsecase(dataStore)
 
+	listen, err := net.Listen("tcp", fmt.Sprintf("%s:%d", a.cfg.Address.Host, a.cfg.Address.Port))
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
 	s := server.NewRPCServer(
-		server.WithAddress(a.cfg.Address.Host, a.cfg.Address.Port),
+		server.WithListener(listen),
 		server.WithJWT(jwt),
 		server.WithLogger(a.log),
 
