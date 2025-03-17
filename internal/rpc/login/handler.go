@@ -32,6 +32,10 @@ func (h *Handler) Handle(ctx context.Context, in *pb.LoginIn) (*pb.LoginOut, err
 		return nil, status.Error(codes.InvalidArgument, "email is invalid")
 	}
 
+	if len(in.GetPassword()) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "password is empty")
+	}
+
 	result, err := h.usecase.Do(ctx, login.Data{
 		Email:    in.GetEmail(),
 		Password: in.GetPassword(),
@@ -39,9 +43,9 @@ func (h *Handler) Handle(ctx context.Context, in *pb.LoginIn) (*pb.LoginOut, err
 	if err != nil {
 		switch {
 		case errors.Is(err, login.ErrUserNotFound):
-			return nil, status.Error(codes.Unauthenticated, "password incorrect")
+			return nil, status.Error(codes.Unauthenticated, "credentials incorrect")
 		case errors.Is(err, login.ErrPasswordIncorrect):
-			return nil, status.Error(codes.Unauthenticated, "password incorrect")
+			return nil, status.Error(codes.Unauthenticated, "credentials incorrect")
 		default:
 			log.Error("Failed to login user", zap.Error(err))
 			return nil, status.Error(codes.Internal, "internal error")

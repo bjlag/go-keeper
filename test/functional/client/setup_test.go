@@ -1,4 +1,4 @@
-package login_test
+package client_test
 
 import (
 	"context"
@@ -18,7 +18,6 @@ import (
 	"github.com/bjlag/go-keeper/internal/infrastructure/migrator"
 	"github.com/bjlag/go-keeper/test/infrastructure/config"
 	"github.com/bjlag/go-keeper/test/infrastructure/container"
-	"github.com/bjlag/go-keeper/test/infrastructure/fixture"
 	_ "github.com/bjlag/go-keeper/test/infrastructure/init"
 	"github.com/bjlag/go-keeper/test/infrastructure/server"
 )
@@ -96,23 +95,4 @@ func (s *TestSuite) TearDownSuite() {
 
 	err = s.db.Close()
 	s.Require().NoError(err)
-}
-
-func (s *TestSuite) TestHandler_Handle() {
-	ctx := context.Background()
-
-	err := fixture.Load(s.db, "test/fixture")
-	s.Require().NoError(err)
-
-	s.Run("success", func() {
-		out, err := s.client.Login(ctx, &rpc.LoginIn{
-			Email:    "test@test.ru",
-			Password: "12345678",
-		})
-
-		if err != nil {
-		}
-
-		out.GetAccessToken()
-	})
 }
