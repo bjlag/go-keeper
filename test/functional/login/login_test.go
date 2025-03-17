@@ -2,31 +2,99 @@ package login_test
 
 import (
 	"context"
-	"github.com/bjlag/go-keeper/internal/generated/rpc"
-	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
-	"github.com/bjlag/go-keeper/internal/infrastructure/db/pg"
-	"github.com/bjlag/go-keeper/internal/infrastructure/logger"
-	"github.com/bjlag/go-keeper/internal/infrastructure/migrator"
-	"github.com/bjlag/go-keeper/internal/infrastructure/store/server/user"
-	rpcLogin "github.com/bjlag/go-keeper/internal/rpc/login"
-	"github.com/bjlag/go-keeper/internal/usecase/server/user/login"
-	"github.com/bjlag/go-keeper/test/config"
-	container2 "github.com/bjlag/go-keeper/test/infrastructure/container"
-	"github.com/bjlag/go-keeper/test/infrastructure/fixture"
-	"github.com/ilyakaznacheev/cleanenv"
-	"github.com/jmoiron/sqlx"
-	"github.com/stretchr/testify/require"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/test/bufconn"
 	"log"
 	"net"
 	"testing"
 	"time"
 
-	server2 "github.com/bjlag/go-keeper/internal/infrastructure/rpc/server"
+	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/jmoiron/sqlx"
+	"github.com/stretchr/testify/suite"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/test/bufconn"
+
+	"github.com/bjlag/go-keeper/internal/generated/rpc"
+	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
+	"github.com/bjlag/go-keeper/internal/infrastructure/db/pg"
+	"github.com/bjlag/go-keeper/internal/infrastructure/logger"
+	"github.com/bjlag/go-keeper/internal/infrastructure/migrator"
+	"github.com/bjlag/go-keeper/internal/infrastructure/rpc/server"
+	"github.com/bjlag/go-keeper/internal/infrastructure/store/server/user"
+	rpcLogin "github.com/bjlag/go-keeper/internal/rpc/login"
+	"github.com/bjlag/go-keeper/internal/usecase/server/user/login"
+	"github.com/bjlag/go-keeper/test/config"
+	"github.com/bjlag/go-keeper/test/infrastructure/container"
+	"github.com/bjlag/go-keeper/test/infrastructure/fixture"
 	_ "github.com/bjlag/go-keeper/test/infrastructure/init"
 )
+
+type TestSuite struct {
+	suite.Suite
+	pgContainer *container.PostgreSQLContainer
+	db          *sqlx.DB
+	conn        *grpc.ClientConn
+	client      rpc.KeeperClient
+}
+
+func TestSuite_Run(t *testing.T) {
+	suite.Run(t, new(TestSuite))
+}
+
+func (s *TestSuite) SetupSuite() {
+	const pathToConfig = "./config/server_test.yaml"
+
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer ctxCancel()
+
+	// load config
+	var cfg config.Config
+	err := cleanenv.ReadConfig(pathToConfig, &cfg)
+	s.Require().NoError(err)
+
+	// crate db container
+	pgContainer, err := container.NewPostgreSQLContainer(ctx, container.PostgreSQLConfig{
+		Database: cfg.Container.PG.DBName,
+		Username: cfg.Container.PG.DBUser,
+		Password: cfg.Container.PG.DBPassword,
+		ImageTag: cfg.Container.PG.Tag,
+	})
+	s.Require().NoError(err)
+
+	s.pgContainer = pgContainer
+
+	// get db connection
+	db, err := pg.New(pg.GetDSN(pgContainer.Host, pgContainer.Port, pgContainer.Database, pgContainer.Username, pgContainer.Password)).Connect()
+	s.Require().NoError(err)
+
+	s.db = db
+
+	// apply migrations
+	m, err := migrator.Get(db, migrator.TypePG, pgContainer.Database, cfg.Migration.SourcePath, cfg.Migration.Table)
+	s.Require().NoError(err)
+
+	err = m.Up()
+	s.Require().NoError(err)
+
+	// create grpc client
+	conn, err := grpc.NewClient("passthrough://bufnet", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer(ctx, db)))
+	s.Require().NoError(err)
+
+	s.client = rpc.NewKeeperClient(conn)
+}
+
+func (s *TestSuite) TearDownSuite() {
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer ctxCancel()
+
+	s.Require().NoError(s.pgContainer.Terminate(ctx))
+
+	err := s.conn.Close()
+	s.Require().NoError(err)
+
+	err = s.db.Close()
+	s.Require().NoError(err)
+}
 
 func dialer(ctx context.Context, db *sqlx.DB) func(context.Context, string) (net.Conn, error) {
 	listener := bufconn.Listen(1204 * 1024)
@@ -36,11 +104,11 @@ func dialer(ctx context.Context, db *sqlx.DB) func(context.Context, string) (net
 	userStore := user.NewStore(db)
 	ucLogin := login.NewUsecase(userStore, jwt)
 
-	server := server2.NewRPCServer(
-		server2.WithListener(listener),
-		server2.WithLogger(logger.Get("test")),
+	server := server.NewRPCServer(
+		server.WithListener(listener),
+		server.WithLogger(logger.Get("test")),
 
-		server2.WithHandler(server2.LoginMethod, rpcLogin.New(ucLogin).Handle),
+		server.WithHandler(server.LoginMethod, rpcLogin.New(ucLogin).Handle),
 	)
 
 	go func() {
@@ -54,56 +122,14 @@ func dialer(ctx context.Context, db *sqlx.DB) func(context.Context, string) (net
 	}
 }
 
-func TestHandler_Handle(t *testing.T) {
-	const pathToConfig = "./config/server_test.yaml"
-
+func (s *TestSuite) TestHandler_Handle() {
 	ctx := context.Background()
 
-	var cfg config.Config
-	if err := cleanenv.ReadConfig(pathToConfig, &cfg); err != nil {
-		panic(err)
-	}
+	err := fixture.Load(s.db, "test/fixture")
+	s.Require().NoError(err)
 
-	pgContainer, err := container2.NewPostgreSQLContainer(ctx, container2.PostgreSQLConfig{
-		Database: cfg.Container.PG.DBName,
-		Username: cfg.Container.PG.DBUser,
-		Password: cfg.Container.PG.DBPassword,
-		ImageTag: cfg.Container.PG.Tag,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	db, err := pg.New(pg.GetDSN(pgContainer.Host, pgContainer.Port, pgContainer.Database, pgContainer.Username, pgContainer.Password)).Connect()
-	require.NoError(t, err)
-	defer db.Close()
-
-	m, err := migrator.Get(db, migrator.TypePG, pgContainer.Database, cfg.Migration.SourcePath, cfg.Migration.Table)
-	require.NoError(t, err)
-
-	err = m.Up()
-	require.NoError(t, err)
-
-	err = fixture.Load(db, "test/fixture")
-	require.NoError(t, err)
-
-	conn, err := grpc.NewClient("passthrough://bufnet", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer(ctx, db)))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer conn.Close()
-
-	client := rpc.NewKeeperClient(conn)
-
-	// todo выключение логгера
-	// todo конфиги для тестов
-	// todo тестовое приложение
-	// todo своя база
-	// todo фикстуры базы
-	// todo test suit, tear down
-
-	t.Run("success", func(t *testing.T) {
-		out, err := client.Login(ctx, &rpc.LoginIn{
+	s.Run("success", func() {
+		out, err := s.client.Login(ctx, &rpc.LoginIn{
 			Email:    "test@test.ru",
 			Password: "12345678",
 		})
