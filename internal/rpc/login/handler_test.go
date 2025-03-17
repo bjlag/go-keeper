@@ -11,7 +11,9 @@ import (
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/server/user"
 	rpcLogin "github.com/bjlag/go-keeper/internal/rpc/login"
 	"github.com/bjlag/go-keeper/internal/usecase/server/user/login"
+	"github.com/go-testfixtures/testfixtures/v3"
 	"github.com/jmoiron/sqlx"
+	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"google.golang.org/grpc"
@@ -62,7 +64,7 @@ func TestHandler_Handle(t *testing.T) {
 			Env: map[string]string{
 				"POSTGRES_USER":     "postgres",
 				"POSTGRES_PASSWORD": "secret",
-				"POSTGRES_DB":       "master",
+				"POSTGRES_DB":       "master_test",
 			},
 			ExposedPorts: []string{"5432/tcp"},
 			Image:        "postgres:16.4-alpine3.20",
@@ -90,19 +92,13 @@ func TestHandler_Handle(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	db, err := pg.New(pg.GetDSN(host, mappedPort.Port(), "master", "postgres", "secret")).Connect()
+	db, err := pg.New(pg.GetDSN(host, mappedPort.Port(), "master_test", "postgres", "secret")).Connect()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer func() {
 		_ = db.Close()
 	}()
-
-	var cfg migrator.Config
-	cfg.Database.Type = "pg"
-	cfg.MigrationsTable = "migrations"
-	cfg.SourcePath = "./migrations/server"
-	cfg.Database.Name = "master"
 
 	_, filename, _, _ := runtime.Caller(0)
 	baseDir := path.Join(path.Dir(filename), "..", "..", "..")
@@ -112,14 +108,7 @@ func TestHandler_Handle(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_ = dir
-
-	m, err := migrator.Get(db, "pg", "master", "./migrations/server", "migrations")
+	m, err := migrator.Get(db, "pg", "master_test", "./migrations/server", "migrations")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -127,6 +116,15 @@ func TestHandler_Handle(t *testing.T) {
 	if err := m.Up(); err != nil {
 		log.Fatal(err)
 	}
+
+	fixtures, err := testfixtures.New(
+		testfixtures.Database(db.DB),
+		testfixtures.Dialect("postgres"),
+		testfixtures.Directory("test/fixture"),
+	)
+
+	require.NoError(t, err)
+	require.NoError(t, fixtures.Load())
 
 	conn, err := grpc.NewClient("passthrough://bufnet", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer(ctx, db)))
 	if err != nil {
@@ -145,8 +143,8 @@ func TestHandler_Handle(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		out, err := client.Login(ctx, &rpc.LoginIn{
-			Email:    "test@test.com",
-			Password: "test",
+			Email:    "test@test.ru",
+			Password: "12345678",
 		})
 
 		if err != nil {
