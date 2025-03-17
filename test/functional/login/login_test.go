@@ -10,11 +10,10 @@ import (
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/server/user"
 	rpcLogin "github.com/bjlag/go-keeper/internal/rpc/login"
 	"github.com/bjlag/go-keeper/internal/usecase/server/user/login"
+	container2 "github.com/bjlag/go-keeper/test/util/container"
 	"github.com/go-testfixtures/testfixtures/v3"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
@@ -58,40 +57,22 @@ func TestHandler_Handle(t *testing.T) {
 
 	// todo из конфига берем данные для базы
 
-	req := testcontainers.GenericContainerRequest{
-		ContainerRequest: testcontainers.ContainerRequest{
-			Env: map[string]string{
-				"POSTGRES_USER":     "postgres",
-				"POSTGRES_PASSWORD": "secret",
-				"POSTGRES_DB":       "master_test",
-			},
-			ExposedPorts: []string{"5432/tcp"},
-			Image:        "postgres:16.4-alpine3.20",
-			WaitingFor: wait.ForExec([]string{"pg_isready"}).
-				WithPollInterval(2 * time.Second).
-				WithExitCodeMatcher(func(exitCode int) bool {
-					return exitCode == 0
-				}),
-		},
-		Started: true,
-	}
+	const (
+		migrationsSourcePath = "./migrations/server"
+		migrationsTable      = "migrations"
+	)
 
-	container, err := testcontainers.GenericContainer(ctx, req)
+	pgContainer, err := container2.NewPostgreSQLContainer(ctx, container2.PostgreSQLConfig{
+		Database: "master_test",
+		Username: "postgres",
+		Password: "secret",
+		ImageTag: "16.4-alpine3.20",
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	host, err := container.Host(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	mappedPort, err := container.MappedPort(ctx, "5432")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	db, err := pg.New(pg.GetDSN(host, mappedPort.Port(), "master_test", "postgres", "secret")).Connect()
+	db, err := pg.New(pg.GetDSN(pgContainer.Host, pgContainer.Port, pgContainer.Database, pgContainer.Username, pgContainer.Password)).Connect()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -99,7 +80,7 @@ func TestHandler_Handle(t *testing.T) {
 		_ = db.Close()
 	}()
 
-	m, err := migrator.Get(db, "pg", "master_test", "./migrations/server", "migrations")
+	m, err := migrator.Get(db, migrator.TypePG, pgContainer.Database, migrationsSourcePath, migrationsTable)
 	if err != nil {
 		log.Fatal(err)
 	}
