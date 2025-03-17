@@ -33,7 +33,9 @@ vendor/
 config/migrator_client.yaml
 config/migrator_server.yaml
 config/server.yaml
+config/server_test.yaml
 config/client.yaml
+config/client_test.yaml
 
 # log
 *.log

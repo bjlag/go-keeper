@@ -10,8 +10,10 @@ import (
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/server/user"
 	rpcLogin "github.com/bjlag/go-keeper/internal/rpc/login"
 	"github.com/bjlag/go-keeper/internal/usecase/server/user/login"
-	container2 "github.com/bjlag/go-keeper/test/util/container"
-	"github.com/bjlag/go-keeper/test/util/fixture"
+	"github.com/bjlag/go-keeper/test/config"
+	container2 "github.com/bjlag/go-keeper/test/infrastructure/container"
+	"github.com/bjlag/go-keeper/test/infrastructure/fixture"
+	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
@@ -23,7 +25,7 @@ import (
 	"time"
 
 	server2 "github.com/bjlag/go-keeper/internal/infrastructure/rpc/server"
-	_ "github.com/bjlag/go-keeper/test/util/init"
+	_ "github.com/bjlag/go-keeper/test/infrastructure/init"
 )
 
 func dialer(ctx context.Context, db *sqlx.DB) func(context.Context, string) (net.Conn, error) {
@@ -53,20 +55,20 @@ func dialer(ctx context.Context, db *sqlx.DB) func(context.Context, string) (net
 }
 
 func TestHandler_Handle(t *testing.T) {
+	const pathToConfig = "./config/server_test.yaml"
+
 	ctx := context.Background()
 
-	// todo из конфига берем данные для базы
-
-	const (
-		migrationsSourcePath = "./migrations/server"
-		migrationsTable      = "migrations"
-	)
+	var cfg config.Config
+	if err := cleanenv.ReadConfig(pathToConfig, &cfg); err != nil {
+		panic(err)
+	}
 
 	pgContainer, err := container2.NewPostgreSQLContainer(ctx, container2.PostgreSQLConfig{
-		Database: "master_test",
-		Username: "postgres",
-		Password: "secret",
-		ImageTag: "16.4-alpine3.20",
+		Database: cfg.Container.PG.DBName,
+		Username: cfg.Container.PG.DBUser,
+		Password: cfg.Container.PG.DBPassword,
+		ImageTag: cfg.Container.PG.Tag,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -76,7 +78,7 @@ func TestHandler_Handle(t *testing.T) {
 	require.NoError(t, err)
 	defer db.Close()
 
-	m, err := migrator.Get(db, migrator.TypePG, pgContainer.Database, migrationsSourcePath, migrationsTable)
+	m, err := migrator.Get(db, migrator.TypePG, pgContainer.Database, cfg.Migration.SourcePath, cfg.Migration.Table)
 	require.NoError(t, err)
 
 	err = m.Up()
