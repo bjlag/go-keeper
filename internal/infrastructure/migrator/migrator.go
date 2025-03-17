@@ -7,7 +7,9 @@ import (
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type DBType string
@@ -15,7 +17,7 @@ type DBType string
 // Константы содержат поддерживаемые базы данных.
 const (
 	TypePG     DBType = "pg"
-	TypeSqlite        = "sqlite"
+	TypeSqlite DBType = "sqlite"
 )
 
 // Get возвращает настроенный экземпляр мигратора.

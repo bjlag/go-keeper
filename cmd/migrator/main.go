@@ -13,10 +13,8 @@ import (
 	logNative "log"
 
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
 
 	"github.com/bjlag/go-keeper/internal/infrastructure/db/pg"

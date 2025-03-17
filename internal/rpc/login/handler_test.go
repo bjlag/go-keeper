@@ -6,16 +6,22 @@ import (
 	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
 	"github.com/bjlag/go-keeper/internal/infrastructure/db/pg"
 	"github.com/bjlag/go-keeper/internal/infrastructure/logger"
+	"github.com/bjlag/go-keeper/internal/infrastructure/migrator"
 	server2 "github.com/bjlag/go-keeper/internal/infrastructure/rpc/server"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/server/user"
 	rpcLogin "github.com/bjlag/go-keeper/internal/rpc/login"
 	"github.com/bjlag/go-keeper/internal/usecase/server/user/login"
 	"github.com/jmoiron/sqlx"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
 	"log"
 	"net"
+	"os"
+	"path"
+	"runtime"
 	"testing"
 	"time"
 )
@@ -49,13 +55,78 @@ func dialer(ctx context.Context, db *sqlx.DB) func(context.Context, string) (net
 func TestHandler_Handle(t *testing.T) {
 	ctx := context.Background()
 
-	db, err := pg.New(pg.GetDSN("localhost", "5444", "master", "postgres", "secret")).Connect()
+	// todo из конфига берем данные для базы
+
+	req := testcontainers.GenericContainerRequest{
+		ContainerRequest: testcontainers.ContainerRequest{
+			Env: map[string]string{
+				"POSTGRES_USER":     "postgres",
+				"POSTGRES_PASSWORD": "secret",
+				"POSTGRES_DB":       "master",
+			},
+			ExposedPorts: []string{"5432/tcp"},
+			Image:        "postgres:16.4-alpine3.20",
+			WaitingFor: wait.ForExec([]string{"pg_isready"}).
+				WithPollInterval(2 * time.Second).
+				WithExitCodeMatcher(func(exitCode int) bool {
+					return exitCode == 0
+				}),
+		},
+		Started: true,
+	}
+
+	container, err := testcontainers.GenericContainer(ctx, req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	host, err := container.Host(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mappedPort, err := container.MappedPort(ctx, "5432")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db, err := pg.New(pg.GetDSN(host, mappedPort.Port(), "master", "postgres", "secret")).Connect()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer func() {
 		_ = db.Close()
 	}()
+
+	var cfg migrator.Config
+	cfg.Database.Type = "pg"
+	cfg.MigrationsTable = "migrations"
+	cfg.SourcePath = "./migrations/server"
+	cfg.Database.Name = "master"
+
+	_, filename, _, _ := runtime.Caller(0)
+	baseDir := path.Join(path.Dir(filename), "..", "..", "..")
+
+	err = os.Chdir(baseDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_ = dir
+
+	m, err := migrator.Get(db, "pg", "master", "./migrations/server", "migrations")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := m.Up(); err != nil {
+		log.Fatal(err)
+	}
 
 	conn, err := grpc.NewClient("passthrough://bufnet", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer(ctx, db)))
 	if err != nil {
@@ -65,7 +136,12 @@ func TestHandler_Handle(t *testing.T) {
 
 	client := rpc.NewKeeperClient(conn)
 
-	//
+	// todo выключение логгера
+	// todo конфиги для тестов
+	// todo тестовое приложение
+	// todo своя база
+	// todo фикстуры базы
+	// todo test suit, tear down
 
 	t.Run("success", func(t *testing.T) {
 		out, err := client.Login(ctx, &rpc.LoginIn{
