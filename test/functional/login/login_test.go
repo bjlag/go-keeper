@@ -11,7 +11,7 @@ import (
 	rpcLogin "github.com/bjlag/go-keeper/internal/rpc/login"
 	"github.com/bjlag/go-keeper/internal/usecase/server/user/login"
 	container2 "github.com/bjlag/go-keeper/test/util/container"
-	"github.com/go-testfixtures/testfixtures/v3"
+	"github.com/bjlag/go-keeper/test/util/fixture"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
@@ -73,30 +73,17 @@ func TestHandler_Handle(t *testing.T) {
 	}
 
 	db, err := pg.New(pg.GetDSN(pgContainer.Host, pgContainer.Port, pgContainer.Database, pgContainer.Username, pgContainer.Password)).Connect()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer func() {
-		_ = db.Close()
-	}()
+	require.NoError(t, err)
+	defer db.Close()
 
 	m, err := migrator.Get(db, migrator.TypePG, pgContainer.Database, migrationsSourcePath, migrationsTable)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := m.Up(); err != nil {
-		log.Fatal(err)
-	}
-
-	fixtures, err := testfixtures.New(
-		testfixtures.Database(db.DB),
-		testfixtures.Dialect("postgres"),
-		testfixtures.Directory("test/fixture"),
-	)
-
 	require.NoError(t, err)
-	require.NoError(t, fixtures.Load())
+
+	err = m.Up()
+	require.NoError(t, err)
+
+	err = fixture.Load(db, "test/fixture")
+	require.NoError(t, err)
 
 	conn, err := grpc.NewClient("passthrough://bufnet", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer(ctx, db)))
 	if err != nil {

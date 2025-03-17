@@ -12,23 +12,26 @@ import (
 )
 
 type (
+	// PostgreSQLContainer хранит информацию о готовом контейнере.
 	PostgreSQLContainer struct {
 		testcontainers.Container
-		Port     string
-		Host     string
-		Database string
-		Username string
-		Password string
+		Port     string // Port порт по которому можно подключиться к БД.
+		Host     string // Host хост на котором будет доступна БД.
+		Database string // Database название БД.
+		Username string // Username пользователь БД.
+		Password string // Password пароль пользователя БД.
 	}
 
+	// PostgreSQLConfig хранит конфигурацию контейнера.
 	PostgreSQLConfig struct {
-		Database string
-		Username string
-		Password string
-		ImageTag string
+		Database string // Database название базы данных для переменной окружения контейнера POSTGRES_DB.
+		Username string // Username пользователь для переменной окружения контейнера POSTGRES_USER.
+		Password string // Password пароль для переменной окружения контейнера POSTGRES_PASSWORD.
+		ImageTag string // ImageTag тег докер образа.
 	}
 )
 
+// NewPostgreSQLContainer создает контейнера для базы данных PostgreSQL по переданной конфигурации.
 func NewPostgreSQLContainer(ctx context.Context, cfg PostgreSQLConfig) (*PostgreSQLContainer, error) {
 	const (
 		image = "postgres"

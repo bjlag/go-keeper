@@ -1,0 +1,17 @@
+address:
+    host: localhost
+    port: 8080
+
+auth:
+    accessTokenExp: 10s
+    refreshTokenExp: 2h # 30 days
+    secretKey: secret
+
+container:
+    pg:
+
+    host: localhost
+    port: 5444
+    name: master
+    user: postgres
+    password: secret
