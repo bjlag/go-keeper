@@ -2,8 +2,6 @@ package login_test
 
 import (
 	"context"
-	"log"
-	"net"
 	"testing"
 	"time"
 
@@ -12,21 +10,17 @@ import (
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/test/bufconn"
 
 	"github.com/bjlag/go-keeper/internal/generated/rpc"
 	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
 	"github.com/bjlag/go-keeper/internal/infrastructure/db/pg"
 	"github.com/bjlag/go-keeper/internal/infrastructure/logger"
 	"github.com/bjlag/go-keeper/internal/infrastructure/migrator"
-	"github.com/bjlag/go-keeper/internal/infrastructure/rpc/server"
-	"github.com/bjlag/go-keeper/internal/infrastructure/store/server/user"
-	rpcLogin "github.com/bjlag/go-keeper/internal/rpc/login"
-	"github.com/bjlag/go-keeper/internal/usecase/server/user/login"
-	"github.com/bjlag/go-keeper/test/config"
+	"github.com/bjlag/go-keeper/test/infrastructure/config"
 	"github.com/bjlag/go-keeper/test/infrastructure/container"
 	"github.com/bjlag/go-keeper/test/infrastructure/fixture"
 	_ "github.com/bjlag/go-keeper/test/infrastructure/init"
+	"github.com/bjlag/go-keeper/test/infrastructure/server"
 )
 
 type TestSuite struct {
@@ -77,9 +71,17 @@ func (s *TestSuite) SetupSuite() {
 	s.Require().NoError(err)
 
 	// create grpc client
-	conn, err := grpc.NewClient("passthrough://bufnet", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer(ctx, db)))
+	jwt := auth.NewJWT(cfg.Auth.SecretKey, cfg.Auth.AccessTokenExp, cfg.Auth.RefreshTokenExp)
+	log := logger.Get(cfg.Env)
+
+	conn, err := grpc.NewClient(
+		"passthrough://bufnet",
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithContextDialer(server.Start(context.Background(), db, jwt, log)),
+	)
 	s.Require().NoError(err)
 
+	s.conn = conn
 	s.client = rpc.NewKeeperClient(conn)
 }
 
@@ -94,32 +96,6 @@ func (s *TestSuite) TearDownSuite() {
 
 	err = s.db.Close()
 	s.Require().NoError(err)
-}
-
-func dialer(ctx context.Context, db *sqlx.DB) func(context.Context, string) (net.Conn, error) {
-	listener := bufconn.Listen(1204 * 1024)
-
-	jwt := auth.NewJWT("secret", 15*time.Minute, 15*time.Minute)
-
-	userStore := user.NewStore(db)
-	ucLogin := login.NewUsecase(userStore, jwt)
-
-	server := server.NewRPCServer(
-		server.WithListener(listener),
-		server.WithLogger(logger.Get("test")),
-
-		server.WithHandler(server.LoginMethod, rpcLogin.New(ucLogin).Handle),
-	)
-
-	go func() {
-		if err := server.Start(ctx); err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	return func(context.Context, string) (net.Conn, error) {
-		return listener.Dial()
-	}
 }
 
 func (s *TestSuite) TestHandler_Handle() {

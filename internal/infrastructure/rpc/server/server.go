@@ -42,8 +42,7 @@ func (s RPCServer) Start(ctx context.Context) error {
 	const op = "server.rpc.Start"
 
 	s.log.Info("Starting gRPC server",
-		zap.String("host", s.host),
-		zap.Int("port", s.port),
+		zap.String("addr", s.listener.Addr().String()),
 	)
 
 	grpcServer := grpc.NewServer(

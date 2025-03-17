@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 
 	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
-	"github.com/bjlag/go-keeper/internal/infrastructure/db/pg"
 	"github.com/bjlag/go-keeper/internal/infrastructure/rpc/server"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/server/item"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/server/user"
@@ -32,37 +32,30 @@ import (
 )
 
 type App struct {
-	cfg Config
-	log *zap.Logger
+	db       *sqlx.DB
+	jwt      *auth.JWT
+	listener net.Listener
+	log      *zap.Logger
 }
 
-func NewApp(cfg Config, log *zap.Logger) *App {
+func NewApp(db *sqlx.DB, jwt *auth.JWT, listener net.Listener, log *zap.Logger) *App {
 	return &App{
-		cfg: cfg,
-		log: log,
+		db:       db,
+		jwt:      jwt,
+		listener: listener,
+		log:      log,
 	}
 }
 
 func (a *App) Run(ctx context.Context) error {
 	const op = "app.Run"
 
-	dbConf := a.cfg.Database
-	db, err := pg.New(pg.GetDSN(dbConf.Host, dbConf.Port, dbConf.Name, dbConf.User, dbConf.Password)).Connect()
-	if err != nil {
-		a.log.Error("Failed to get db connection", zap.Error(err))
-		return fmt.Errorf("%s: %w", op, err)
-	}
-	defer func() {
-		_ = db.Close()
-	}()
+	userStore := user.NewStore(a.db)
+	dataStore := item.NewStore(a.db)
 
-	userStore := user.NewStore(db)
-	dataStore := item.NewStore(db)
-	jwt := auth.NewJWT(a.cfg.Auth.SecretKey, a.cfg.Auth.AccessTokenExp, a.cfg.Auth.RefreshTokenExp)
-
-	ucRegister := register.NewUsecase(userStore, jwt)
-	ucLogin := login.NewUsecase(userStore, jwt)
-	ucRefreshTokens := rt.NewUsecase(userStore, jwt)
+	ucRegister := register.NewUsecase(userStore, a.jwt)
+	ucLogin := login.NewUsecase(userStore, a.jwt)
+	ucRefreshTokens := rt.NewUsecase(userStore, a.jwt)
 	ucCreateItem := create.NewUsecase(dataStore)
 	ucUpdateItem := update.NewUsecase(dataStore)
 	ucRemoveItem := remove.NewUsecase(dataStore)
@@ -71,14 +64,9 @@ func (a *App) Run(ctx context.Context) error {
 	ucGetByGUID := get_by_guid.NewUsecase(dataStore)
 	ucGetAllData := get_all.NewUsecase(dataStore)
 
-	listen, err := net.Listen("tcp", fmt.Sprintf("%s:%d", a.cfg.Address.Host, a.cfg.Address.Port))
-	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
-	}
-
 	s := server.NewRPCServer(
-		server.WithListener(listen),
-		server.WithJWT(jwt),
+		server.WithListener(a.listener),
+		server.WithJWT(a.jwt),
 		server.WithLogger(a.log),
 
 		server.WithHandler(server.RegisterMethod, rpcRegister.New(ucRegister).Handle),
@@ -91,8 +79,7 @@ func (a *App) Run(ctx context.Context) error {
 		server.WithHandler(server.DeleteItemMethod, rpcDeleteItem.New(ucRemoveItem).Handle),
 	)
 
-	err = s.Start(ctx)
-	if err != nil {
+	if err := s.Start(ctx); err != nil {
 		a.log.Error("Failed to start gRPC server", zap.Error(err))
 		return fmt.Errorf("%s: %w", op, err)
 	}

@@ -7,7 +7,9 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	logNative "log"
+	"net"
 	"os/signal"
 	"syscall"
 
@@ -15,6 +17,8 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/bjlag/go-keeper/internal/app/server"
+	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
+	"github.com/bjlag/go-keeper/internal/infrastructure/db/pg"
 	"github.com/bjlag/go-keeper/internal/infrastructure/logger"
 )
 
@@ -50,8 +54,25 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	defer cancel()
 
-	err := server.NewApp(cfg, log).Run(ctx)
+	dbCfg := cfg.Database
+	db, err := pg.New(pg.GetDSN(dbCfg.Host, dbCfg.Port, dbCfg.Name, dbCfg.User, dbCfg.Password)).Connect()
 	if err != nil {
+		log.Error("Failed to get db connection", zap.Error(err))
+		panic(err)
+	}
+	defer func() {
+		_ = db.Close()
+	}()
+
+	jwt := auth.NewJWT(cfg.Auth.SecretKey, cfg.Auth.AccessTokenExp, cfg.Auth.RefreshTokenExp)
+
+	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Address.Host, cfg.Address.Port))
+	if err != nil {
+		log.Error("Failed to listen", zap.Error(err))
+		panic(err)
+	}
+
+	if err = server.NewApp(db, jwt, listener, log).Run(ctx); err != nil {
 		panic(err)
 	}
 }

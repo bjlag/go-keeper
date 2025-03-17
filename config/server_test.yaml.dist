@@ -1,6 +1,13 @@
+env: test
+
 migration:
     sourcePath: "./migrations/server"
     table: "migrations"
+
+auth:
+    accessTokenExp: 5m
+    refreshTokenExp: 2h
+    secretKey: secret
 
 container:
     pg:
