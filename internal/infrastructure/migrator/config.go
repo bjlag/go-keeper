@@ -1,4 +1,4 @@
-package main
+package migrator
 
 // Config хранит конфигурацию мигратора.
 type Config struct {
@@ -12,7 +12,7 @@ type Config struct {
 	// Database настройки подключения к базе данной, к которой применяются миграции.
 	Database struct {
 		// Type тип базы данных: pg - PostgreSQL, sqlite - SQLite.
-		Type string `yaml:"type" env:"DB_TYPE" env-default:"pg" env-description:"Database type" json:"type"`
+		Type DBType `yaml:"type" env:"DB_TYPE" env-default:"pg" env-description:"Database type" json:"type"`
 		// Host хост базы.
 		Host string `yaml:"host" env:"DB_HOST" env-description:"Database host" json:"host"`
 		// Port порт базы.
