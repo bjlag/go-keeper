@@ -25,6 +25,11 @@ var (
 // При первом получении создается экземпляр логгера и кладется в глобальную переменную пакета.
 func Get(env string) *zap.Logger {
 	once.Do(func() {
+		if env == "test" {
+			logger = zap.NewNop()
+			return
+		}
+
 		var config zap.Config
 
 		if env == "prod" {
