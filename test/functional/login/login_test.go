@@ -7,7 +7,6 @@ import (
 	"github.com/bjlag/go-keeper/internal/infrastructure/db/pg"
 	"github.com/bjlag/go-keeper/internal/infrastructure/logger"
 	"github.com/bjlag/go-keeper/internal/infrastructure/migrator"
-	server2 "github.com/bjlag/go-keeper/internal/infrastructure/rpc/server"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/server/user"
 	rpcLogin "github.com/bjlag/go-keeper/internal/rpc/login"
 	"github.com/bjlag/go-keeper/internal/usecase/server/user/login"
@@ -21,11 +20,11 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 	"log"
 	"net"
-	"os"
-	"path"
-	"runtime"
 	"testing"
 	"time"
+
+	server2 "github.com/bjlag/go-keeper/internal/infrastructure/rpc/server"
+	_ "github.com/bjlag/go-keeper/test/util/init"
 )
 
 func dialer(ctx context.Context, db *sqlx.DB) func(context.Context, string) (net.Conn, error) {
@@ -99,14 +98,6 @@ func TestHandler_Handle(t *testing.T) {
 	defer func() {
 		_ = db.Close()
 	}()
-
-	_, filename, _, _ := runtime.Caller(0)
-	baseDir := path.Join(path.Dir(filename), "..", "..", "..")
-
-	err = os.Chdir(baseDir)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	m, err := migrator.Get(db, "pg", "master_test", "./migrations/server", "migrations")
 	if err != nil {
