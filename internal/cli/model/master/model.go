@@ -13,7 +13,6 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/message"
 	"github.com/bjlag/go-keeper/internal/cli/model/create"
 	listf "github.com/bjlag/go-keeper/internal/cli/model/list"
-	"github.com/bjlag/go-keeper/internal/cli/model/login"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 )
 
@@ -30,7 +29,6 @@ type Model struct {
 	pos      int
 	err      error
 
-	formLogin  *login.Model
 	formCreate *create.Model
 	formList   *listf.Model
 }
@@ -54,11 +52,7 @@ func InitModel(opts ...Option) *Model {
 }
 
 func (m *Model) Init() tea.Cmd {
-	return tea.Batch(
-		func() tea.Msg {
-			return message.OpenLoginMsg{}
-		},
-	)
+	return nil
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -112,15 +106,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.Update(nil)
 
 	// Forms
-	case message.OpenLoginMsg:
-		return m.formLogin.Update(msg)
 	case message.OpenCategoriesMsg:
 		return m.formList.Update(msg)
 	case message.OpenItemsMsg:
 		return m.formList.Update(msg)
 
 	// Success
-	case message.SuccessMsg:
+	case message.SuccessLoginMsg:
 		return m.Update(nil)
 	}
 

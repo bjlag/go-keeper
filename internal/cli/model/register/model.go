@@ -45,7 +45,7 @@ type Model struct {
 	usecaseMasterKey *master_key.Usecase
 }
 
-func InitModel(usecaseRegister *register.Usecase, usecaseMasterKey *master_key.Usecase) *Model {
+func InitModel(usecaseRegister *register.Usecase) *Model {
 	f := &Model{
 		help:   help.New(),
 		header: "Регистрация",
@@ -56,8 +56,8 @@ func InitModel(usecaseRegister *register.Usecase, usecaseMasterKey *master_key.U
 			posBackBtn:   button.CreateDefaultButton("Назад"),
 		},
 
-		usecaseRegister:  usecaseRegister,
-		usecaseMasterKey: usecaseMasterKey,
+		usecaseRegister: usecaseRegister,
+		//usecaseMasterKey: usecaseMasterKey,
 	}
 
 	for i := range f.elements {
@@ -245,15 +245,18 @@ func (f *Model) submit() (tea.Model, tea.Cmd) {
 		return f, nil
 	}
 
-	err = f.usecaseMasterKey.Do(context.TODO(), master_key.Data{
+	//err = f.usecaseMasterKey.Do(context.TODO(), master_key.Data{
+	//	Password: password.Value(),
+	//})
+	//if err != nil {
+	//	f.err = err
+	//	return f, nil
+	//}
+
+	return f.loginModel.Update(message.SuccessLoginMsg{
+		Email:    email.Value(),
 		Password: password.Value(),
 	})
-	if err != nil {
-		f.err = err
-		return f, nil
-	}
-
-	return f.loginModel.Update(message.SuccessMsg{})
 }
 
 func (f *Model) updateInputs(msg tea.Msg) tea.Cmd {

@@ -1,5 +1,9 @@
 env: dev
 
+migration:
+    sourcePath: "./migrations/client"
+    table: "migrations"
+
 server:
     host: localhost
     port: 8080
@@ -10,8 +14,5 @@ masterKey:
     length: 32
 
 database:
-    host: localhost
-    port: 5444
-    name: master
-    user: postgres
-    password: secret
+    dir: data
+    prefix: client

@@ -34,7 +34,6 @@ const (
 var errPasswordInvalid = common.NewFormError("Неверный email или пароль")
 
 type Model struct {
-	main     tea.Model
 	help     help.Model
 	header   string
 	elements []interface{}
@@ -45,9 +44,20 @@ type Model struct {
 
 	usecaseLogin     *login.Usecase
 	usecaseMasterKey *master_key.Usecase
+
+	userEmail    string
+	userPassword string
 }
 
-func InitModel(usecaseLogin *login.Usecase, usecaseMasterKey *master_key.Usecase, fromRegister tea.Model) *Model {
+func (f *Model) UserEmail() string {
+	return f.userEmail
+}
+
+func (f *Model) UserPass() string {
+	return f.userPassword
+}
+
+func InitModel(usecaseLogin *login.Usecase, fromRegister tea.Model) *Model {
 	f := &Model{
 		help:   help.New(),
 		header: "Авторизация",
@@ -61,8 +71,8 @@ func InitModel(usecaseLogin *login.Usecase, usecaseMasterKey *master_key.Usecase
 
 		fromRegister: fromRegister,
 
-		usecaseLogin:     usecaseLogin,
-		usecaseMasterKey: usecaseMasterKey,
+		usecaseLogin: usecaseLogin,
+		//usecaseMasterKey: usecaseMasterKey,
 	}
 
 	for i := range f.elements {
@@ -79,10 +89,6 @@ func InitModel(usecaseLogin *login.Usecase, usecaseMasterKey *master_key.Usecase
 	}
 
 	return f
-}
-
-func (f *Model) SetMainModel(m tea.Model) {
-	f.main = m
 }
 
 func (f *Model) Init() tea.Cmd {
@@ -105,8 +111,11 @@ func (f *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				f.elements[i] = e
 			}
 		}
-	case message.SuccessMsg:
-		return f.main.Update(msg)
+	case message.SuccessLoginMsg:
+		f.userEmail = msg.Email
+		f.userPassword = msg.Password
+
+		return f, tea.Quit
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, common.Keys.Quit):
@@ -260,15 +269,18 @@ func (f *Model) submit() (tea.Model, tea.Cmd) {
 		return f, nil
 	}
 
-	err = f.usecaseMasterKey.Do(context.TODO(), master_key.Data{
-		Password: password.Value(),
-	})
-	if err != nil {
-		f.err = err
-		return f, nil
-	}
+	f.userEmail = email.Value()
+	f.userPassword = password.Value()
 
-	return f.main.Update(message.SuccessMsg{})
+	//err = f.usecaseMasterKey.Do(context.TODO(), master_key.Data{
+	//	Password: password.Value(),
+	//})
+	//if err != nil {
+	//	f.err = err
+	//	return f, nil
+	//}
+
+	return f, tea.Quit
 }
 
 func (f *Model) updateInputs(msg tea.Msg) tea.Cmd {

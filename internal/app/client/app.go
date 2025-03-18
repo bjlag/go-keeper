@@ -3,9 +3,14 @@ package client
 
 import (
 	"context"
+	"crypto/md5"
+	"errors"
 	"fmt"
+	"path"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 
 	formCreate "github.com/bjlag/go-keeper/internal/cli/model/create"
@@ -22,6 +27,7 @@ import (
 	crypt "github.com/bjlag/go-keeper/internal/infrastructure/crypt/cipher"
 	"github.com/bjlag/go-keeper/internal/infrastructure/crypt/master_key"
 	"github.com/bjlag/go-keeper/internal/infrastructure/db/sqlite"
+	"github.com/bjlag/go-keeper/internal/infrastructure/migrator"
 	rpc "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
 	sItem "github.com/bjlag/go-keeper/internal/infrastructure/store/client/item"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/option"
@@ -51,24 +57,34 @@ func NewApp(cfg Config, log *zap.Logger) *App {
 func (a *App) Run(ctx context.Context) error {
 	const op = "app.Run"
 
-	storeTokens := token.NewStore()
+	tokens := token.NewStore()
 
-	rpcClient, err := rpc.NewRPCClient(a.cfg.Server.Host, a.cfg.Server.Port, storeTokens, a.log)
+	client, err := rpc.NewRPCClient(a.cfg.Server.Host, a.cfg.Server.Port, tokens, a.log)
 	if err != nil {
-		a.log.Error("failed to create rpc client", zap.Error(err))
+		a.log.Error("Failed to create rpc client", zap.Error(err))
 		return fmt.Errorf("%s:%w", op, err)
 	}
 	defer func() {
-		_ = rpcClient.Close()
+		_ = client.Close()
 	}()
 
-	// TODO базу создавать и подключаться после успешного логин
-	// TODO название файла базы должно быть уникальным под каждую учетку под которой авторизовались
-	db, err := sqlite.New("./client.db").Connect()
+	email, pass, err := a.login(client, tokens)
 	if err != nil {
-		a.log.Error("failed to open db", zap.Error(err))
-		return fmt.Errorf("%s: %w", op, err)
+		a.log.Error("Failed to login", zap.Error(err))
+		return fmt.Errorf("%s:%w", op, err)
 	}
+	if email == "" {
+		return nil
+	}
+
+	db, err := a.initDB(email)
+	if err != nil {
+		a.log.Error("Failed to init db", zap.Error(err))
+		return fmt.Errorf("%s:%w", op, err)
+	}
+	defer func() {
+		_ = db.Close()
+	}()
 
 	salter := master_key.NewSaltGenerator(a.cfg.MasterKey.SaltLength)
 	keymaker := master_key.NewKeyGenerator(a.cfg.MasterKey.IterCount, a.cfg.MasterKey.Length)
@@ -77,18 +93,20 @@ func (a *App) Run(ctx context.Context) error {
 	storeItem := sItem.NewStore(db)
 	storeOption := option.NewStore(db)
 
-	ucLogin := login.NewUsecase(rpcClient, storeTokens)
-	ucRegister := register.NewUsecase(rpcClient, storeTokens)
-	ucMasterKey := mkey.NewUsecase(storeTokens, storeOption, salter, keymaker)
-	ucSync := sync.NewUsecase(rpcClient, storeItem, storeTokens, cipher)
-	ucItemSync := itemSync.NewUsecase(rpcClient, storeItem, storeTokens, cipher)
-	ucCreateItem := create.NewUsecase(rpcClient, storeItem, storeTokens, cipher)
-	ucSaveItem := edit.NewUsecase(rpcClient, storeItem, storeTokens, cipher)
-	ucRemoveItem := remove.NewUsecase(rpcClient, storeItem)
+	ucMasterKey := mkey.NewUsecase(tokens, storeOption, salter, keymaker)
+	err = ucMasterKey.Do(ctx, mkey.Data{Password: pass})
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	ucSync := sync.NewUsecase(client, storeItem, tokens, cipher)
+	ucItemSync := itemSync.NewUsecase(client, storeItem, tokens, cipher)
+	ucCreateItem := create.NewUsecase(client, storeItem, tokens, cipher)
+	ucSaveItem := edit.NewUsecase(client, storeItem, tokens, cipher)
+	ucRemoveItem := remove.NewUsecase(client, storeItem)
 
 	fetchItem := item.NewFetcher(storeItem)
 
-	frmRegister := formRegister.InitModel(ucRegister, ucMasterKey)
 	frmSync := syncItem.InitModel(ucItemSync)
 	frmPasswordItem := password.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, frmSync)
 	frmTextItem := text.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, frmSync)
@@ -96,7 +114,6 @@ func (a *App) Run(ctx context.Context) error {
 	frmFileItem := file.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, frmSync)
 
 	m := master.InitModel(
-		master.WithLoginForm(formLogin.InitModel(ucLogin, ucMasterKey, frmRegister)),
 		master.WithCreatForm(formCreate.InitModel(frmPasswordItem, frmTextItem, frmBankCardItem, frmFileItem)),
 		master.WithListForm(list.InitModel(ucSync, fetchItem, frmPasswordItem, frmTextItem, frmBankCardItem, frmFileItem)),
 	)
@@ -115,4 +132,53 @@ func (a *App) Run(ctx context.Context) error {
 	}
 
 	return err
+}
+
+func (a *App) login(client *rpc.RPCClient, tokens *token.Store) (email string, pass string, err error) {
+	ucLogin := login.NewUsecase(client, tokens)
+	ucRegister := register.NewUsecase(client, tokens)
+
+	frmRegister := formRegister.InitModel(ucRegister)
+	frmLogin := formLogin.InitModel(ucLogin, frmRegister)
+
+	mLogin, err := tea.NewProgram(frmLogin, tea.WithAltScreen()).Run()
+	if err != nil {
+		a.log.Error("Failed to run cli program for login", zap.Error(err))
+		return
+	}
+
+	ml, ok := mLogin.(*formLogin.Model)
+	if !ok {
+		panic("failed to run model cli program")
+	}
+
+	email = ml.UserEmail()
+	pass = ml.UserPass()
+
+	return
+}
+
+func (a *App) initDB(email string) (db *sqlx.DB, err error) {
+	emailHash := md5.Sum([]byte(email)) //nolint:gosec
+	dbName := fmt.Sprintf("%s_%x.db", a.cfg.Database.Prefix, emailHash)
+	pathToDB := path.Join(a.cfg.Database.Dir, dbName)
+
+	db, err = sqlite.New(pathToDB).Connect()
+	if err != nil {
+		return
+	}
+
+	m, err := migrator.Get(db, migrator.TypeSqlite, "", a.cfg.Migration.SourcePath, a.cfg.Migration.Table)
+	if err != nil {
+		return
+	}
+
+	if err = m.Up(); err != nil {
+		if !errors.Is(err, migrate.ErrNoChange) {
+			return
+		}
+		err = nil
+	}
+
+	return
 }

@@ -17,8 +17,11 @@ type (
 		LoginModel tea.Model
 	}
 
-	// SuccessMsg вспомогательное сообщение, что какое-то событие выполнилось успешно, например, аутентификация.
-	SuccessMsg struct{}
+	// SuccessLoginMsg вспомогательное сообщение, что какое-то событие выполнилось успешно, например, аутентификация.
+	SuccessLoginMsg struct {
+		Email    string
+		Password string
+	}
 
 	// OpenCategoriesMsg сообщение используется для открытия списка категорий.
 	OpenCategoriesMsg struct{}

@@ -5,6 +5,14 @@ type Config struct {
 	// Env окружение.
 	Env string `yaml:"env" env:"ENV" env-default:"dev" env-description:"Environment" json:"env"`
 
+	// Migration настройки магратора.
+	Migration struct {
+		// SourcePath путь до файлов миграций.
+		SourcePath string `yaml:"sourcePath" env:"MIGRATION_SOURCE_PATH" env-description:"Path to migration source" json:"source_path"`
+		// Table название таблицы с примененными миграциями.
+		Table string `yaml:"table" env:"MIGRATION_TABLE" env-description:"Migration table" json:"table"`
+	} `yaml:"migration" json:"migration"`
+
 	// Server содержит настройки подключения к серверу.
 	Server struct {
 		// Host хост сервера.
@@ -25,15 +33,9 @@ type Config struct {
 
 	// Database настройки подключения к базе данных клиента.
 	Database struct {
-		// Host хост базы.
-		Host string `yaml:"host" env:"DB_HOST" env-description:"Database host" json:"host"`
-		// Port порт базы.
-		Port string `yaml:"port" env:"DB_PORT" env-description:"Database port" json:"port"`
-		// Name название базы данных.
-		Name string `yaml:"name" env:"DB_NAME" env-description:"Database name" json:"name"`
-		// User пользователь.
-		User string `yaml:"user" env:"DB_USER" env-description:"Database user" json:"user"`
-		// Password пароль.
-		Password string `yaml:"password" env:"DB_PASSWORD" env-description:"Database password" json:"password"`
+		// Dir директория, где будут лежать файлы БД.
+		Dir string `yaml:"dir" env:"DB_DIR" env-description:"Database directory" json:"dir"`
+		// Prefix префикс в названии файла базы данных.
+		Prefix string `yaml:"prefix" env:"DB_PREFIX" env-description:"Database prefix" json:"prefix"`
 	} `yaml:"database" json:"database"`
 }

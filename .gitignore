@@ -41,5 +41,4 @@ config/client_test.yaml
 *.log
 
 # client
-client.db
 __debug_bin*
