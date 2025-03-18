@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bjlag/go-keeper/internal/domain/server/data"
-	storeUser "github.com/bjlag/go-keeper/internal/infrastructure/store/server/user"
+	"github.com/bjlag/go-keeper/internal/infrastructure/store/server/item"
 )
 
 var ErrNoData = errors.New("no data")
@@ -27,7 +27,7 @@ func (u Usecase) Do(ctx context.Context, data Data) (*data.Item, error) {
 
 	model, err := u.dataStore.UserItemByGUID(ctx, data.UserGUID, data.GUID)
 	if err != nil {
-		if errors.Is(err, storeUser.ErrNotFound) {
+		if errors.Is(err, item.ErrNotFound) {
 			return nil, ErrNoData
 		}
 

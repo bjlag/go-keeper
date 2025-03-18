@@ -49,6 +49,8 @@ func (h *Handler) Handle(ctx context.Context, in *pb.GetByGuidIn) (*pb.GetByGuid
 			log.Error("Failed to get user item by guid", zap.Error(err))
 			return nil, status.Error(codes.Internal, "internal error")
 		}
+
+		return nil, status.Error(codes.NotFound, "item not found")
 	}
 
 	return &pb.GetByGuidOut{
