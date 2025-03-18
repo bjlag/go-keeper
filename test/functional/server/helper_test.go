@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc/metadata"
 
 	"github.com/bjlag/go-keeper/internal/generated/rpc"
+	"github.com/bjlag/go-keeper/test/functional/server"
 )
 
 func (s *TestSuite) login(ctx context.Context, email, password string) context.Context {
@@ -23,4 +24,18 @@ func (s *TestSuite) login(ctx context.Context, email, password string) context.C
 	md.Set("authorization", fmt.Sprintf("%s %s", "Bearer", out.GetAccessToken()))
 
 	return metadata.NewOutgoingContext(ctx, md)
+}
+
+func (s *TestSuite) getFromDBByGUID(ctx context.Context, guid string) server.Item {
+	query := `
+		SELECT guid, user_guid, encrypted_data, created_at, updated_at
+		FROM items
+		WHERE guid = $1
+	`
+
+	var row server.Item
+	err := s.db.GetContext(ctx, &row, query, guid)
+	s.Require().NoError(err)
+
+	return row
 }
