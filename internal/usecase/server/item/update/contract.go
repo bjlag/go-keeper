@@ -9,6 +9,6 @@ import (
 )
 
 type store interface {
-	ItemByGUID(ctx context.Context, guid uuid.UUID) (*model.Item, error)
+	UserItemByGUID(ctx context.Context, userGUID, itemGUID uuid.UUID) (*model.Item, error)
 	Update(ctx context.Context, guid uuid.UUID, userGUID uuid.UUID, updatedData model.UpdatedItem) error
 }

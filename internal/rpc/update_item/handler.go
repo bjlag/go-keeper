@@ -51,10 +51,10 @@ func (h *Handler) Handle(ctx context.Context, in *pb.UpdateItemIn) (*pb.UpdateIt
 	})
 	if err != nil {
 		if errors.Is(err, update.ErrConflict) {
-			return nil, status.Error(codes.FailedPrecondition, "data outdated")
+			return nil, status.Error(codes.FailedPrecondition, "item is outdated")
 		}
 
-		if errors.Is(err, update.ErrNotFoundUpdatedData) {
+		if errors.Is(err, update.ErrItemNotFound) {
 			return nil, status.Error(codes.NotFound, "item not found")
 		}
 
