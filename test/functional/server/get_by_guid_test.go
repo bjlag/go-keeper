@@ -2,10 +2,8 @@ package server_test
 
 import (
 	"context"
-	"fmt"
 
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
 	"github.com/bjlag/go-keeper/internal/generated/rpc"
@@ -14,25 +12,13 @@ import (
 )
 
 func (s *TestSuite) TestGetByGUID() {
-
 	err := fixture.Load(s.db, "test/fixture/server")
 	s.Require().NoError(err)
 
 	s.Run("success", func() {
-		ctx := context.Background()
-		loginOut, err := s.client.Login(ctx, &rpc.LoginIn{
-			Email:    "test@test.ru",
-			Password: "12345678",
-		})
-		s.Require().NoError(err)
+		ctx := s.login(context.Background(), "test@test.ru", "12345678")
 
-		md, ok := metadata.FromOutgoingContext(ctx)
-		if !ok {
-			md = metadata.New(nil)
-		}
-		md.Set("authorization", fmt.Sprintf("%s %s", "Bearer", loginOut.GetAccessToken()))
-
-		getByGUIDOut, err := s.client.GetByGuid(metadata.NewOutgoingContext(ctx, md), &rpc.GetByGuidIn{
+		getByGUIDOut, err := s.client.GetByGuid(ctx, &rpc.GetByGuidIn{
 			Guid: "60308368-7729-4d2d-a510-67926f5a159b",
 		})
 		s.Require().NoError(err)
@@ -40,20 +26,9 @@ func (s *TestSuite) TestGetByGUID() {
 	})
 
 	s.Run("not found", func() {
-		ctx := context.Background()
-		loginOut, err := s.client.Login(ctx, &rpc.LoginIn{
-			Email:    "test@test.ru",
-			Password: "12345678",
-		})
-		s.Require().NoError(err)
+		ctx := s.login(context.Background(), "test@test.ru", "12345678")
 
-		md, ok := metadata.FromOutgoingContext(ctx)
-		if !ok {
-			md = metadata.New(nil)
-		}
-		md.Set("authorization", fmt.Sprintf("%s %s", "Bearer", loginOut.GetAccessToken()))
-
-		getByGUIDOut, err := s.client.GetByGuid(metadata.NewOutgoingContext(ctx, md), &rpc.GetByGuidIn{
+		getByGUIDOut, err := s.client.GetByGuid(ctx, &rpc.GetByGuidIn{
 			Guid: "00000000-0000-0000-0000-000000000000",
 		})
 
@@ -65,20 +40,9 @@ func (s *TestSuite) TestGetByGUID() {
 	})
 
 	s.Run("not found if item belongs to other user", func() {
-		ctx := context.Background()
-		loginOut, err := s.client.Login(ctx, &rpc.LoginIn{
-			Email:    "test@test.ru",
-			Password: "12345678",
-		})
-		s.Require().NoError(err)
+		ctx := s.login(context.Background(), "test@test.ru", "12345678")
 
-		md, ok := metadata.FromOutgoingContext(ctx)
-		if !ok {
-			md = metadata.New(nil)
-		}
-		md.Set("authorization", fmt.Sprintf("%s %s", "Bearer", loginOut.GetAccessToken()))
-
-		getByGUIDOut, err := s.client.GetByGuid(metadata.NewOutgoingContext(ctx, md), &rpc.GetByGuidIn{
+		getByGUIDOut, err := s.client.GetByGuid(ctx, &rpc.GetByGuidIn{
 			Guid: "d07f9605-0b8e-42f6-a07b-3e3f839a7bee",
 		})
 
