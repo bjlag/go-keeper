@@ -22,7 +22,7 @@ func (s *TestSuite) TestGetByGUID() {
 			Guid: "60308368-7729-4d2d-a510-67926f5a159b",
 		})
 		s.Require().NoError(err)
-		s.Assert().Equal("60308368-7729-4d2d-a510-67926f5a159b", getByGUIDOut.GetGuid())
+		s.Equal("60308368-7729-4d2d-a510-67926f5a159b", getByGUIDOut.GetGuid())
 	})
 
 	s.Run("not found", func() {

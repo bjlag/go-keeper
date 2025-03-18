@@ -20,7 +20,7 @@ func (s *TestSuite) TestGetAllItems() {
 
 		getAllItemsOut, err := s.client.GetAllItems(ctx, &rpc.GetAllItemsIn{})
 		s.Require().NoError(err)
-		s.Assert().Len(getAllItemsOut.GetItems(), 4)
+		s.Len(getAllItemsOut.GetItems(), 4)
 	})
 
 	s.Run("success limit offset", func() {
@@ -31,18 +31,18 @@ func (s *TestSuite) TestGetAllItems() {
 			Limit:  2,
 		})
 		s.Require().NoError(err)
-		s.Assert().Len(getAllItemsOut1.GetItems(), 2)
-		s.Assert().Equal(getAllItemsOut1.GetItems()[0].GetGuid(), "127e1a2d-1943-4fb1-ba60-7dc4fc820ed4")
-		s.Assert().Equal(getAllItemsOut1.GetItems()[1].GetGuid(), "60308368-7729-4d2d-a510-67926f5a159b")
+		s.Len(getAllItemsOut1.GetItems(), 2)
+		s.Equal(getAllItemsOut1.GetItems()[0].GetGuid(), "127e1a2d-1943-4fb1-ba60-7dc4fc820ed4")
+		s.Equal(getAllItemsOut1.GetItems()[1].GetGuid(), "60308368-7729-4d2d-a510-67926f5a159b")
 
 		getAllItemsOut2, err := s.client.GetAllItems(ctx, &rpc.GetAllItemsIn{
 			Offset: 2,
 			Limit:  2,
 		})
 		s.Require().NoError(err)
-		s.Assert().Len(getAllItemsOut2.GetItems(), 2)
-		s.Assert().Equal(getAllItemsOut2.GetItems()[0].GetGuid(), "6e7fc4fa-31aa-4d75-8b6e-0479122e0147")
-		s.Assert().Equal(getAllItemsOut2.GetItems()[1].GetGuid(), "b2bd09eb-2c84-4149-b2b8-29040472264a")
+		s.Len(getAllItemsOut2.GetItems(), 2)
+		s.Equal(getAllItemsOut2.GetItems()[0].GetGuid(), "6e7fc4fa-31aa-4d75-8b6e-0479122e0147")
+		s.Equal(getAllItemsOut2.GetItems()[1].GetGuid(), "b2bd09eb-2c84-4149-b2b8-29040472264a")
 	})
 
 	s.Run("permission denied", func() {
