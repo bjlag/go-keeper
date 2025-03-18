@@ -39,3 +39,17 @@ func (s *TestSuite) getFromDBByGUID(ctx context.Context, guid string) server.Ite
 
 	return row
 }
+
+func (s *TestSuite) getAllFromDBByUserGUID(ctx context.Context, guid string) []server.Item {
+	query := `
+		SELECT guid, user_guid, encrypted_data, created_at, updated_at
+		FROM items
+		WHERE user_guid = $1
+	`
+
+	var rows []server.Item
+	err := s.db.SelectContext(ctx, &rows, query, guid)
+	s.Require().NoError(err)
+
+	return rows
+}
