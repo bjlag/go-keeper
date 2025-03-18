@@ -12,12 +12,11 @@ import (
 )
 
 func (s *TestSuite) TestRegister() {
-	ctx := context.Background()
-
 	err := fixture.Load(s.db, "test/fixture/server")
 	s.Require().NoError(err)
 
 	s.Run("success", func() {
+		ctx := context.Background()
 		out, err := s.client.Register(ctx, &rpc.RegisterIn{
 			Email:    "new@test.ru",
 			Password: "12345678",
@@ -29,6 +28,7 @@ func (s *TestSuite) TestRegister() {
 	})
 
 	s.Run("already exists", func() {
+		ctx := context.Background()
 		out, err := s.client.Register(ctx, &rpc.RegisterIn{
 			Email:    "test@test.ru",
 			Password: "12345678",
@@ -44,6 +44,7 @@ func (s *TestSuite) TestRegister() {
 	})
 
 	s.Run("invalid email", func() {
+		ctx := context.Background()
 		out, err := s.client.Register(ctx, &rpc.RegisterIn{
 			Email:    "test@test",
 			Password: "12345678",
@@ -59,6 +60,7 @@ func (s *TestSuite) TestRegister() {
 	})
 
 	s.Run("invalid password", func() {
+		ctx := context.Background()
 		out, err := s.client.Register(ctx, &rpc.RegisterIn{
 			Email:    "test@test.ru",
 			Password: "1234567",

@@ -12,12 +12,11 @@ import (
 )
 
 func (s *TestSuite) TestLogin() {
-	ctx := context.Background()
-
-	err := fixture.Load(s.db, "test/fixture")
+	err := fixture.Load(s.db, "test/fixture/server")
 	s.Require().NoError(err)
 
 	s.Run("success", func() {
+		ctx := context.Background()
 		out, err := s.client.Login(ctx, &rpc.LoginIn{
 			Email:    "test@test.ru",
 			Password: "12345678",
@@ -29,6 +28,7 @@ func (s *TestSuite) TestLogin() {
 	})
 
 	s.Run("wrong credentials", func() {
+		ctx := context.Background()
 		out, err := s.client.Login(ctx, &rpc.LoginIn{
 			Email:    "test@test.ru",
 			Password: "1111111",
@@ -44,6 +44,7 @@ func (s *TestSuite) TestLogin() {
 	})
 
 	s.Run("empty body", func() {
+		ctx := context.Background()
 		out, err := s.client.Login(ctx, &rpc.LoginIn{})
 
 		st, ok := status.FromError(err)
@@ -56,6 +57,7 @@ func (s *TestSuite) TestLogin() {
 	})
 
 	s.Run("wrong email", func() {
+		ctx := context.Background()
 		out, err := s.client.Login(ctx, &rpc.LoginIn{
 			Email:    "test@test",
 			Password: "12345678",
@@ -71,6 +73,7 @@ func (s *TestSuite) TestLogin() {
 	})
 
 	s.Run("wrong password", func() {
+		ctx := context.Background()
 		out, err := s.client.Login(ctx, &rpc.LoginIn{
 			Email:    "test@test.ru",
 			Password: "",
