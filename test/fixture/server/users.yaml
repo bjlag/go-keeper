@@ -1,0 +1,11 @@
+-   guid: bf4e6232-f1ae-41da-8535-73048891b1e3
+    email: test@test.ru
+    password_hash: $2a$04$OxrD4jeA4SrmsnQOdYH4iu1dfsydv36kbBsmQSXZBDtDTca6Vef2K # 12345678
+    created_at: 2025-03-15 13:00:00
+    updated_at: 2025-03-15 13:00:00
+
+-   guid: 67ff83b7-d199-4014-9c59-ad1e77340d9f
+    email: other@user.ru
+    password_hash: $2a$04$OxrD4jeA4SrmsnQOdYH4iu1dfsydv36kbBsmQSXZBDtDTca6Vef2K # 12345678
+    created_at: 2025-03-13 13:00:00
+    updated_at: 2025-03-13 13:00:00

@@ -1,0 +1,18 @@
+env: dev
+
+migration:
+    sourcePath: "./migrations/client"
+    table: "migrations"
+
+server:
+    host: localhost
+    port: 8080
+
+masterKey:
+    saltLength: 16
+    iterCount: 100000
+    length: 32
+
+database:
+    dir: data
+    prefix: client

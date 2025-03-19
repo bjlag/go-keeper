@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+package keeper;
+
+option go_package = "internal/generated/rpc";
+
+service Keeper {
+  // auth
+  rpc Register(RegisterIn) returns (RegisterOut);
+  rpc Login(LoginIn) returns (LoginOut);
+  rpc RefreshTokens(RefreshTokensIn) returns (RefreshTokensOut);
+
+  // data
+  rpc GetByGuid(GetByGuidIn) returns (GetByGuidOut);
+  rpc GetAllItems(GetAllItemsIn) returns (GetAllItemsOut);
+  rpc CreateItem(CreateItemIn) returns (google.protobuf.Empty);
+  rpc UpdateItem(UpdateItemIn) returns (UpdateItemOut);
+  rpc DeleteItem(DeleteItemIn) returns (google.protobuf.Empty);
+}
+
+// auth
+message RegisterIn {
+  string email = 1;
+  string password = 2;
+}
+
+message RegisterOut {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+message LoginIn {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginOut {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+message RefreshTokensIn {
+  string refresh_token = 1;
+}
+
+message RefreshTokensOut {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+// data
+message GetByGuidIn {
+  string guid = 1;
+}
+
+message GetByGuidOut {
+  string guid = 1;
+  bytes encryptedData = 2;
+  google.protobuf.Timestamp CreatedAt = 3;
+  google.protobuf.Timestamp UpdatedAt = 4;
+}
+
+message GetAllItemsIn {
+  uint32 limit = 1;
+  uint32 offset = 2;
+}
+
+message GetAllItemsOut {
+  repeated Item items = 1;
+}
+
+message Item {
+  string guid = 1;
+  bytes encryptedData = 2;
+  google.protobuf.Timestamp CreatedAt = 3;
+  google.protobuf.Timestamp UpdatedAt = 4;
+}
+
+message CreateItemIn {
+  string guid = 1;
+  bytes encryptedData = 2;
+  google.protobuf.Timestamp CreatedAt = 3;
+}
+
+message UpdateItemIn {
+  string guid = 1;
+  bytes encryptedData = 2;
+  int64 version = 3;
+}
+
+message UpdateItemOut {
+  int64 newVersion = 1;
+}
+
+message DeleteItemIn {
+  string guid = 1;
+}

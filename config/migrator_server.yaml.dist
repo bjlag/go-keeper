@@ -1,0 +1,12 @@
+env: dev
+
+sourcePath: "./migrations/server"
+migrationsTable: "migrations"
+
+database:
+    type: pg
+    host: localhost
+    port: 5444
+    name: master
+    user: postgres
+    password: secret

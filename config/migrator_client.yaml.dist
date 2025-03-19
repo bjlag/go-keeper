@@ -1,0 +1,12 @@
+env: dev
+
+sourcePath: "./migrations/client"
+migrationsTable: "migrations"
+
+database:
+    type: sqlite
+    host: localhost
+    port: 5444
+    name: master
+    user: postgres
+    password: secret

@@ -1,0 +1,56 @@
+linters:
+    enable-all: true
+    disable:
+        - nlreturn
+        - varnamelen
+        - wsl
+        - perfsprint
+        - depguard
+        - forbidigo
+        - exhaustruct
+        - tenv
+        - tagalign
+        - nosprintfhostport
+        - lll
+        - loggercheck
+        - paralleltest
+        - tagliatelle
+        - gochecknoglobals
+        - nonamedreturns
+        - wrapcheck
+        - gocognit
+        - cyclop
+        - exhaustive
+        - funlen
+        - nilnil
+        - mnd
+        - godox
+        - gocyclo
+        - gochecknoinits
+
+linters-settings:
+    revive:
+        rules:
+            - name: var-naming
+              arguments:
+                  - ["ID"]
+                  - ["VM"]
+                  - - skipPackageNameChecks: true
+
+    stylecheck:
+        checks: ["all", "-ST1003"]
+
+    gci:
+        sections:
+            - standard # Standard lib
+            - default # External dependencies
+            - prefix(github.com/bjlag/go-keeper) # Internal packages
+
+    ireturn:
+        allow:
+            - anon
+            - error
+            - empty
+            - stdlib
+            - github\.com\/charmbracelet\/bubbletea\.Model
+            - github\.com\/golang-migrate\/migrate\/v4\/database\.Driver

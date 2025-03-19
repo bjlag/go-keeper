@@ -14,9 +14,13 @@
 
 # Binaries
 cmd/client/main
-cmd/client/agent
+cmd/client/client_darwin_amd64
+cmd/client/client_linux_amd64
+cmd/client/client_windows_amd64
 cmd/server/main
 cmd/server/server
+cmd/migrator/main
+cmd/migrator/migrator
 
 # Dependency directories (remove the comment below to include it)
 vendor/
@@ -25,5 +29,16 @@ vendor/
 .idea
 .vscode
 
-# Data
-data/
+# Configs
+config/migrator_client.yaml
+config/migrator_server.yaml
+config/server.yaml
+config/server_test.yaml
+config/client.yaml
+config/client_test.yaml
+
+# log
+*.log
+
+# client
+__debug_bin*
