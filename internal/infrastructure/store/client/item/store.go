@@ -107,7 +107,6 @@ func (s *Store) DeleteItem(ctx context.Context, guid uuid.UUID) error {
 
 // SaveItems сохраняет несколько элементов.
 func (s *Store) SaveItems(ctx context.Context, items []model.RawItem) error {
-	// todo пределать на модель model.Item
 	const op = prefixOp + "SaveItems"
 
 	tx, err := s.db.BeginTx(ctx, nil)
@@ -162,4 +161,37 @@ func (s *Store) ItemsByCategory(ctx context.Context, category model.Category) ([
 	}
 
 	return toModels(rows), nil
+}
+
+func (s *Store) Items(ctx context.Context, limit, offset int64) ([]model.RawItem, error) {
+	const op = prefixOp + "Items"
+
+	query := `
+		SELECT guid, category_id, title, value, notes, created_at, updated_at
+		FROM items
+		LIMIT $1 OFFSET $2;
+	`
+
+	var rows []row
+	err := s.db.SelectContext(ctx, &rows, query, limit, offset)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return toModels(rows), nil
+}
+
+func (s *Store) EraseItems(ctx context.Context) error {
+	const op = prefixOp + "EraseItems"
+
+	query := `DELETE FROM items;`
+
+	if _, err := s.db.ExecContext(ctx, query); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
 }

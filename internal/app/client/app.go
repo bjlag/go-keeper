@@ -29,9 +29,11 @@ import (
 	"github.com/bjlag/go-keeper/internal/infrastructure/db/sqlite"
 	"github.com/bjlag/go-keeper/internal/infrastructure/migrator"
 	rpc "github.com/bjlag/go-keeper/internal/infrastructure/rpc/client"
+	backups "github.com/bjlag/go-keeper/internal/infrastructure/store/client/backup"
 	sItem "github.com/bjlag/go-keeper/internal/infrastructure/store/client/item"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/option"
 	"github.com/bjlag/go-keeper/internal/infrastructure/store/client/token"
+	"github.com/bjlag/go-keeper/internal/usecase/client/backup"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/create"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/edit"
 	"github.com/bjlag/go-keeper/internal/usecase/client/item/remove"
@@ -39,6 +41,7 @@ import (
 	"github.com/bjlag/go-keeper/internal/usecase/client/login"
 	mkey "github.com/bjlag/go-keeper/internal/usecase/client/master_key"
 	"github.com/bjlag/go-keeper/internal/usecase/client/register"
+	"github.com/bjlag/go-keeper/internal/usecase/client/restore"
 	"github.com/bjlag/go-keeper/internal/usecase/client/sync"
 )
 
@@ -92,6 +95,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	storeItem := sItem.NewStore(db)
 	storeOption := option.NewStore(db)
+	storeBackup := backups.NewStore(db)
 
 	ucMasterKey := mkey.NewUsecase(tokens, storeOption, salter, keymaker)
 	err = ucMasterKey.Do(ctx, mkey.Data{Password: pass})
@@ -104,6 +108,8 @@ func (a *App) Run(ctx context.Context) error {
 	ucCreateItem := create.NewUsecase(client, storeItem, tokens, cipher)
 	ucSaveItem := edit.NewUsecase(client, storeItem, tokens, cipher)
 	ucRemoveItem := remove.NewUsecase(client, storeItem)
+	ucBackup := backup.NewUsecase(storeItem, tokens, storeBackup, cipher)
+	ucRestore := restore.NewUsecase(storeItem, tokens, storeBackup, cipher)
 
 	fetchItem := item.NewFetcher(storeItem)
 
@@ -113,17 +119,20 @@ func (a *App) Run(ctx context.Context) error {
 	frmBankCardItem := bank_card.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, frmSync)
 	frmFileItem := file.InitModel(ucCreateItem, ucSaveItem, ucRemoveItem, frmSync)
 
+	err = ucRestore.Do(ctx)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
 	m := master.InitModel(
 		master.WithCreatForm(formCreate.InitModel(frmPasswordItem, frmTextItem, frmBankCardItem, frmFileItem)),
 		master.WithListForm(list.InitModel(ucSync, fetchItem, frmPasswordItem, frmTextItem, frmBankCardItem, frmFileItem)),
 	)
-
-	f, err := tea.LogToFile("debug.log", "debug")
-	if err != nil {
-		panic(err)
-	}
 	defer func() {
-		_ = f.Close()
+		err = ucBackup.Do(ctx)
+		if err != nil {
+			a.log.Error("Failed to backup", zap.Error(err))
+		}
 	}()
 
 	_, err = tea.NewProgram(m, tea.WithAltScreen(), tea.WithContext(ctx)).Run()
