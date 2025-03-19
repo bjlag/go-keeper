@@ -1,22 +1,15 @@
 package server
 
 import (
-	"go.uber.org/zap"
 	"net"
+
+	"go.uber.org/zap"
 
 	"github.com/bjlag/go-keeper/internal/infrastructure/auth"
 )
 
 // Option тип параметра сервера.
 type Option func(*RPCServer)
-
-// WithAddress передача адреса сервера.
-func WithAddress(host string, port int) Option {
-	return func(s *RPCServer) {
-		s.host = host
-		s.port = port
-	}
-}
 
 // WithListener передача сетевого прослушивателя сервера.
 func WithListener(listener net.Listener) Option {

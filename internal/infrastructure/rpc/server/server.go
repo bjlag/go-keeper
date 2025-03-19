@@ -18,8 +18,6 @@ import (
 type RPCServer struct {
 	pb.UnimplementedKeeperServer
 
-	host     string
-	port     int
 	listener net.Listener
 	handlers map[string]any
 	jwt      *auth.JWT

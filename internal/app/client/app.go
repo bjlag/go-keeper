@@ -3,7 +3,7 @@ package client
 
 import (
 	"context"
-	"crypto/md5"
+	"crypto/md5" //nolint:gosec
 	"errors"
 	"fmt"
 	"path"

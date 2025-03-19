@@ -10,6 +10,7 @@ import (
 	"github.com/bjlag/go-keeper/test/functional/server"
 )
 
+//nolint:unparam
 func (s *TestSuite) login(ctx context.Context, email, password string) context.Context {
 	out, err := s.client.Login(ctx, &rpc.LoginIn{
 		Email:    email,

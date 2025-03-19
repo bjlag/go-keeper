@@ -2,11 +2,13 @@ package server_test
 
 import (
 	"context"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/bjlag/go-keeper/internal/generated/rpc"
 	"github.com/bjlag/go-keeper/test/infrastructure/fixture"
 	_ "github.com/bjlag/go-keeper/test/infrastructure/init"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 func (s *TestSuite) TestDeleteItem() {

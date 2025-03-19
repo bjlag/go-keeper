@@ -19,7 +19,6 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/message"
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/infrastructure/validator"
-	"github.com/bjlag/go-keeper/internal/usecase/client/master_key"
 	"github.com/bjlag/go-keeper/internal/usecase/client/register"
 )
 
@@ -39,10 +38,8 @@ type Model struct {
 	pos      int
 	err      error
 
-	loginModel tea.Model
-
-	usecaseRegister  *register.Usecase
-	usecaseMasterKey *master_key.Usecase
+	loginModel      tea.Model
+	usecaseRegister *register.Usecase
 }
 
 func InitModel(usecaseRegister *register.Usecase) *Model {
@@ -57,7 +54,6 @@ func InitModel(usecaseRegister *register.Usecase) *Model {
 		},
 
 		usecaseRegister: usecaseRegister,
-		//usecaseMasterKey: usecaseMasterKey,
 	}
 
 	for i := range f.elements {
@@ -244,14 +240,6 @@ func (f *Model) submit() (tea.Model, tea.Cmd) {
 		f.err = err
 		return f, nil
 	}
-
-	//err = f.usecaseMasterKey.Do(context.TODO(), master_key.Data{
-	//	Password: password.Value(),
-	//})
-	//if err != nil {
-	//	f.err = err
-	//	return f, nil
-	//}
 
 	return f.loginModel.Update(message.SuccessLoginMsg{
 		Email:    email.Value(),

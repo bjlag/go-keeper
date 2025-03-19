@@ -11,7 +11,6 @@ import (
 	"flag"
 	"fmt"
 	logNative "log"
-	"os"
 	"os/signal"
 	"syscall"
 
@@ -48,7 +47,7 @@ func main() {
 
 	if viewVersion {
 		fmt.Printf("Version: %s\nBuild: %s\n", buildVersion, buildDate)
-		os.Exit(0)
+		return
 	}
 
 	var cfg client.Config

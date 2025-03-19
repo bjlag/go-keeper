@@ -20,7 +20,6 @@ import (
 	"github.com/bjlag/go-keeper/internal/cli/style"
 	"github.com/bjlag/go-keeper/internal/infrastructure/validator"
 	"github.com/bjlag/go-keeper/internal/usecase/client/login"
-	"github.com/bjlag/go-keeper/internal/usecase/client/master_key"
 )
 
 const (
@@ -41,9 +40,7 @@ type Model struct {
 	err      error
 
 	fromRegister tea.Model
-
-	usecaseLogin     *login.Usecase
-	usecaseMasterKey *master_key.Usecase
+	usecaseLogin *login.Usecase
 
 	userEmail    string
 	userPassword string
@@ -70,9 +67,7 @@ func InitModel(usecaseLogin *login.Usecase, fromRegister tea.Model) *Model {
 		},
 
 		fromRegister: fromRegister,
-
 		usecaseLogin: usecaseLogin,
-		//usecaseMasterKey: usecaseMasterKey,
 	}
 
 	for i := range f.elements {
@@ -271,14 +266,6 @@ func (f *Model) submit() (tea.Model, tea.Cmd) {
 
 	f.userEmail = email.Value()
 	f.userPassword = password.Value()
-
-	//err = f.usecaseMasterKey.Do(context.TODO(), master_key.Data{
-	//	Password: password.Value(),
-	//})
-	//if err != nil {
-	//	f.err = err
-	//	return f, nil
-	//}
 
 	return f, tea.Quit
 }

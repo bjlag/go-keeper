@@ -1,8 +1,9 @@
 package backup
 
 import (
-	"github.com/bjlag/go-keeper/internal/domain/client"
 	"github.com/google/uuid"
+
+	"github.com/bjlag/go-keeper/internal/domain/client"
 )
 
 type row struct {
